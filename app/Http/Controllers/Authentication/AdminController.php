@@ -16,25 +16,33 @@ class AdminController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register', 'checkEmail']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register']]);
     }
-        public function me()
+    public function me()
     {
         return response()->json(Auth::user());
     }
 
     public function login()
     {
-        $credentials = request(['email', 'password']);
+        $credentials = request(['NID', 'password']);
 
-        $user = Admin::where('email', request('email'))->first();
+        $user = Admin::where('NID', request('NID'))->first();
 
         if (!$user || $user->status !== 'success') {
-            return response()->json(['error' => !$user ? 'Email atau password salah' : 'Tolong registrasi kembali'], !$user ? 404 : 403);
+            return response()->json(['error' => !$user ? 'NID atau password salah' : 'Tolong registrasi kembali'], !$user ? 404 : 403);
         }
 
         if (!$token = Auth::attempt($credentials)) {
-            return response()->json(['error' => 'Email atau password salah'], 401);
+            return response()->json(['error' => 'NID atau password salah'], 401);
+        }
+        if ($user->password_changed_at) {
+            $passwordAgeInDays = now()->diffInDays($user->password_changed_at);
+            if ($passwordAgeInDays >= 90) {
+                return response()->json([
+                    'error' => 'Password Anda sudah kedaluwarsa. Harap ganti password tiap 3 bulan. Hubungi kontak Ibu Linda Aqnes'
+                ], 423);
+            }
         }
 
         return $this->respondWithToken($token);
@@ -43,65 +51,42 @@ class AdminController extends Controller
     public function register(Request $request): JsonResponse
     {
         $messages = [
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email sudah terdaftar.',
-            'email.dns' => 'Domain email tidak valid.',
+            'NID.required' => 'NID wajib diisi.',
+            'NID.unique' => 'NID sudah terdaftar.',
+            'NID.size' => 'NID harus terdiri dari 10 karakter.',
+            'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 8 karakter.',
+            'tingkatan_otoritas.in' => 'Tingkatan otoritas tidak valid.',
         ];
 
         $validator = Validator::make($request->all(), [
-            'nama_lengkap' => 'required|string|max:255',
-            'email' => 'required|email:rfc,dns|unique:admin,email|max:255',
+            'NID' => 'required|size:10|unique:admin,NID',
             'password' => 'required|min:8',
-            'posisi' => 'required|string',
-            'foto_ktp' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'foto_profil' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120'
+            'tingkatan_otoritas' => 'nullable|in:1,2,3,4,5',
+            'password_changed_at' => now(),
         ], $messages);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        DB::beginTransaction();
         try {
-            $pathFK = $request->file('foto_ktp')->store('KTP', 'public');
-            $pathFP = $request->file('foto_profil')->store('Photo-Profile', 'public');
-
             $user = Admin::create([
-                'nama_lengkap' => $request->nama_lengkap,
-                'email' => $request->email,
+                'NID' => $request->NID,
                 'password' => Hash::make($request->password),
-                'status' => 'pending',
-                'posisi' => $request->posisi,
-                'foto_ktp' => $pathFK,
-                'foto_profil' => $pathFP,
+                'tingkatan_otoritas' => 1, // Default to level 1
+                'access' => 'pending',
+                'password_changed_at' => now(),
             ]);
-
-            return response()->json([
-                'message' => 'Pendaftaran berhasil',
-                'user' => $user,
-            ], 201);
+            DB::commit();
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Pendaftaran gagal',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function checkEmail(Request $request)
-    {
-        $user = Admin::where('email', $request->email)->first();
-
-        if ($user) {
-            return response()->json([
-                'message' => 'Tolong pakai email lain',
-                'data' => $user,
-            ], 404);
+            DB::rollBack();
+            Log::error('Registration failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Registration failed'], 500);
         }
 
-        return response()->json([
-            'message' => 'Email tersedia',
-        ], 200);
+        return $this->respondWithToken(Auth::login($user));
     }
 
 

@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('password');
             $table->unsignedBigInteger('id_penempatan_fk');
             $table->enum('tingkatan_otoritas', ['user', 'user_review', 'admin', 'superadmin', 'anggaran']);
+            $table->enum('access', ['pending', 'active', 'inactive'])->default('pending');
+            $table->timestamp('password_changed_at')->nullable();
             $table->timestamps();
 
             $table->foreign('id_penempatan_fk')->references('id')->on('penempatan');
