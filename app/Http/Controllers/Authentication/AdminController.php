@@ -80,13 +80,17 @@ class AdminController extends Controller
                 'password_changed_at' => now(),
             ]);
             DB::commit();
+            return $this->respond()->json([
+                'status' => 'success',
+                'message' => 'Registration successful',
+                'token' => $this->respondWithToken(Auth::guard('api')->login($user)),
+                'user' => $user
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Registration failed: ' . $e->getMessage());
             return response()->json(['error' => 'Registration failed'], 500);
         }
-
-        return $this->respondWithToken(Auth::login($user));
     }
 
 

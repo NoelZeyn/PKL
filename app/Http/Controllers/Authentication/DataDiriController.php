@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Authentication;
 
 use App\Http\Controllers\Controller;
+use App\Models\DataDiri;
 use Illuminate\Http\Request;
 
 class DataDiriController extends Controller
@@ -12,7 +13,19 @@ class DataDiriController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $dataDiri = DataDiri::all();
+            return response()->json([
+                'status' => 'success',
+                'data' => $dataDiri
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve data',
+                'error' => $th->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -20,7 +33,26 @@ class DataDiriController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $validated = $request->validate([
+                'id_admin_user_fk' => 'required|exists:admin_users,id',
+                'nama_lengkap' => 'required|string|max:255',
+                'jabatan' => 'required|string|max:255',
+                'bpjs' => 'nullable|string|max:255',
+            ]);
+
+            $dataDiri = DataDiri::create($validated);
+            return response()->json([
+                'status' => 'success',
+                'data' => $dataDiri
+            ], 201);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create data',
+                'error' => $th->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -28,7 +60,19 @@ class DataDiriController extends Controller
      */
     public function show(string $id)
     {
-        //
+        try {
+            $dataDiri = DataDiri::findOrFail($id);
+            return response()->json([
+                'status' => 'success',
+                'data' => $dataDiri
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data not found',
+                'error' => $th->getMessage()
+            ], 404);
+        }
     }
 
     /**
@@ -36,7 +80,26 @@ class DataDiriController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $dataDiri = DataDiri::findOrFail($id);
+            $validated = $request->validate([
+                'nama_lengkap' => 'sometimes|required|string|max:255',
+                'jabatan' => 'sometimes|required|string|max:255',
+                'bpjs' => 'sometimes|nullable|string|max:255',
+            ]);
+
+            $dataDiri->update($validated);
+            return response()->json([
+                'status' => 'success',
+                'data' => $dataDiri
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update data',
+                'error' => $th->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -44,6 +107,19 @@ class DataDiriController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $dataDiri = DataDiri::findOrFail($id);
+            $dataDiri->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data deleted successfully'
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete data',
+                'error' => $th->getMessage()
+            ], 500);
+        }
     }
 }
