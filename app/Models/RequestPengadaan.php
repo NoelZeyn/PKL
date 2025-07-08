@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class RequestPengadaan extends Model
+{
+    use HasFactory;
+
+    protected $table = 'request';
+    protected $primaryKey = 'id_request';
+
+    protected $fillable = [
+        'id_inventoris_fk',
+        'id_users_fk',
+        'tanggal_permintaan',
+        'status',
+        'jumlah',
+        'total'
+    ];
+
+    public function alat()
+    {
+        return $this->belongsTo(Alat::class, 'id_inventoris_fk');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(Admin::class, 'id_users_fk');
+    }
+
+    public function approvals()
+    {
+        return $this->hasMany(Approval::class, 'id_request_fk');
+    }
+
+    public function pengadaan()
+    {
+        return $this->hasOne(Pengadaan::class, 'id_request_fk');
+    }
+}

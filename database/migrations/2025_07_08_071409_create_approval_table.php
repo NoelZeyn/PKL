@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up()
+    {
+        Schema::create('approval', function (Blueprint $table) {
+            $table->id('id_approval');
+            $table->unsignedBigInteger('id_request_fk');
+            $table->unsignedBigInteger('id_admin_fk');
+            $table->integer('level_approval'); // 1, 2, 3
+            $table->enum('status', ['approved', 'rejected', 'pending']);
+            $table->date('tanggal');
+            $table->text('catatan')->nullable();
+            $table->timestamps();
+
+            $table->foreign('id_request_fk')->references('id_request')->on('request');
+            $table->foreign('id_admin_fk')->references('id')->on('admin');
+        });
+    }
+
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('approval');
+    }
+};
