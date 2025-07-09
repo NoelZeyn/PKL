@@ -37,6 +37,24 @@
                             <span>Manajemen Akun</span>
                         </li>
                     </router-link>
+                    <router-link v-if="role === 'superadmin'" to="/manajemen-approval-2" class="block">
+                        <li :class="menuClass('manajemenApproval2')">
+                            <img src="@/assets/profil.svg" class="w-5" alt="Approval 2" />
+                            <span>Manajemen Approval Level 2</span>
+                        </li>
+                    </router-link>
+                    <router-link v-if="role === 'admin'" to="/manajemen-approval-1" class="block">
+                        <li :class="menuClass('manajemenApproval1')">
+                            <img src="@/assets/profil.svg" class="w-5" alt="Approval 1" />
+                            <span>Manajemen Approval Level 1</span>
+                        </li>
+                    </router-link>
+                    <router-link v-if="role === 'anggaran'" to="/manajemen-approval-anggaran" class="block">
+                        <li :class="menuClass('manajemenApprovalAnggaran')">
+                            <img src="@/assets/profil.svg" class="w-5" alt="Approval anggaran" />
+                            <span>Manajemen Approval Anggaran</span>
+                        </li>
+                    </router-link>
                     <router-link v-if="role !== 'user_review'" to="/manajemen-alat" class="block">
                         <li :class="menuClass('manajemenAlat')" @click="setActive('manajemenAlat')">
                             <img src="@/assets/laporan1.svg" class="w-5" alt="Iaporan" />
@@ -47,6 +65,12 @@
                         <li :class="menuClass('pengajuan')" @click="setActive('pengajuan')">
                             <img src="@/assets/laporan1.svg" class="w-5" alt="pengajuan" />
                             <span>Pengajuan ATK</span>
+                        </li>
+                    </router-link>
+                    <router-link v-if="role === 'superadmin' || role==='user_review'" to="/grafik" class="block">
+                        <li :class="menuClass('grafik')" @click="setActive('grafik')">
+                            <img src="@/assets/laporan1.svg" class="w-5" alt="grafik" />
+                            <span>Grafik ATK</span>
                         </li>
                     </router-link>
                 </ul>

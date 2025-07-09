@@ -57,7 +57,7 @@ export default {
   components: { Sidebar, HeaderBar },
   data() {
     return {
-      activeMenu: "manajemenPengajuan",
+      activeMenu: "pengajuan",
       alatList: [],
       hargaSatuan: 0,
       formData: {

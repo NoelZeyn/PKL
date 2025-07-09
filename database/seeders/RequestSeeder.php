@@ -23,7 +23,7 @@ class RequestSeeder extends Seeder
             return;
         }
 
-        $statuses = ['draft', 'waiting_approval_1', 'approved_1', 'waiting_approval_2', 'approved_2', 'rejected'];
+        $statuses = ['draft', 'waiting_approval_1', 'waiting_approval_2','waiting_approval_3', 'approved', 'rejected'];
 
         for ($i = 0; $i < 10; $i++) {
             DB::table('request')->insert([

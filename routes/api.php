@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Authentication\AccountController;
 use App\Http\Controllers\Authentication\AdminController;
+use App\Http\Controllers\Authentication\ApprovalController;
 use App\Http\Controllers\Inventoris\AlatController;
 use App\Http\Controllers\Inventoris\HistoryPemakaianController;
 use App\Http\Controllers\Penempatan\PenempatanController;
@@ -42,6 +43,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::put('alat/{id}', [AlatController::class, 'update']);
     Route::delete('alat/{id}', [AlatController::class, 'destroy'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
     Route::apiResource('history_pemakaian', HistoryPemakaianController::class);
+    Route::get('approval2', [ApprovalController::class, 'approval2']);
+    Route::put('editApproval2/{id}', [ApprovalController::class, 'editApproval2']);
 });
 
 Route::group(['middleware' => 'auth:api'], function () {

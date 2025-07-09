@@ -2,7 +2,7 @@
     <div class="flex h-screen bg-gray-100">
         <Sidebar :activeMenu="activeMenu" @update:activeMenu="updateActiveMenu" />
         <div class="flex-1 p-8 pt-4 bg-white">
-            <HeaderBar title="Data Pengajuan" class="mt-3" />
+            <HeaderBar title="Data List Pengajuan Level 2" class="mt-3" />
             <div class="my-4 border-b border-gray-300"></div>
 
             <div class="pb-12">
@@ -19,13 +19,8 @@
                 <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
                     <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
                         <h3 class="text-sm font-semibold text-gray-900">
-                            Data List Pengajuan
+                            Data List Pengajuan Level 2
                         </h3>
-
-                        <router-link to="/pengajuan-add"
-                            class="text-sm font-semibold text-[#074a5d] no-underline hover:text-[#0066cc] hover:no-underline">
-                            Tambah Pengajuan
-                        </router-link>
                     </div>
 
                     <table class="w-full table-fixed border-collapse border border-gray-300">
@@ -39,6 +34,7 @@
                                 <th class="w-22 border">Jumlah</th>
                                 <th class="w-22 p-3 border">Harga Satuan</th>
                                 <th class="p-3 border">Total</th>
+                                <th class="p-3 border">Decision</th>
                                 <th class="p-3 border">Aksi</th>
                             </tr>
                         </thead>
@@ -84,23 +80,28 @@
                                     {{ formatRupiah(request.total) }}
                                 </td>
                                 <td class="p-3">
-                                    <div class="flex items-center space-x-2 justify-center">
-                                        <button title="Informasi" @click="navigateTo('info', request)"
-                                            v-if="tingkatanOtoritas !== 'user_review'"
-                                            class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
-                                            <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
+                                    <div v-if="tingkatanOtoritas !== 'user_review'"
+                                        class="flex items-center justify-center space-x-2">
+                                        <button @click="approveRequest(request)" title="Setujui"
+                                            class="bg-green-500 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base shadow">
+                                            ✔
                                         </button>
-                                        <!-- <button title="Edit" @click="navigateTo('edit', request)"
-                                            class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
-                                            <img :src="updateIcon" alt="Update" class="w-5 h-5 object-contain" />
-                                        </button> -->
-                                        <button title="Hapus" @click="confirmDelete(request)"
-                                            v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'">
-                                            <img :src="deleteIcon" alt="Delete"
-                                                class="cursor-pointer hover:opacity-70" />
+                                        <button @click="rejectRequest(request)" title="Tolak"
+                                            class="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base shadow">
+                                            ✖
                                         </button>
                                     </div>
                                 </td>
+
+                                <td class="p-3">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <button v-if="tingkatanOtoritas !== 'user_review'" title="Informasi"
+                                            @click="navigateTo('info', request)" class="hover:opacity-70">
+                                            <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
+                                        </button>
+                                    </div>
+                                </td>
+
                             </tr>
                         </tbody>
                     </table>
@@ -194,6 +195,46 @@ export default {
     },
 
     methods: {
+        async approveRequest(request) {
+            await this.updateApproval(request, 'waiting_approval_3');
+        },
+
+        async rejectRequest(request) {
+            await this.updateApproval(request, 'rejected');
+        },
+
+        async updateApproval(request, newStatus) {
+            try {
+                const token = localStorage.getItem("token");
+                const resUser = await axios.post("http://localhost:8000/api/me", {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const NID = resUser.data.NID;
+
+                const payload = {
+                    id_inventoris_fk: request.id_inventoris_fk,
+                    NID: NID,
+                    jumlah: request.jumlah,
+                    tanggal_permintaan: request.tanggal_permintaan,
+                    status: newStatus,
+                    total: request.total,
+                };
+
+                await axios.put(`http://localhost:8000/api/editApproval2/${request.id_request}`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                this.successMessage = (newStatus === 'waiting_approval_3') ? 'Pengajuan berhasil disetujui!' : 'Pengajuan berhasil ditolak!';
+                this.showSuccessAlert = true;
+                setTimeout(() => (this.showSuccessAlert = false), 2000);
+                this.fetchRequest();
+
+            } catch (err) {
+                console.error('Gagal memperbarui pengajuan:', err);
+            }
+        },
+
         async getUserInfo() {
             try {
                 const token = localStorage.getItem("token");
@@ -224,7 +265,7 @@ export default {
             try {
                 const token = localStorage.getItem("token");
                 const res = await axios.get(
-                    "http://localhost:8000/api/request",
+                    "http://localhost:8000/api/approval2",
                     {
                         headers: { Authorization: `Bearer ${token}` },
                     }

@@ -108,7 +108,7 @@ export default {
     },
     data() {
         return {
-            activeMenu: "manajemenPengajuan",
+            activeMenu: "pengajuan",
             kategoriList: [],
             formData: {
                 NID: "",
@@ -148,9 +148,9 @@ export default {
             const map = {
                 draft: 'bg-yellow-200 text-yellow-800',
                 waiting_approval_1: 'bg-yellow-200 text-yellow-800',
-                approved_1: 'bg-green-200 text-green-800',
                 waiting_approval_2: 'bg-yellow-200 text-yellow-800',
-                approved_2: 'bg-green-200 text-green-800',
+                waiting_approval_3: 'bg-yellow-200 text-yellow-800',
+                approved: 'bg-green-200 text-green-800',
                 rejected: 'bg-red-200 text-red-800',
             };
             return map[status] || 'bg-gray-200 text-gray-800';
@@ -160,11 +160,9 @@ export default {
             const map = {
                 draft: 'Draft',
                 waiting_approval_1: 'Approval 1',
-                approved_1: 'Disetujui 1',
                 waiting_approval_2: 'Approval 2',
-                approved_2: 'Disetujui 2',
                 waiting_approval_3: 'Approval 3',
-                approved_3: 'Disetujui 3',
+                approved: 'Disetujui',
                 rejected: 'Ditolak',
             };
             return map[status] || status;

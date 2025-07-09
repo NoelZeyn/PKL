@@ -44,7 +44,7 @@ class RequestController extends Controller
                 'NID' => 'required|exists:admin,NID',
                 'jumlah' => 'required|integer|min:1',
                 'tanggal_permintaan' => 'required|date',
-                'status' => 'required|in:draft,waiting_approval_1,approved_1,waiting_approval_2,approved_2,rejected',
+                'status' => 'required|in:draft,waiting_approval_1,waiting_approval_2,waiting_approval_3,approved,rejected',
                 'total' => 'required|integer|min:0',
             ]);
 
@@ -108,7 +108,7 @@ class RequestController extends Controller
                 'NID' => 'required|exists:admin,NID',
                 'jumlah' => 'required|integer|min:1',
                 'tanggal_permintaan' => 'required|date',
-                'status' => 'required|in:draft,waiting_approval_1,approved_1,waiting_approval_2,approved_2,rejected',
+                'status' => 'required|in:draft,waiting_approval_2,waiting_approval_3,approved,rejected',
                 'total' => 'required|integer|min:0',
             ]);
 
