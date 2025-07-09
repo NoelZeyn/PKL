@@ -60,10 +60,15 @@
                         <input type="text" :value="formData.jumlah ?? '-'" disabled
                             class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
                     </div>
-
+                    
                     <div class="flex items-center gap-5">
                         <label class="min-w-[150px] font-semibold text-sm text-black">Total Harga</label>
                         <input type="text" :value="formatRupiah(formData.total)" disabled
+                        class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
+                    </div>
+                    <div class="flex items-center gap-5">
+                        <label class="min-w-[150px] font-semibold text-sm text-black">Status Diperbarui Oleh</label>
+                        <input type="text" :value="formData.status_by ?? '-'" disabled
                             class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
                     </div>
 
@@ -117,6 +122,7 @@ export default {
                 harga_estimasi: "",
                 tanggal_permintaan: "",
                 status: "",
+                status_by: "",
                 jumlah: "",
                 total: "",
             },
@@ -157,6 +163,8 @@ export default {
                 approved_1: 'Disetujui 1',
                 waiting_approval_2: 'Approval 2',
                 approved_2: 'Disetujui 2',
+                waiting_approval_3: 'Approval 3',
+                approved_3: 'Disetujui 3',
                 rejected: 'Ditolak',
             };
             return map[status] || status;

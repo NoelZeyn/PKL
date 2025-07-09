@@ -37,7 +37,7 @@
                                 <th class="p-3 w-28 border">Tgl Permintaan</th>
                                 <th class="p-3 border">Status</th>
                                 <th class="w-22 border">Jumlah</th>
-                                <th class="w-20 p-3 border">Harga Satuan</th>
+                                <th class="w-22 p-3 border">Harga Satuan</th>
                                 <th class="p-3 border">Total</th>
                                 <th class="p-3 border">Aksi</th>
                             </tr>

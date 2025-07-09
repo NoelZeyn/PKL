@@ -112,7 +112,8 @@ class RequestController extends Controller
                 'total' => 'required|integer|min:0',
             ]);
 
-            $admin = Admin::where('NID', $validate['NID'])->firstOrFail();
+            $admin = Admin::with('dataDiri')->where('NID', $validate['NID'])->firstOrFail();
+            $namaLengkap = $admin->dataDiri ? $admin->dataDiri->nama_lengkap : 'Unknown User';
             $pengajuan = RequestPengadaan::findOrFail($id);
 
             $pengajuan->update([
@@ -122,6 +123,7 @@ class RequestController extends Controller
                 'tanggal_permintaan' => $validate['tanggal_permintaan'],
                 'status' => $validate['status'],
                 'total' => $validate['total'],
+                'status_by' => $validate['status'] . ' by ' . $namaLengkap,
             ]);
 
             return response()->json([

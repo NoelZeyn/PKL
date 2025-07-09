@@ -6,15 +6,27 @@
             <div class="my-4 border-b border-gray-300"></div>
 
             <div class="pb-12">
-                <div class="filters space-y-4">
-                    <div class="relative">
+                <div class="filters flex flex-wrap gap-4 mb-4">
+                    <!-- Search Input -->
+                    <div class="relative flex-1 min-w-[200px]">
                         <input type="text" v-model="searchQuery" @input="onInputSearch"
                             placeholder="Cari Nama Barang..."
                             class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm text-gray-700" />
                         <img src="@/assets/search.svg" alt="Search"
                             class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     </div>
+
+                    <!-- Filter Rekomendasi -->
+                    <div class="relative flex-1 min-w-[200px]">
+                        <select v-model="rekomendasiFilter"
+                            class="w-full border border-gray-300 rounded-md py-2 pl-3 pr-4 text-sm text-gray-700">
+                            <option value="">Semua Rekomendasi</option>
+                            <option value="perlu">Perlu Pengajuan</option>
+                            <option value="aman">Aman</option>
+                        </select>
+                    </div>
                 </div>
+
 
                 <!-- Tabel Data -->
                 <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
@@ -128,6 +140,7 @@ export default {
             searchQuery: "",
             showModal: false,
             showSuccessAlert: false,
+            rekomendasiFilter: "",
             successMessage: "",
             alatToDelete: null,
 
@@ -142,15 +155,24 @@ export default {
     },
 
     computed: {
-        filteredAlatList() {
-            return this.alatList
-                .filter(a =>
-                    !this.searchQuery ||
-                    a.nama_barang.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                    (a.keterangan && a.keterangan.toLowerCase().includes(this.searchQuery.toLowerCase()))
-                )
-                .sort((a, b) => a.stock - b.stock);  // Urutkan stock naik
-        },
+filteredAlatList() {
+  return this.alatList
+    .filter(a => {
+      const searchMatch = !this.searchQuery ||
+        a.nama_barang.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        (a.keterangan && a.keterangan.toLowerCase().includes(this.searchQuery.toLowerCase()));
+
+      const rekomendasiMatch =
+        !this.rekomendasiFilter ||
+        (this.rekomendasiFilter === 'perlu' && a.stock <= a.stock_min) ||
+        (this.rekomendasiFilter === 'aman' && a.stock > a.stock_min);
+
+      return searchMatch && rekomendasiMatch;
+    })
+    .sort((a, b) => a.stock - b.stock);
+},
+
+
         paginatedAlatList() {
             const start = (this.currentPage - 1) * this.itemsPerPage;
             return this.filteredAlatList.slice(start, start + this.itemsPerPage);
