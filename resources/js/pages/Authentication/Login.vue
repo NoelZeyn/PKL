@@ -91,7 +91,7 @@
 </template>
 
 <script>
-import mosqueBackground from "@/assets/mosque-background.png";
+import mosqueBackground from "@/assets/PLN.svg";
 import axios from "axios";
 import logoImage from "@/assets/PLN.svg";
 import eyeIcon from "@/assets/eye.svg";

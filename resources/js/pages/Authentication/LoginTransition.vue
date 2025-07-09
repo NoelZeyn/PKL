@@ -1,11 +1,13 @@
 <template>
   <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
     <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full text-center">
-      <h1 class="text-2xl font-bold text-[#08607a] mb-4">Proses Login...</h1>
+      <h1 class="text-2xl font-bold text-[#08607a] mb-4">
+        {{ loadingMessage }}
+      </h1>
       <p class="text-gray-500 text-sm mb-6">
         Mohon tunggu sebentar, kami sedang memeriksa status akun Anda.
       </p>
-      <div class="w-12 h-12 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+      <div v-if="isLoading" class="w-12 h-12 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
     </div>
   </div>
 </template>
@@ -15,76 +17,72 @@ import axios from "axios";
 
 export default {
   name: "LoginTransition",
+  data() {
+    return {
+      isLoading: true,
+      loadingMessage: 'Proses Login...'
+    };
+  },
   mounted() {
     this.checkStatus();
   },
   methods: {
-async checkStatus() {
-  try {
-    const apiUrl = import.meta.env.VITE_APP_URL || "http://localhost:8000/api";
-    const token = localStorage.getItem("token");
+    async checkStatus() {
+      try {
+        const apiUrl = import.meta.env.VITE_APP_URL || "http://localhost:8000/api";
+        const token = localStorage.getItem("token");
 
-    // console.log("Token:", token);
+        if (!token) {
+          this.$router.push('/login');
+          return;
+        }
 
-    if (!token) {
-      console.log("Token kosong, kembali ke login");
-      this.$router.push('/login');
-      return;
-    }
+        const response = await axios.post(`${apiUrl}/me`, {}, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-    const { data: user } = await axios.post(`${apiUrl}/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+        const user = response.data;
+        localStorage.setItem('user', JSON.stringify(user));
 
-    // console.log("User data:", user);
+        const access = user.access;
+        const role = user.tingkatan_otoritas;
 
-    localStorage.setItem('user', JSON.stringify(user));
+        if (access === 'pending') {
+          this.$router.push('/pending-access');
+        } else if (access === 'inactive') {
+          this.$router.push('/inactive');
+        } else if (access === 'active') {
+          this.loadingMessage = 'Akses Ditemukan. Mengalihkan...';
 
-    const access = user.access;
-    const role = user.tingkatan_otoritas;
+          setTimeout(() => {
+            switch (role) {
+              case 'superadmin':
+              case 'admin':
+              case 'user':
+              case 'user_review':
+              case 'anggaran':
+                this.$router.push('/dashboard');
+                break;
+              default:
+                this.$router.push('/dashboard');
+                break;
+            }
+          }, 1500); // Hanya 1,5 detik biar tetap smooth
 
-    // console.log("Access:", access);
-    // console.log("Role:", role);
+        } else {
+          this.$router.push('/login');
+        }
 
-    if (access === 'pending') {
-      this.$router.push('/pending-access');
-    } else if (access === 'inactive') {
-      this.$router.push('/inactive');
-    } else if (access === 'active') {
-      switch (role) {
-        case 'superadmin':
-          this.$router.push('/dashboard');
-          break;
-        case 'admin':
-          this.$router.push('/dashboard');
-          break;
-        case 'user':
-          this.$router.push('/dashboard');
-          break;
-        case 'user_review':
-          this.$router.push('/dashboard');
-          break;
-        case 'anggaran':
-          this.$router.push('/dashboard');
-          break;
-        default:
-          console.log("Unknown role, ke dashboard umum");
-          this.$router.push('/dashboard');
+      } catch (error) {
+        console.error("Gagal ambil status:", error.response?.data || error.message);
+        this.$router.push('/login');
+      } finally {
+        this.isLoading = false;
       }
-    } else {
-      console.log("Access tidak dikenali, kembali ke login");
-      this.$router.push('/login');
     }
-
-  } catch (error) {
-    console.error("Gagal ambil status:", error.response?.data || error.message);
-    this.$router.push('/login');
   }
-}
-
-  },
 };
 </script>
 

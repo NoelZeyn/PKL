@@ -28,10 +28,15 @@
           <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
             <h3 class="text-sm font-semibold text-gray-900">Data ATK</h3>
 
-            <button @click="downloadExcel"
-              class="text-sm font-semibold text-[#074a5d] hover:text-[#0066cc] cursor-pointer">
-              Download Excel
-            </button>
+  <button @click="downloadExcel"
+    class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200 cursor-pointer">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+      stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+    </svg>
+    Download Excel
+  </button>
           </div>
 
           <table class="w-full table-fixed border-collapse border border-gray-300">
@@ -71,11 +76,9 @@
           </div>
         </div>
       </div>
+      
     </div>
 
-    <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
-    <ModalConfirm :visible="showModal" title="Konfirmasi Hapus Data"
-      message="Apakah Anda yakin ingin menghapus data ini?" @cancel="cancelDelete" @confirm="deleteAlat" />
   </div>
 </template>
 

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('jumlah');
             $table->integer('total');
             $table->string('status_by')->nullable();
+            $table->string('keterangan')->nullable();
             $table->timestamps();
 
             $table->foreign('id_inventoris_fk')->references('id_alat')->on('alat');

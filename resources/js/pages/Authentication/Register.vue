@@ -131,7 +131,7 @@
 
 <script>
 import axios from "axios";
-import mosqueBackground from "@/assets/mosque-background.png";
+import mosqueBackground from "@/assets/PLN.svg";
 import eyeIcon from "@/assets/eye.svg";
 import eyeOffIcon from "@/assets/eye-off.svg";
 import logoImage from "@/assets/PLN.svg";

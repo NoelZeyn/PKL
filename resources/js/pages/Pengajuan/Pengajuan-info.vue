@@ -67,6 +67,11 @@
                         class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
                     </div>
                     <div class="flex items-center gap-5">
+                        <label class="min-w-[150px] font-semibold text-sm text-black">Keterangan</label>
+                        <input type="text" :value="formData.keterangan" disabled
+                        class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
+                    </div>
+                    <div class="flex items-center gap-5">
                         <label class="min-w-[150px] font-semibold text-sm text-black">Status Diperbarui Oleh</label>
                         <input type="text" :value="formData.status_by ?? '-'" disabled
                             class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
@@ -122,6 +127,7 @@ export default {
                 harga_estimasi: "",
                 tanggal_permintaan: "",
                 status: "",
+                keterangan: "",
                 status_by: "",
                 jumlah: "",
                 total: "",

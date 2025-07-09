@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Request; // Pastikan modelnya sudah ada
+use App\Models\Request;
 use App\Models\Alat;
 use App\Models\Admin;
 use Faker\Factory as Faker;
@@ -15,24 +15,43 @@ class RequestSeeder extends Seeder
     {
         $faker = Faker::create();
 
-        $alatList = Alat::all()->pluck('id_alat')->toArray();
+        $alatList = Alat::all();
         $adminList = Admin::all()->pluck('id')->toArray();
 
-        if (empty($alatList) || empty($adminList)) {
+        if ($alatList->isEmpty() || empty($adminList)) {
             $this->command->warn('Seeder Request gagal: Tabel Alat atau Admin kosong.');
             return;
         }
+        $keteranganList = [
+            'Pengadaan rutin bulanan.',
+            'Stock habis, diperlukan pengadaan segera.',
+            'Permintaan untuk kebutuhan meeting internal.',
+            'Penggantian alat yang rusak.',
+            'Persiapan untuk kegiatan kantor mendatang.',
+            'Permintaan tambahan karena kebutuhan mendesak.',
+            'Penyediaan alat tulis untuk divisi baru.',
+            'Kebutuhan operasional harian.',
+            'Persediaan menipis, perlu restock.',
+            'Permintaan alat tulis untuk keperluan pelatihan.'
+        ];
 
-        $statuses = ['waiting_approval_1', 'waiting_approval_2','waiting_approval_3', 'approved', 'rejected'];
+        $statuses = ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'approved', 'rejected'];
 
         for ($i = 0; $i < 10; $i++) {
+            $alat = $alatList->random();
+            $jumlah = $faker->numberBetween(1, 50);
+            $hargaSatuan = $alat->harga_satuan ?? 0;
+            $total = $jumlah * $hargaSatuan;
+
             DB::table('request')->insert([
-                'id_inventoris_fk'   => $faker->randomElement($alatList),
+                'id_inventoris_fk'   => $alat->id_alat,
                 'id_users_fk'        => $faker->randomElement($adminList),
                 'tanggal_permintaan' => $faker->date(),
                 'status'             => $faker->randomElement($statuses),
-                'jumlah'             => $faker->numberBetween(1, 50),
-                'total'              => $faker->numberBetween(50000, 1000000),
+                'jumlah'             => $jumlah,
+                'total'              => $total,
+                'keterangan' => $faker->randomElement($keteranganList),
+
                 'created_at'         => now(),
                 'updated_at'         => now(),
             ]);

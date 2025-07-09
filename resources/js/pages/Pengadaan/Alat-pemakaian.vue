@@ -23,12 +23,19 @@
 
             <div class="flex items-center gap-5 mb-3">
               <label class="min-w-[150px] font-semibold text-sm text-black">Nama Barang</label>
-              <select v-model="item.id_alat" class="w-full p-2 border border-gray-300 rounded-lg text-sm cursor-pointer" required>
+              <select v-model="item.id_alat" @change="updateStock(index)"
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm cursor-pointer" required>
                 <option disabled value="">Pilih Barang</option>
                 <option v-for="alat in alatList" :key="alat.id_alat" :value="alat.id_alat">
                   {{ alat.nama_barang }}
                 </option>
               </select>
+            </div>
+
+            <div class="flex items-center gap-5 mb-3">
+              <label class="min-w-[150px] font-semibold text-sm text-black">Stock Sekarang</label>
+              <input type="text" :value="item.stock" placeholder="Stock Barang" disabled
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-500" />
             </div>
 
             <div class="flex items-center gap-5 mb-3">
@@ -67,6 +74,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import Sidebar from "@/components/Sidebar.vue";
 import HeaderBar from "@/components/HeaderBar.vue";
@@ -81,7 +89,7 @@ export default {
       activeMenu: "pemakaianAlat",
       alatList: [],
       formData: [
-        { NID: "", id_alat: "", jumlah: "", keterangan: "" }
+        { NID: "", id_alat: "", jumlah: "", keterangan: "", stock: "" }
       ],
       showSuccessAlert: false,
       successMessage: "",
@@ -100,10 +108,15 @@ export default {
       });
     },
     addForm() {
-      this.formData.push({ NID: "", id_alat: "", jumlah: "", keterangan: "" });
+      this.formData.push({ NID: "", id_alat: "", jumlah: "", keterangan: "", stock: "" });
     },
     removeForm(index) {
       this.formData.splice(index, 1);
+    },
+    updateStock(index) {
+      const selectedAlatId = this.formData[index].id_alat;
+      const selectedAlat = this.alatList.find(alat => alat.id_alat === selectedAlatId);
+      this.formData[index].stock = selectedAlat ? selectedAlat.stock : "";
     },
     async submitForm() {
       const token = localStorage.getItem("token");

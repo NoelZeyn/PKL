@@ -8,14 +8,10 @@
       <div class="pb-12">
         <div class="filters space-y-4">
           <div class="relative">
-            <input
-              type="text"
-              v-model="searchQuery"
-              @input="onInputSearch"
-              placeholder="Cari Barang atau Pemakai..."
-              class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm text-gray-700"
-            />
-            <img src="@/assets/search.svg" alt="Search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input type="text" v-model="searchQuery" @input="onInputSearch" placeholder="Cari Barang atau Pemakai..."
+              class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm text-gray-700" />
+            <img src="@/assets/search.svg" alt="Search"
+              class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
         </div>
 
@@ -23,10 +19,13 @@
           <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
             <h3 class="text-sm font-semibold text-gray-900">Data Pemakaian Alat</h3>
 
-            <button
-              @click="downloadExcel"
-              class="text-sm font-semibold text-[#074a5d] hover:text-[#0066cc]"
-            >
+            <button @click="downloadExcel"
+              class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200 cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+              </svg>
               Download Excel
             </button>
           </div>
@@ -58,9 +57,11 @@
           </table>
 
           <div class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
-            <button @click="prevPage" :disabled="currentPage === 1" class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
+            <button @click="prevPage" :disabled="currentPage === 1"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
             <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
-            <button @click="nextPage" :disabled="currentPage === totalPages" class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
+            <button @click="nextPage" :disabled="currentPage === totalPages"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
           </div>
         </div>
       </div>
@@ -139,7 +140,7 @@ export default {
     onInputSearch() {
       this.currentPage = 1;
     },
-        async downloadExcel() {
+    async downloadExcel() {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Laporan Pemakaian');
 
@@ -171,7 +172,8 @@ export default {
 </script>
 
 <style scoped>
-th, td {
+th,
+td {
   padding: 12px 16px;
   text-align: center;
   font-size: 14px;

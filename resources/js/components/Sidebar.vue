@@ -99,6 +99,12 @@
                             <span>History Approval ATK</span>
                         </li>
                     </router-link>
+                    <router-link v-if="role === 'superadmin' || role==='user_review'" to="/laporan-pengajuan" class="block">
+                        <li :class="menuClass('laporanPengajuan')" @click="setActive('laporanPengajuan')">
+                            <img src="@/assets/laporan1.svg" class="w-5" alt="laporanPengajuan" />
+                            <span>Laporan Pengajuan ATK</span>
+                        </li>
+                    </router-link>
                 </ul>
             </div>
             <div class="flex flex-col gap-2">

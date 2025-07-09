@@ -35,7 +35,12 @@
             <input type="text" :value="formatRupiah(formData.total)" disabled
               class="w-full p-2 border border-gray-300 rounded-lg text-sm bg-gray-100 text-gray-700" />
           </div>
-
+          <div class="flex items-center gap-5">
+            <label class="min-w-[150px] font-semibold text-sm text-black">Keterangan</label>
+            <input type="text" v-model="formData.keterangan" @input="hitungTotal"
+              class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
+          </div>
+          <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
           <div class="flex justify-between items-center mt-6">
             <button @click="submitForm"
               class="bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition cursor-pointer">
@@ -50,11 +55,12 @@
 <script>
 import Sidebar from "@/components/Sidebar.vue";
 import HeaderBar from "@/components/HeaderBar.vue";
+import SuccessAlert from "@/components/SuccessAlert.vue";
 import axios from "axios";
 
 export default {
   name: "FormPengajuanBaru",
-  components: { Sidebar, HeaderBar },
+  components: { Sidebar, HeaderBar, SuccessAlert },
   data() {
     return {
       activeMenu: "pengajuan",
@@ -67,7 +73,10 @@ export default {
         total: 0,
         status: "waiting_approval_1",
         tanggal_permintaan: "", // akan diisi otomatis
+        keterangan: "",
       },
+      showSuccessAlert: false,
+      successMessage: "",
     };
   },
   mounted() {
@@ -105,9 +114,14 @@ export default {
             Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
+        }).then(() => {
+          this.successMessage = "Pengajuan berhasil disimpan.";
+          this.showSuccessAlert = true;
+          setTimeout(() => {
+            this.showSuccessAlert = false;
+            this.$router.push("/pengajuan");
+          }, 2500);
         });
-        alert("Pengajuan berhasil disimpan.");
-        this.$router.push("/pengajuan");
       } catch (error) {
         console.error(error);
         alert("Gagal menyimpan pengajuan.");
