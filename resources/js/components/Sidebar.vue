@@ -30,48 +30,20 @@
                             <img src="@/assets/dashboard.svg" class="w-5" alt="Dashboard" />
                             <span>Dashboard</span>
                         </li>
-                    </router-link>
-                    <router-link v-if="role === 'ss'" to="/feature" class="block">
-                        <li :class="menuClass('feature')">
-                            <img src="@/assets/data1.svg" class="w-5" alt="Feature" />
-                            <span>Feature</span>
-                        </li>
-                    </router-link>
-
-                    <router-link v-if="role === 'ss'" to="/inventaris-dashboard" class="block">
-                        <li :class="menuClass('inventaris')" @click="setActive('Inventaris')">
-                            <img src="@/assets/data1.svg" class="w-5" alt="acara" />
-                            <span>Inventaris</span>
-                        </li>
-                    </router-link>
-                    <router-link v-if="role === 'ss'" to="/acara-dashboard" class="block">
-                        <li :class="menuClass('acara')" @click="setActive('Acara')">
-                            <img src="@/assets/posko.svg" class="w-5" alt="acara" />
-                            <span>Acara</span>
-                        </li>
-                    </router-link>
-
-                    <router-link v-if="role === 'ss'" to="/keuangan" class="block">
-                        <li :class="menuClass('keuangan')">
-                            <img src="@/assets/data1.svg" class="w-5" alt="keuangan" />
-                            <span>Keuangan</span>
-                        </li>
-                    </router-link>
-
-                    
+                    </router-link>                    
                     <router-link v-if="role === 'superadmin'" to="/manajemen-akun" class="block">
                         <li :class="menuClass('manajemenAkun')">
                             <img src="@/assets/profil.svg" class="w-5" alt="Verifikasi" />
                             <span>Manajemen Akun</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role === 'superadmin'" to="/manajemen-alat" class="block">
+                    <router-link v-if="role !== 'user_review'" to="/manajemen-alat" class="block">
                         <li :class="menuClass('manajemenAlat')" @click="setActive('manajemenAlat')">
                             <img src="@/assets/laporan1.svg" class="w-5" alt="Iaporan" />
                             <span>Manajemen Alat</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role === 'superadmin'" to="/pengajuan" class="block">
+                    <router-link v-if="role !== 'user_review'" to="/pengajuan" class="block">
                         <li :class="menuClass('pengajuan')" @click="setActive('pengajuan')">
                             <img src="@/assets/laporan1.svg" class="w-5" alt="pengajuan" />
                             <span>Pengajuan ATK</span>

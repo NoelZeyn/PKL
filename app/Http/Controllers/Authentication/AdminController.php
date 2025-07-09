@@ -22,7 +22,6 @@ class AdminController extends Controller
     {
         return response()->json(Auth::user());
     }
-
     public function login()
     {
         $credentials = request(['NID', 'password']);

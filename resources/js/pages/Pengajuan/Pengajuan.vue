@@ -86,6 +86,7 @@
                                 <td class="p-3">
                                     <div class="flex items-center space-x-2 justify-center">
                                         <button title="Informasi" @click="navigateTo('info', request)"
+                                            v-if="tingkatanOtoritas !== 'user_review'"
                                             class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
                                             <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
                                         </button>
@@ -93,8 +94,10 @@
                                             class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
                                             <img :src="updateIcon" alt="Update" class="w-5 h-5 object-contain" />
                                         </button> -->
-                                        <button title="Hapus" @click="confirmDelete(request)">
-                                            <img :src="deleteIcon" alt="Delete" class="cursor-pointer hover:opacity-70" />
+                                        <button title="Hapus" @click="confirmDelete(request)"
+                                            v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'">
+                                            <img :src="deleteIcon" alt="Delete"
+                                                class="cursor-pointer hover:opacity-70" />
                                         </button>
                                     </div>
                                 </td>
@@ -144,6 +147,7 @@ export default {
         return {
             activeMenu: "manajemenPengajuan",
             searchQuery: "",
+            tingkatanOtoritas: "",
             showModal: false,
             showSuccessAlert: false,
             successMessage: "",
@@ -186,9 +190,21 @@ export default {
 
     created() {
         this.fetchRequest();
+        this.getUserInfo();
     },
 
     methods: {
+        async getUserInfo() {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.post("http://localhost:8000/api/me", {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                this.tingkatanOtoritas = res.data.tingkatan_otoritas;
+            } catch (err) {
+                console.error("Gagal mengambil data user:", err);
+            }
+        },
         formatRupiah(angka) {
             if (!angka) return "-";
             return (

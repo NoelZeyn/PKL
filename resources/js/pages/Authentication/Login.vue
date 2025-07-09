@@ -140,7 +140,6 @@ export default {
 
                 localStorage.setItem("token", data.access_token);
                 localStorage.setItem("token_expiry", expiryTime);
-
                 this.message = "Login berhasil!";
                 this.messageClass = "text-green-600 font-bold";
 

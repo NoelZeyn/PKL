@@ -39,7 +39,7 @@ class AdminSeeder extends Seeder
             'NID'                => '8813066ZJY',
             'password'           => Hash::make('password123'), // Password default
             'id_penempatan_fk'   => $faker->randomElement($penempatanIds),
-            'tingkatan_otoritas' => $faker->randomElement($tingkatanList),
+            'tingkatan_otoritas' => 'superadmin',
             'access'             => 'active',
             'password_changed_at' => now(),
         ]);

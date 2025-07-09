@@ -18,6 +18,8 @@ import AlatInfo from "./pages/Pengadaan/Alat-info.vue";
 import Pengajuan from "./pages/Pengajuan/Pengajuan.vue";
 import PengajuanInfo from "./pages/Pengajuan/Pengajuan-info.vue";
 import PengajuanAdd from "./pages/Pengajuan/Pengajuan-add.vue";
+import AlatPemakaian from "./pages/Pengadaan/Alat-pemakaian.vue";
+import AlatStock from "./pages/Pengadaan/Alat-stock.vue";
 
 // Fungsi validasi token
 const isTokenValid = () => {
@@ -64,11 +66,14 @@ const routes = [
     { path: "/alat-add", component: AlatAdd, meta: { requiresAuth: true, title: "Tambah Alat" } },
     { path: "/alat-edit/:id", component: AlatEdit, meta: { requiresAuth: true, title: "Edit Alat" } },
     { path: "/alat-info/:id", component: AlatInfo, meta: { requiresAuth: true, title: "Info Alat" } },
+    { path: "/alat-pemakaian", component: AlatPemakaian, meta: { requiresAuth: true, title: "Pemakaian Alat" } },
+    { path: "/alat-stock", component: AlatStock, meta: { requiresAuth: true, title: "Stock Alat" } },
 
     { path: "/pengajuan", component: Pengajuan, meta: { requiresAuth: true, title: "Pengajuan" } },
     { path: "/pengajuan-info/:id", component: PengajuanInfo, meta: { requiresAuth: true, title: "Info Pengajuan" } },
     { path: "/pengajuan-add", component: PengajuanAdd, meta: { requiresAuth: true, title: "Tambah Pengajuan" } },
 
+    
 ];
 
 // Membuat router

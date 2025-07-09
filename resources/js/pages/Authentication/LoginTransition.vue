@@ -24,7 +24,7 @@ async checkStatus() {
     const apiUrl = import.meta.env.VITE_APP_URL || "http://localhost:8000/api";
     const token = localStorage.getItem("token");
 
-    console.log("Token:", token);
+    // console.log("Token:", token);
 
     if (!token) {
       console.log("Token kosong, kembali ke login");
@@ -38,15 +38,15 @@ async checkStatus() {
       },
     });
 
-    console.log("User data:", user);
+    // console.log("User data:", user);
 
     localStorage.setItem('user', JSON.stringify(user));
 
     const access = user.access;
     const role = user.tingkatan_otoritas;
 
-    console.log("Access:", access);
-    console.log("Role:", role);
+    // console.log("Access:", access);
+    // console.log("Role:", role);
 
     if (access === 'pending') {
       this.$router.push('/pending-access');
@@ -58,16 +58,16 @@ async checkStatus() {
           this.$router.push('/dashboard');
           break;
         case 'admin':
-          this.$router.push('/dashboard-admin');
+          this.$router.push('/dashboard');
           break;
         case 'user':
-          this.$router.push('/dashboard-user');
+          this.$router.push('/dashboard');
           break;
         case 'user_review':
-          this.$router.push('/dashboard-review');
+          this.$router.push('/dashboard');
           break;
         case 'anggaran':
-          this.$router.push('/dashboard-anggaran');
+          this.$router.push('/dashboard');
           break;
         default:
           console.log("Unknown role, ke dashboard umum");
