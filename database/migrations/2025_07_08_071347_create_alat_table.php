@@ -15,17 +15,17 @@ return new class extends Migration
             $table->unsignedBigInteger('id_kategori_fk');
             $table->id('id_alat');
             $table->string('nama_barang');
-            $table->integer('stock_min');
-            $table->integer('stock_max');
-            $table->integer('stock');
+            $table->integer('stock_min')->nullable();
+            $table->integer('stock_max')->nullable();
+            $table->integer('stock')->nullable();
             $table->string('satuan');
-            $table->integer('harga_satuan');
-            $table->integer('harga_estimasi');
+            $table->integer('harga_satuan')->nullable();
+            $table->integer('harga_estimasi')->nullable();
             $table->integer('order')->nullable();
             $table->string('keterangan')->nullable();
             $table->timestamps();
 
-            $table->foreign('id_kategori_fk')->references('id_kategori')->on('kategori_inventoris');
+            $table->foreign('id_kategori_fk')->references('id_kategori')->on('kategori_pengadaan');
         });
     }
 

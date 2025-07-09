@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('data_diri', function (Blueprint $table) {
             $table->unsignedBigInteger('id_admin_user_fk')->primary();
             $table->string('nama_lengkap');
+            $table->string('foto_profil')->nullable();
             $table->string('jabatan');
             $table->boolean('bpjs');
+            $table->string('kontak')->nullable();
             $table->timestamps();
 
             $table->foreign('id_admin_user_fk')->references('id')->on('admin');

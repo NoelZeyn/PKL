@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Penempatan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Penempatan;
 use Illuminate\Http\Request;
 
 class PenempatanController extends Controller
@@ -12,7 +13,18 @@ class PenempatanController extends Controller
      */
     public function index()
     {
-        
+        try {
+            $penempatan = Penempatan::all();
+            return response()->json([
+                'status' => 'success',
+                'data' => $penempatan,
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve penempatan data',
+            ], 500);
+        }
     }
 
     /**
@@ -20,7 +32,21 @@ class PenempatanController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $validatedData = $request->validate([
+                'nama_penempatan' => 'required|string|max:255',
+            ]);
+            $penempatan = Penempatan::create($validatedData);
+            return response()->json([
+                'status' => 'success',
+                'data' => $penempatan,
+            ], 201);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create penempatan',
+            ], 500);
+        }
     }
 
     /**
@@ -28,7 +54,18 @@ class PenempatanController extends Controller
      */
     public function show(string $id)
     {
-        //
+        try {
+            $penempatan = Penempatan::findOrFail($id);
+            return response()->json([
+                'status' => 'success',
+                'data' => $penempatan,
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve penempatan data',
+            ], 500);
+        }
     }
 
     /**
@@ -36,7 +73,22 @@ class PenempatanController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $penempatan = Penempatan::findOrFail($id);
+            $validatedData = $request->validate([
+                'nama_penempatan' => 'required|string|max:255',
+            ]);
+            $penempatan->update($validatedData);
+            return response()->json([
+                'status' => 'success',
+                'data' => $penempatan,
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update penempatan',
+            ], 500);
+        }
     }
 
     /**
@@ -44,6 +96,18 @@ class PenempatanController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $penempatan = Penempatan::findOrFail($id);
+            $penempatan->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Penempatan deleted successfully',
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete penempatan',
+            ], 500);
+        }
     }
 }

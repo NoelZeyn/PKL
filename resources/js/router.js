@@ -1,0 +1,96 @@
+import { createRouter, createWebHistory } from "vue-router";
+
+// Import components
+import Login from "./pages/Authentication/Login.vue";
+import Register from "./pages/Authentication/Register.vue";
+import RegisterNext from "./pages/Authentication/Register-next.vue";
+import Dashboard from "./pages/Dashboard.vue";
+import LoginTransition from "./pages/Authentication/LoginTransition.vue";
+import ForgotPassword from "./pages/Authentication/ForgotPassword.vue"; 
+import PendingAccess from "./pages/Authentication/PendingAccess.vue";
+import InactiveAccess from "./pages/Authentication/InactiveAccess.vue";
+import ManajemenAkun from "./pages/superadmin/ManajemenAkun.vue";
+import Profile from "./pages/Profile/Profile.vue";
+import AlatTulis from "./pages/Pengadaan/AlatTulis.vue";
+import AlatAdd from "./pages/Pengadaan/Alat-add.vue";
+import AlatEdit from "./pages/Pengadaan/Alat-edit.vue";
+import AlatInfo from "./pages/Pengadaan/Alat-info.vue";
+import Pengajuan from "./pages/Pengajuan/Pengajuan.vue";
+import PengajuanInfo from "./pages/Pengajuan/Pengajuan-info.vue";
+import PengajuanAdd from "./pages/Pengajuan/Pengajuan-add.vue";
+
+// Fungsi validasi token
+const isTokenValid = () => {
+    const token = localStorage.getItem("token");
+    const expiry = localStorage.getItem("token_expiry");
+
+    // Jika token atau expiry tidak ada
+    if (!token || !expiry) {
+        localStorage.clear();
+        sessionStorage.clear();
+        return false;
+    }
+
+    // Jika waktu sudah habis
+    if (Date.now() >= parseInt(expiry)) {
+        localStorage.clear();
+        sessionStorage.clear();
+        return false;
+    }
+
+    return true;
+};
+
+
+// Daftar route
+const routes = [
+    // Public routes (tidak butuh token)
+    { path: "/", redirect: "/register", meta: { title: "Register" } },
+    { path: "/login", component: Login, meta: { title: "Login" } },
+    { path: "/register", component: Register, meta: { title: "Register" } },
+    { path: "/register-next", component: RegisterNext, meta: { title: "RegisterNext" } },
+    { path: "/loginTransition", component: LoginTransition, meta: { title: "Login Transition" } },
+    { path: "/forgot-password", component: ForgotPassword, meta: { title: "Forgot Password" } },
+    { path: "/pending-access", component: PendingAccess, meta: { title: "Pending Access" } },
+    { path: "/inactive-access", component: InactiveAccess, meta: { title: "Inactive Access" } },
+
+    // Protected routes (butuh token)
+    { path: "/dashboard", component: Dashboard, meta: { requiresAuth: true, title: "Dashboard" } },
+    { path: "/manajemen-akun", component: ManajemenAkun, meta: { requiresAuth: true, title: "Manajemen Akun" } },
+    { path: "/profile", component: Profile, meta: { requiresAuth: true, title: "Profile" } },
+
+    { path: "/manajemen-alat", component: AlatTulis, meta: { requiresAuth: true, title: "Alat Tulis" } },
+    { path: "/:pathMatch(.*)*", redirect: "/login", meta: { title: "Not Found" } }, // Catch-all route
+    { path: "/alat-add", component: AlatAdd, meta: { requiresAuth: true, title: "Tambah Alat" } },
+    { path: "/alat-edit/:id", component: AlatEdit, meta: { requiresAuth: true, title: "Edit Alat" } },
+    { path: "/alat-info/:id", component: AlatInfo, meta: { requiresAuth: true, title: "Info Alat" } },
+
+    { path: "/pengajuan", component: Pengajuan, meta: { requiresAuth: true, title: "Pengajuan" } },
+    { path: "/pengajuan-info/:id", component: PengajuanInfo, meta: { requiresAuth: true, title: "Info Pengajuan" } },
+    { path: "/pengajuan-add", component: PengajuanAdd, meta: { requiresAuth: true, title: "Tambah Pengajuan" } },
+
+];
+
+// Membuat router
+const router = createRouter({
+    history: createWebHistory(),
+    routes,
+});
+
+// Middleware validasi token
+router.beforeEach((to, from, next) => {
+    if (to.meta.requiresAuth && !isTokenValid()) {
+        next("/login");
+    } else {
+        next();
+    }
+});
+
+// Set judul halaman
+router.afterEach((to) => {
+    if (to.meta?.title) {
+        document.title = to.meta.title;
+    }
+});
+
+export default router;

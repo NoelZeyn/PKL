@@ -16,7 +16,7 @@ class AdminController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'me']]);
     }
     public function me()
     {
@@ -29,7 +29,7 @@ class AdminController extends Controller
 
         $user = Admin::where('NID', request('NID'))->first();
 
-        if (!$user || $user->status !== 'success') {
+        if (!$user) {
             return response()->json(['error' => !$user ? 'NID atau password salah' : 'Tolong registrasi kembali'], !$user ? 404 : 403);
         }
 
@@ -62,8 +62,8 @@ class AdminController extends Controller
         $validator = Validator::make($request->all(), [
             'NID' => 'required|size:10|unique:admin,NID',
             'password' => 'required|min:8',
-            'tingkatan_otoritas' => 'nullable|in:1,2,3,4,5',
-            'password_changed_at' => now(),
+            'tingkatan_otoritas' => 'required|in:superadmin,admin,user,user_review,anggaran',
+            'id_penempatan_fk' => 'required|exists:penempatan,id',
         ], $messages);
 
         if ($validator->fails()) {
@@ -74,22 +74,26 @@ class AdminController extends Controller
         try {
             $user = Admin::create([
                 'NID' => $request->NID,
+                'id_penempatan_fk' => $request->id_penempatan_fk,
                 'password' => Hash::make($request->password),
-                'tingkatan_otoritas' => 1, // Default to level 1
+                'tingkatan_otoritas' => $request->tingkatan_otoritas, // Default to level 1
                 'access' => 'pending',
                 'password_changed_at' => now(),
             ]);
             DB::commit();
-            return $this->respond()->json([
+            return response()->json([
                 'status' => 'success',
                 'message' => 'Registration successful',
-                'token' => $this->respondWithToken(Auth::guard('api')->login($user)),
                 'user' => $user
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Registration failed: ' . $e->getMessage());
-            return response()->json(['error' => 'Registration failed'], 500);
+            return response()->json(['error' => 'Registration failed: '. $e->getMessage()], 500);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Registration failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Registration failed: '. $e->getMessage()], 500);
         }
     }
 

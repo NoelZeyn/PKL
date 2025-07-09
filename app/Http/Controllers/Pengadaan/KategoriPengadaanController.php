@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pengadaan;
 
 use App\Http\Controllers\Controller;
+use App\Models\KategoriPengadaan;
 use Illuminate\Http\Request;
 
 class KategoriPengadaanController extends Controller
@@ -12,7 +13,19 @@ class KategoriPengadaanController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $kategori = KategoriPengadaan::all();
+            return response()->json([
+                'status' => 'success',
+                'data' => $kategori,
+                'message' => 'Data kategori pengadaan retrieved successfully.'
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve data kategori pengadaan.',
+            ], 500);
+        }
     }
 
     /**
