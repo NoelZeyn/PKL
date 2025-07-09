@@ -32,7 +32,7 @@ class Admin extends Authenticatable implements JWTSubject
 
     public function dataDiri()
     {
-        return $this->hasOne(DataDiri::class, 'id_admin_user_fk');
+        return $this->hasOne(DataDiri::class, 'id_admin_user_fk', 'id');
     }
 
     public function requests()

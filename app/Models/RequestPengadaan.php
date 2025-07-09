@@ -11,12 +11,13 @@ class RequestPengadaan extends Model
 
     protected $table = 'request';
     protected $primaryKey = 'id_request';
-
+// 7193142JA
     protected $fillable = [
         'id_inventoris_fk',
         'id_users_fk',
         'tanggal_permintaan',
         'status',
+        'status_by',
         'jumlah',
         'total'
     ];

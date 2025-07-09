@@ -21,7 +21,10 @@ import PengajuanAdd from "./pages/Pengajuan/Pengajuan-add.vue";
 import AlatPemakaian from "./pages/Pengadaan/Alat-pemakaian.vue";
 import AlatStock from "./pages/Pengadaan/Alat-stock.vue";
 import Grafik from "./pages/user_review/Grafik.vue";
-import ManajemenApproval2 from "./pages/superadmin/ManajemenApproval2.vue";
+import ManajemenApproval2 from "./pages/approval/ManajemenApproval2.vue";
+import LaporanPemakaian from "./pages/user_review/LaporanPemakaian.vue";
+import LaporanATK from "./pages/user_review/LaporanATK.vue";
+import LaporanApproval from "./pages/user_review/LaporanApproval.vue";
 
 // Fungsi validasi token
 const isTokenValid = () => {
@@ -76,7 +79,10 @@ const routes = [
     { path: "/pengajuan-info/:id", component: PengajuanInfo, meta: { requiresAuth: true, title: "Info Pengajuan" } },
     { path: "/pengajuan-add", component: PengajuanAdd, meta: { requiresAuth: true, title: "Tambah Pengajuan" } },
 
-    { path: "/grafik", component: Grafik, meta: { requiresAuth: true, title: "Grafik RAB Temporary"}}
+    { path: "/grafik", component: Grafik, meta: { requiresAuth: true, title: "Grafik RAB Temporary"} },
+    { path: "/laporan-pemakaian", component: LaporanPemakaian, meta: { requiresAuth: true, title: "Laporan Pemakaian Alat"} },
+    { path: "/laporan-ATK", component: LaporanATK, meta: { requiresAuth: true, title: "Laporan ATK" } },
+    { path: "/laporan-approval", component: LaporanApproval, meta: { requiresAuth: true, title: "Laporan Approval" } },
 
     
 ];

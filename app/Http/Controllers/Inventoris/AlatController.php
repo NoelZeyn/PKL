@@ -14,7 +14,7 @@ class AlatController extends Controller
     public function index()
     {
         try {
-            $alat = Alat::all();
+            $alat = Alat::with('kategori')->get();
             return response()->json([
                 'status' => 'success',
                 'data' => $alat,

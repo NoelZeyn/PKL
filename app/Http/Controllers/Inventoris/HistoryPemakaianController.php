@@ -17,7 +17,7 @@ class HistoryPemakaianController extends Controller
     public function index()
     {
         try {
-            $history = HistoryPemakaian::with(['alat', 'user'])
+            $history = HistoryPemakaian::with(['alat', 'user.dataDiri'])
                 ->orderBy('tanggal_pemakaian', 'desc')
                 ->get();
 
@@ -32,43 +32,66 @@ class HistoryPemakaianController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function storeMultiple(Request $request)
     {
         $request->validate([
-            'NID' => 'required|exists:admin,NID',
-            'id_alat' => 'required|exists:alat,id_alat',
-            'jumlah' => 'required|integer|min:1',
-            'keterangan' => 'nullable|string'
+            'pemakaian' => 'required|array|min:1',
+            'pemakaian.*.NID' => 'required|exists:admin,NID',
+            'pemakaian.*.id_alat' => 'required|exists:alat,id_alat',
+            'pemakaian.*.jumlah' => 'required|integer|min:1',
+            'pemakaian.*.keterangan' => 'nullable|string',
         ]);
-        $admin = Admin::where('NID', $request->NID)->first();
-        if (!$admin) {
-            return response()->json(['status' => 'error', 'message' => 'NID tidak ditemukan.'], 404);
+
+        $results = [];
+
+        foreach ($request->pemakaian as $data) {
+            $admin = Admin::where('NID', $data['NID'])->first();
+            if (!$admin) {
+                $results[] = [
+                    'status' => 'error',
+                    'message' => "NID {$data['NID']} tidak ditemukan."
+                ];
+                continue;
+            }
+
+            $alat = Alat::find($data['id_alat']);
+            if (!$alat) {
+                $results[] = [
+                    'status' => 'error',
+                    'message' => "Alat dengan ID {$data['id_alat']} tidak ditemukan."
+                ];
+                continue;
+            }
+
+            if ($alat->stock < $data['jumlah']) {
+                $results[] = [
+                    'status' => 'error',
+                    'message' => "Stok alat {$alat->nama_barang} tidak cukup."
+                ];
+                continue;
+            }
+
+            // Kurangi stok
+            $alat->stock -= $data['jumlah'];
+            $alat->save();
+
+            $history = HistoryPemakaian::create([
+                'id_alat' => $alat->id_alat,
+                'id_user' => $admin->id,
+                'jumlah' => $data['jumlah'],
+                'keterangan' => $data['keterangan'] ?? null,
+            ]);
+
+            $results[] = [
+                'status' => 'success',
+                'message' => "Pemakaian alat {$alat->nama_barang} berhasil dicatat.",
+                'data' => $history
+            ];
         }
-        $alat = Alat::where('id_alat', $request->id_alat)->firstOrFail();
-
-        // Kurangi stok alat
-        if ($alat->stock < $request->jumlah) {
-            return response()->json(['status' => 'error', 'message' => 'Stok tidak cukup.'], 400);
-        }
-
-        $alat->stock -= $request->jumlah;
-        $alat->save();
-
-        $history = HistoryPemakaian::create([
-            'id_alat' => $alat->id_alat,
-            'id_user' => $admin->id,
-            'jumlah' => $request->jumlah,
-            'keterangan' => $request->keterangan,
-        ]);
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Pemakaian alat berhasil dicatat.',
-            'data' => $history
+            'status' => 'completed',
+            'results' => $results
         ]);
     }
 

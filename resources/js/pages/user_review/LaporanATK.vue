@@ -28,23 +28,10 @@
           <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
             <h3 class="text-sm font-semibold text-gray-900">Data ATK</h3>
 
-            <router-link to="/alat-pemakaian"
-              class="px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
-              Pemakaian Alat
-            </router-link>
-
-            <router-link to="/alat-stock" class="px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
-              Manajemen Stock
-            </router-link>
-
-            <button v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'" @click="downloadExcel" class="cursor-pointer px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
+            <button @click="downloadExcel"
+              class="text-sm font-semibold text-[#074a5d] hover:text-[#0066cc] cursor-pointer">
               Download Excel
             </button>
-            <router-link v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'" to="/alat-add"
-              class="text-sm font-semibold text-[#074a5d] no-underline hover:text-[#0066cc] hover:no-underline">
-              Tambah ATK
-            </router-link>
-
           </div>
 
           <table class="w-full table-fixed border-collapse border border-gray-300">
@@ -57,7 +44,6 @@
                 <th class="p-3 w-25 border">Stock Sekarang</th>
                 <th class="p-3 border">Harga Satuan</th>
                 <th class="p-3 border">Rekomendasi Pembelian</th>
-                <th class="p-3 border">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -71,23 +57,6 @@
                 <td class="p-3">
                   <span v-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu Pengajuan</span>
                   <span v-else class="text-green-600">Aman</span>
-                </td>
-                <td class="p-3">
-                  <div class="flex items-center space-x-2 justify-center">
-                    <button title="Informasi" @click="navigateTo('info', alat)"
-                      class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
-                      <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
-                    </button>
-                    <button title="Edit" @click="navigateTo('edit', alat)"
-                      class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
-                      <img :src="updateIcon" alt="Update" class="w-5 h-5 object-contain" />
-                    </button>
-                    <button title="Hapus" @click="confirmDelete(alat)"
-                      v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
-                      class="cursor-pointer hover:opacity-70">
-                      <img :src="deleteIcon" alt="Delete" class="w-5 h-5 object-contain" />
-                    </button>
-                  </div>
                 </td>
               </tr>
             </tbody>
@@ -121,20 +90,16 @@ import deleteIcon from "@/assets/Delete.svg";
 import axios from "axios";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-// This component manages the inventory of tools (ATK) in the application.
 export default {
   name: "ManajemenAlat",
   components: { Sidebar, HeaderBar, ModalConfirm, SuccessAlert },
 
   data() {
     return {
-      activeMenu: "manajemenAlat",
+      activeMenu: "laporanATK",
       searchQuery: "",
-      showModal: false,
-      showSuccessAlert: false,
       rekomendasiFilter: "",
       successMessage: "",
-      alatToDelete: null,
       tingkatanOtoritas: "",
       alatList: [],
       informasiIcon,
@@ -178,37 +143,88 @@ export default {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Data ATK');
 
-      // Header
+      // Define Columns
       worksheet.columns = [
         { header: 'No', key: 'no', width: 5 },
         { header: 'Nama Barang', key: 'nama_barang', width: 25 },
         { header: 'Stock Min', key: 'stock_min', width: 12 },
         { header: 'Stock Max', key: 'stock_max', width: 12 },
         { header: 'Stock Sekarang', key: 'stock', width: 15 },
-        { header: 'Harga Satuan', key: 'harga_satuan', width: 15 },
-        { header: 'Rekomendasi Pembelian', key: 'rekomendasi', width: 20 },
+        { header: 'Harga Satuan', key: 'harga_satuan', width: 18 },
+        { header: 'Rekomendasi Pembelian', key: 'rekomendasi', width: 22 },
       ];
 
-      // Data Rows
-      this.filteredAlatList.forEach((alat, index) => {
-        worksheet.addRow({
-          no: index + 1,
-          nama_barang: alat.nama_barang,
-          stock_min: alat.stock_min,
-          stock_max: alat.stock_max,
-          stock: alat.stock,
-          harga_satuan: this.formatRupiah(alat.harga_satuan),
-          rekomendasi: alat.stock <= alat.stock_min ? 'Perlu Pengajuan' : 'Aman',
-        });
+      // Style Header
+      worksheet.getRow(1).eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       });
 
-      // Style Header (optional)
-      worksheet.getRow(1).font = { bold: true };
-      worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+      // Group Data by Kategori
+      const groupedData = {};
+      this.filteredAlatList.forEach(alat => {
+        const kategori = alat.kategori?.nama_kategori || 'Tanpa Kategori';
+        if (!groupedData[kategori]) groupedData[kategori] = [];
+        groupedData[kategori].push(alat);
+      });
+
+      let rowIndex = 2;
+      let globalNo = 1;
+
+      for (const [kategoriName, items] of Object.entries(groupedData)) {
+        // Row Kategori
+        worksheet.mergeCells(`A${rowIndex}:G${rowIndex}`);
+        const kategoriCell = worksheet.getCell(`A${rowIndex}`);
+        kategoriCell.value = `Kategori: ${kategoriName}`;
+        kategoriCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        kategoriCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } }; // Hijau
+        kategoriCell.alignment = { vertical: 'middle', horizontal: 'center' };
+        kategoriCell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        rowIndex++;
+
+        items.forEach(alat => {
+          const rekomendasiText = alat.stock <= alat.stock_min ? 'Perlu Pengajuan' : 'Aman';
+          const row = worksheet.addRow({
+            no: globalNo++,
+            nama_barang: alat.nama_barang,
+            stock_min: alat.stock_min,
+            stock_max: alat.stock_max,
+            stock: alat.stock,
+            harga_satuan: alat.harga_satuan,  // Tetap angka
+            rekomendasi: rekomendasiText,
+          });
+
+          row.eachCell((cell, colNumber) => {
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+
+            if (colNumber === 6) {
+              cell.numFmt = '"Rp"#,##0'; // Format Harga
+            }
+          });
+
+          const rekomendasiCell = row.getCell('rekomendasi');
+          if (rekomendasiText === 'Perlu Pengajuan') {
+            rekomendasiCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC3545' } }; // Merah
+            rekomendasiCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+          } else {
+            rekomendasiCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28A745' } }; // Hijau
+            rekomendasiCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+          }
+
+          rowIndex++;
+        });
+
+        rowIndex++;
+      }
 
       const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer]), 'Data_ATK.xlsx');
+      saveAs(new Blob([buffer]), `Data-ATK-${new Date().toISOString().slice(0, 10)}.xlsx`);
     },
+
+
 
     formatRupiah(angka) {
       if (!angka) return "-";
@@ -239,34 +255,7 @@ export default {
     updateActiveMenu(menu) {
       this.activeMenu = menu;
     },
-    navigateTo(action, alat) {
-      localStorage.setItem(`dataAlat${action}`, JSON.stringify(alat));
-      this.$router.push(`/alat-${action}/${alat.id_alat}`);
-    },
-    confirmDelete(alat) {
-      this.alatToDelete = alat;
-      this.showModal = true;
-    },
-    cancelDelete() {
-      this.alatToDelete = null;
-      this.showModal = false;
-    },
-    async deleteAlat() {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.delete(`http://localhost:8000/api/alat/${this.alatToDelete.id_alat}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        this.successMessage = "Alat berhasil dihapus!";
-        this.showSuccessAlert = true;
-        setTimeout(() => (this.showSuccessAlert = false), 2000);
-        this.fetchAlat();
-      } catch (err) {
-        console.error("Gagal menghapus alat:", err);
-      } finally {
-        this.cancelDelete();
-      }
-    },
+
     nextPage() {
       if (this.currentPage < this.totalPages) this.currentPage++;
     },

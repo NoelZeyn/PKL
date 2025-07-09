@@ -7,6 +7,7 @@ use App\Http\Controllers\Inventoris\AlatController;
 use App\Http\Controllers\Inventoris\HistoryPemakaianController;
 use App\Http\Controllers\Penempatan\PenempatanController;
 use App\Http\Controllers\Authentication\ProfileController;
+use App\Http\Controllers\Pengadaan\HistoryApprovalController;
 use App\Http\Controllers\Pengadaan\KategoriPengadaanController;
 use App\Http\Controllers\Pengadaan\RequestController;
 use App\Http\Middleware\RoleMiddleware;
@@ -43,12 +44,14 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::put('alat/{id}', [AlatController::class, 'update']);
     Route::delete('alat/{id}', [AlatController::class, 'destroy'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
     Route::apiResource('history_pemakaian', HistoryPemakaianController::class);
+    Route::post('/history_pemakaian_multi', [HistoryPemakaianController::class, 'storeMultiple']);
     Route::get('approval2', [ApprovalController::class, 'approval2']);
     Route::put('editApproval2/{id}', [ApprovalController::class, 'editApproval2']);
 });
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::get('request', [RequestController::class, 'index']);
+    Route::get('showProfile', [ProfileController::class, 'showProfile']);
     Route::get('request/{id}', [RequestController::class, 'show']);
     Route::post('request', [RequestController::class, 'store'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin,user,anggaran']);
     // Route::put('request/{id}', [RequestController::class, 'update'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin,user,anggaran']);
@@ -57,5 +60,8 @@ Route::group(['middleware' => 'auth:api'], function () {
 Route::group(['middleware' => 'api'], function () {
     // Route::apiResource('alat', AlatController::class)->middleware(['api', RoleMiddleware::class.':superadmin']);
     Route::apiResource('kategori_pengadaan', KategoriPengadaanController::class);
+    Route::apiResource('history_pemakaian', HistoryPemakaianController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,user,anggaran']);
+    Route::apiResource('history_approval', HistoryApprovalController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,user,anggaran']);
     // Route::apiResource('request', RequestController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,user,anggaran']);
 });
+

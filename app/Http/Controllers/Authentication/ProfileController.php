@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+
 class ProfileController extends Controller
 {
     public function __construct()
@@ -16,32 +17,40 @@ class ProfileController extends Controller
         $this->middleware('auth:api');
     }
 
-    public function showProfile()
-    {
-        try {
-            //check di Model Admin
-            $admin = Admin::with('dataDiri')->findOrFail(Auth::id());
+public function showProfile()
+{
+    try {
+        $admin = Auth::user(); // Sudah instance Admin karena pakai guard 'auth:api'
 
-            // Generate URL foto_profil jika ada
-            $fotoProfilUrl = $admin->dataDiri->foto_profil ? asset('storage/' . $admin->dataDiri->foto_profil) : null;
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Data profil pengguna berhasil diambil.',
-                'data' => [
-                    'nama_lengkap' => $admin->dataDiri->nama_lengkap ?? null,
-                    'jabatan' => $admin->dataDiri->jabatan ?? null,
-                    'foto_profil' => $fotoProfilUrl,
-                    'kontak' => $admin->dataDiri->kontak ?? null,
-                ]
-            ]);
-        } catch (\Exception $e) {
+        if (!$admin) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Terjadi kesalahan saat mengambil data profil: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Pengguna tidak ditemukan.'
+            ], 404);
         }
+
+        $dataDiri = $admin->dataDiri;
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data profil pengguna berhasil diambil.',
+            'data' => [
+                'NID'          => $admin->NID,
+                'nama_lengkap' => $dataDiri->nama_lengkap ?? '',
+                'jabatan'      => $dataDiri->jabatan ?? '',
+                'foto_profil'  => $dataDiri && $dataDiri->foto_profil ? asset('storage/' . $dataDiri->foto_profil) : null,
+                'kontak'       => $dataDiri->kontak ?? '',
+            ],
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Terjadi kesalahan saat mengambil data profil.',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
 
     public function updateProfile(Request $request)
     {

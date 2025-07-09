@@ -38,13 +38,18 @@
 
                     <div class="flex items-center gap-5">
                         <label class="min-w-[150px] font-semibold text-sm text-black">Stock Minimal</label>
-                        <input type="number" v-model="formData.stock_min" placeholder="Stock Min ATK"
+                        <input type="number" v-model="formData.stock_min" placeholder="Stock Min ATK" min="0"
                             class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm" />
                     </div>
 
                     <div class="flex items-center gap-5">
                         <label class="min-w-[150px] font-semibold text-sm text-black">Stock Maximal</label>
                         <input type="number" v-model="formData.stock_max" placeholder="Stock Max ATK"
+                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm" />
+                    </div>
+                    <div class="flex items-center gap-5">
+                        <label class="min-w-[150px] font-semibold text-sm text-black">Stock Sekarang</label>
+                        <input type="number" v-model="formData.stock" placeholder="Stock"
                             class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm" />
                     </div>
 
@@ -56,13 +61,13 @@
 
                     <div class="flex items-center gap-5">
                         <label class="min-w-[150px] font-semibold text-sm text-black">Harga Satuan</label>
-                        <input type="number" v-model="formData.harga_satuan" placeholder="Harga Satuan ATK"
+                        <input type="number" v-model="formData.harga_satuan" placeholder="Harga Satuan ATK, Contoh : 10000"
                             class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm" />
                     </div>
 
                     <div class="flex items-center gap-5">
                         <label class="min-w-[150px] font-semibold text-sm text-black">Harga Estimasi Satuan</label>
-                        <input type="number" v-model="formData.harga_estimasi" placeholder="Harga Estimasi Satuan ATK"
+                        <input type="number" v-model="formData.harga_estimasi" placeholder="Harga Estimasi Satuan ATK, Contoh : 10000"
                             class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm" />
                     </div>
 
@@ -111,6 +116,7 @@ export default {
                 keterangan: "",
                 stock_min: "",
                 stock_max: "",
+                stock: "",
                 satuan: "",
                 harga_satuan: "",
                 harga_estimasi: "",

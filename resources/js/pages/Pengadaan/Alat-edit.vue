@@ -47,6 +47,11 @@
                         <input type="number" v-model="formData.stock_max" placeholder="Stock Max ATK"
                             class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm" />
                     </div>
+                    <div class="flex items-center gap-5">
+                        <label class="min-w-[150px] font-semibold text-sm text-black">Stock Sekarang</label>
+                        <input type="number" v-model="formData.stock" placeholder="Stock"
+                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm" />
+                    </div>
 
                     <div class="flex items-center gap-5">
                         <label class="min-w-[150px] font-semibold text-sm text-black">Satuan</label>
@@ -107,10 +112,11 @@ export default {
             kategoriList: [],
             formData: {
                 nama_barang: "",
-                id_kategori_fk: "", 
+                id_kategori_fk: "",
                 keterangan: "",
                 stock_min: "",
                 stock_max: "",
+                stock: "",
                 satuan: "",
                 harga_satuan: "",
                 harga_estimasi: "",
@@ -169,9 +175,10 @@ export default {
         },
         submitATK() {
             if (!this.validateForm()) return;
+            const id = this.$route.params.id;
             const token = localStorage.getItem("token");
             axios
-                .post("http://localhost:8000/api/alat", this.formData, {
+                .put(`http://localhost:8000/api/alat/${id}`, this.formData, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         Accept: "application/json",

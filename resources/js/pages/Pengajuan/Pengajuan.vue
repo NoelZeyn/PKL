@@ -9,7 +9,7 @@
                 <div class="filters space-y-4">
                     <div class="relative">
                         <input type="text" v-model="searchQuery" @input="onInputSearch"
-                            placeholder="Cari Nama Barang atau NID Pemohon..."
+                            placeholder="Cari Nama Barang atau Nama Pemohon..."
                             class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm text-gray-700" />
                         <img src="@/assets/search.svg" alt="Search"
                             class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -35,7 +35,7 @@
                                 <th class="p-3 border">Nama Barang</th>
                                 <th class="p-3 border">Pemohon</th>
                                 <th class="p-3 w-28 border">Tgl Permintaan</th>
-                                <th class="p-3 border">Status</th>
+                                <th class="w-40 border">Status</th>
                                 <th class="w-22 border">Jumlah</th>
                                 <th class="w-22 p-3 border">Harga Satuan</th>
                                 <th class="p-3 border">Total</th>
@@ -56,7 +56,10 @@
                                     {{ request.alat?.nama_barang || "-" }}
                                 </td>
                                 <td class="p-3">
-                                    {{ request.user?.NID || "-" }}
+                                    {{
+                                        request.user?.data_diri?.nama_lengkap ||
+                                        "-"
+                                    }}
                                 </td>
                                 <td class="p-3">
                                     {{
@@ -72,6 +75,8 @@
                                     ]">
                                         {{ formatStatus(request.status).label }}
                                     </span>
+                                    <br><br>
+                                    {{ request.status_by || "-" }}
                                 </td>
 
                                 <td class="p-3">{{ request.jumlah }}</td>
@@ -85,17 +90,21 @@
                                 </td>
                                 <td class="p-3">
                                     <div class="flex items-center space-x-2 justify-center">
-                                        <button title="Informasi" @click="navigateTo('info', request)"
-                                            v-if="tingkatanOtoritas !== 'user_review'"
-                                            class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
+                                        <button title="Informasi" @click="navigateTo('info', request)" v-if="
+                                            tingkatanOtoritas !==
+                                            'user_review'
+                                        " class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
                                             <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
                                         </button>
                                         <!-- <button title="Edit" @click="navigateTo('edit', request)"
                                             class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
                                             <img :src="updateIcon" alt="Update" class="w-5 h-5 object-contain" />
                                         </button> -->
-                                        <button title="Hapus" @click="confirmDelete(request)"
-                                            v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'">
+                                        <button title="Hapus" @click="confirmDelete(request)" v-if="
+                                            tingkatanOtoritas === 'admin' ||
+                                            tingkatanOtoritas ===
+                                            'superadmin'
+                                        ">
                                             <img :src="deleteIcon" alt="Delete"
                                                 class="cursor-pointer hover:opacity-70" />
                                         </button>
@@ -169,7 +178,7 @@ export default {
                     r.alat?.nama_barang
                         ?.toLowerCase()
                         .includes(this.searchQuery.toLowerCase()) ||
-                    r.user?.NID?.toLowerCase().includes(
+                    r.user?.data_diri?.nama_lengkap.toLowerCase().includes(
                         this.searchQuery.toLowerCase()
                     )
             );
@@ -197,9 +206,13 @@ export default {
         async getUserInfo() {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.post("http://localhost:8000/api/me", {}, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await axios.post(
+                    "http://localhost:8000/api/me",
+                    {},
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
                 this.tingkatanOtoritas = res.data.tingkatan_otoritas;
             } catch (err) {
                 console.error("Gagal mengambil data user:", err);

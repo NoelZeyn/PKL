@@ -30,6 +30,11 @@
             <input type="number" v-model.number="formData.stock_max" min="0"
               class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
           </div>
+          <div class="flex items-center gap-5">
+            <label class="min-w-[150px] font-semibold text-sm text-black">Stock Sekarang</label>
+            <input type="number" v-model.number="formData.stock" min="0"
+              class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
+          </div>
 
           <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
 
@@ -92,9 +97,11 @@ export default {
       if (selectedAlat) {
         this.formData.stock_min = selectedAlat.stock_min;
         this.formData.stock_max = selectedAlat.stock_max;
+        this.formData.stock = selectedAlat.stock;
       } else {
         this.formData.stock_min = 0;
         this.formData.stock_max = 0;
+        this.formData.stock = 0;
       }
     },
     async submitForm() {
@@ -121,6 +128,7 @@ export default {
         satuan: selected.satuan,
         stock_min: this.formData.stock_min,
         stock_max: this.formData.stock_max,
+        stock: this.formData.stock, // Gunakan stock yang ada di form
       };
 
       try {

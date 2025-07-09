@@ -34,6 +34,7 @@
                             <tr>
                                 <th class="w-16">No</th>
                                 <th class="p-3 border">NID</th>
+                                <th class="p-3 border">Nama Lengkap</th>
                                 <th class="p-3 border">Tingkatan Otoritas</th>
                                 <th class="p-3 border">Access</th>
                                 <th class="p-3 border">Password Changed</th>
@@ -44,6 +45,7 @@
                             <tr v-for="(akun, index) in paginatedAccountList" :key="akun.id" class="text-[#333436]">
                                 <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
                                 <td class="p-3">{{ akun.NID }}</td>
+                                <td class="p-3">{{ akun.data_diri?.nama_lengkap|| '-' }}</td>
                                 <td class="p-3">{{ akun.tingkatan_otoritas }}</td>
                                 <td class="p-3">
                                     <select v-model="akun.access" @change="updateAccess(akun)"

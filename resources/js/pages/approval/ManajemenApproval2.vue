@@ -26,28 +26,28 @@
                     <table class="w-full table-fixed border-collapse border border-gray-300">
                         <thead class="bg-gray-100 text-[#7d7f81]">
                             <tr>
-                                <th class="w-14">No</th>
+                                <!-- <th class="w-14">No</th> -->
                                 <th class="p-3 border">Nama Barang</th>
                                 <th class="p-3 border">Pemohon</th>
                                 <th class="p-3 w-28 border">Tgl Permintaan</th>
-                                <th class="p-3 border">Status</th>
+                                <th class="w-40 border">Status</th>
                                 <th class="w-22 border">Jumlah</th>
                                 <th class="w-22 p-3 border">Harga Satuan</th>
-                                <th class="p-3 border">Total</th>
+                                <th class="w-22 border">Total</th>
                                 <th class="p-3 border">Decision</th>
-                                <th class="p-3 border">Aksi</th>
+                                <th class="w-18 border">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(request, index) in paginatedRequestList" :key="request.id_request"
                                 class="text-[#333436]">
-                                <td class="p-3">
+                                <!-- <td class="p-3">
                                     {{
                                         (currentPage - 1) * itemsPerPage +
                                         index +
                                         1
                                     }}
-                                </td>
+                                </td> -->
                                 <td class="p-3">
                                     {{ request.alat?.nama_barang || "-" }}
                                 </td>
@@ -83,11 +83,11 @@
                                     <div v-if="tingkatanOtoritas !== 'user_review'"
                                         class="flex items-center justify-center space-x-2">
                                         <button @click="approveRequest(request)" title="Setujui"
-                                            class="bg-green-500 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base shadow">
+                                            class="cursor-pointer bg-green-500 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base shadow">
                                             ✔
                                         </button>
                                         <button @click="rejectRequest(request)" title="Tolak"
-                                            class="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base shadow">
+                                            class="cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base shadow">
                                             ✖
                                         </button>
                                     </div>
@@ -146,7 +146,7 @@ export default {
 
     data() {
         return {
-            activeMenu: "pengajuan",
+            activeMenu: "manajemenApproval2",
             searchQuery: "",
             tingkatanOtoritas: "",
             showModal: false,

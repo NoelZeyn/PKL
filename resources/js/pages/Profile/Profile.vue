@@ -8,14 +8,11 @@
             <div class="flex-grow w-full p-8">
                 <div class="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
                     <div class="flex justify-between items-center px-5 py-3 border-b border-gray-300">
-                        <h3 class="text-sm font-bold text-gray-900">
-                            Data Profil Pengguna
-                        </h3>
+                        <h3 class="text-sm font-bold text-gray-900">Data Profil Pengguna</h3>
                     </div>
+
                     <div class="p-4 md:p-6">
-                        <h4 class="text-center text-base font-medium text-gray-900 mb-6">
-                            Informasi Profil
-                        </h4>
+                        <h4 class="text-center text-base font-medium text-gray-900 mb-6">Informasi Profil</h4>
 
                         <div class="flex justify-center my-5">
                             <img :src="profileImage || defaultProfileImage" alt="Foto Profil"
@@ -26,6 +23,13 @@
                             <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
                                 <label class="md:w-[150px] font-bold text-sm text-gray-900">Nama Lengkap</label>
                                 <input type="text" v-model="formData.nama_lengkap"
+                                    class="w-full bg-gray-50 border border-gray-300 rounded-md px-4 py-2 h-10"
+                                    readonly />
+                            </div>
+
+                            <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
+                                <label class="md:w-[150px] font-bold text-sm text-gray-900">Jabatan</label>
+                                <input type="text" v-model="formData.jabatan"
                                     class="w-full bg-gray-50 border border-gray-300 rounded-md px-4 py-2 h-10"
                                     readonly />
                             </div>
@@ -45,7 +49,7 @@
                             </div>
 
                             <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
-                                <label class="md:w-[125px] font-bold text-sm text-gray-900">Ubah Password</label>
+                                <label class="md:w-[150px] font-bold text-sm text-gray-900">Ubah Password</label>
                                 <router-link to="/ubah-password"
                                     class="cursor-pointer px-8 py-2 text-white bg-[#074a5d] border border-[#074a5d] rounded-full font-medium hover:bg-gray-100 hover:text-black focus:outline-none focus:ring-2 focus:ring-[#074a5d]">
                                     Ubah Password
@@ -80,6 +84,7 @@ export default {
             activeMenu: "profile",
             formData: {
                 nama_lengkap: "",
+                jabatan: "",
                 kontak: "",
                 NID: "",
                 foto_profil: "",
@@ -100,37 +105,30 @@ export default {
             try {
                 const token = localStorage.getItem("token");
                 if (!token) {
-                    this.error =
-                        "Token tidak ditemukan, silakan login terlebih dahulu.";
+                    this.error = "Token tidak ditemukan, silakan login terlebih dahulu.";
                     this.isLoading = false;
                     return;
                 }
-                const response = await axios.get(
-                    "http://localhost:8000/api/profile",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            Accept: "application/json",
-                        },
-                    }
-                );
+                const response = await axios.get("http://localhost:8000/api/profile", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json",
+                    },
+                });
+
                 if (response.data.status === "success") {
                     const user = response.data.data;
                     this.formData.nama_lengkap = user.nama_lengkap || "";
+                    this.formData.jabatan = user.jabatan || "";
                     this.formData.kontak = user.kontak || "";
+                    this.formData.NID = user.NID || "";
                     this.formData.foto_profil = user.foto_profil || "";
-                    this.profileImage = user.foto_profil
-                        ? user.foto_profil
-                        : null;
+                    this.profileImage = user.foto_profil || null;
                 } else {
-                    this.error =
-                        response.data.message || "Gagal memuat data profil.";
+                    this.error = response.data.message || "Gagal memuat data profil.";
                 }
             } catch (error) {
-                this.error =
-                    error.response?.data?.message ||
-                    error.message ||
-                    "Terjadi kesalahan.";
+                this.error = error.response?.data?.message || error.message || "Terjadi kesalahan.";
             } finally {
                 this.isLoading = false;
             }

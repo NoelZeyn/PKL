@@ -15,8 +15,8 @@ return new class extends Migration
             $table->unsignedBigInteger('id_admin_user_fk')->primary();
             $table->string('nama_lengkap');
             $table->string('foto_profil')->nullable();
-            $table->string('jabatan');
-            $table->boolean('bpjs');
+            $table->string('jabatan')->nullable();
+            $table->boolean('bpjs')->nullable();
             $table->string('kontak')->nullable();
             $table->timestamps();
 

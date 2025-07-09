@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id_approval');
             $table->unsignedBigInteger('id_request_fk');
             $table->unsignedBigInteger('id_admin_fk');
-            $table->integer('level_approval'); // 1, 2, 3
+            $table->string('level_approval'); 
             $table->enum('status', ['approved', 'rejected', 'pending']);
             $table->date('tanggal');
             $table->text('catatan')->nullable();

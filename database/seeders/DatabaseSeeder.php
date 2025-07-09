@@ -19,6 +19,8 @@ public function run(): void
     $this->call(AlatSeeder::class);
     $this->call(AdminSeeder::class);
     $this->call(RequestSeeder::class);
+    // $this->call(ApprovalSeeder::class);
+    $this->call(DataDiriSeeder::class);
 }
 
 }

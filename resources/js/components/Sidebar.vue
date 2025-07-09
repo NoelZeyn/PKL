@@ -67,16 +67,40 @@
                             <span>Pengajuan ATK</span>
                         </li>
                     </router-link>
+
+                </ul>
+            </div>
+
+            <!-- Menu Admin -->
+            <div class="flex flex-col gap-2">
+                <p class="text-sm font-semibold text-[#b0b385] mb-1">Laporan</p>
+                <ul>
                     <router-link v-if="role === 'superadmin' || role==='user_review'" to="/grafik" class="block">
                         <li :class="menuClass('grafik')" @click="setActive('grafik')">
                             <img src="@/assets/laporan1.svg" class="w-5" alt="grafik" />
                             <span>Grafik ATK</span>
                         </li>
                     </router-link>
+                    <router-link v-if="role === 'superadmin' || role==='user_review'" to="/laporan-ATK" class="block">
+                        <li :class="menuClass('laporanATK')" @click="setActive('laporanATK')">
+                            <img src="@/assets/laporan1.svg" class="w-5" alt="laporanATK" />
+                            <span>Data ATK</span>
+                        </li>
+                    </router-link>
+                    <router-link v-if="role === 'superadmin' || role==='user_review'" to="/laporan-pemakaian" class="block">
+                        <li :class="menuClass('laporanPemakaian')" @click="setActive('laporanPemakaian')">
+                            <img src="@/assets/laporan1.svg" class="w-5" alt="laporanPemakaian" />
+                            <span>History Pemakaian ATK</span>
+                        </li>
+                    </router-link>
+                    <router-link v-if="role === 'superadmin' || role==='user_review'" to="/laporan-approval" class="block">
+                        <li :class="menuClass('laporanApproval')" @click="setActive('laporanApproval')">
+                            <img src="@/assets/laporan1.svg" class="w-5" alt="laporanApproval" />
+                            <span>History Approval ATK</span>
+                        </li>
+                    </router-link>
                 </ul>
             </div>
-
-            <!-- Menu Admin -->
             <div class="flex flex-col gap-2">
                 <p class="text-sm font-semibold text-[#b0b385] mb-1">Admin</p>
                 <ul>
