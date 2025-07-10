@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Authentication;
 
 use App\Http\Controllers\Controller;
+use App\Models\Approval;
 use Illuminate\Http\Request;
 use App\Models\Admin;
 use App\Models\RequestPengadaan;
@@ -33,69 +34,68 @@ class ApprovalController extends Controller
         }
     }
 
-public function editApproval1(Request $request, string $id)
-{
-    try {
-        $validate = $request->validate([
-            'id_inventoris_fk' => 'required|exists:alat,id_alat',
-            'NID' => 'required|exists:admin,NID',
-            'jumlah' => 'required|integer|min:1',
-            'tanggal_permintaan' => 'required|date',
-            'status' => 'required|in:waiting_approval_2,rejected',
-            'total' => 'required|integer|min:0',
-        ]);
+    public function editApproval1(Request $request, string $id)
+    {
+        try {
+            $validate = $request->validate([
+                'id_inventoris_fk' => 'required|exists:alat,id_alat',
+                'NID' => 'required|exists:admin,NID',
+                'jumlah' => 'required|integer|min:1',
+                'tanggal_permintaan' => 'required|date',
+                'status' => 'required|in:waiting_approval_2,rejected',
+                'total' => 'required|integer|min:0',
+            ]);
 
-        $admin = Admin::with('dataDiri')->where('NID', $validate['NID'])->firstOrFail();
+            $admin = Admin::with('dataDiri')->where('NID', $validate['NID'])->firstOrFail();
 
-        // Ambil nama lengkap admin atau fallback NID
-        $namaLengkap = $admin->dataDiri && $admin->dataDiri->nama_lengkap
-            ? $admin->dataDiri->nama_lengkap
-            : $admin->NID;
+            // Ambil nama lengkap admin atau fallback NID
+            $namaLengkap = $admin->dataDiri && $admin->dataDiri->nama_lengkap
+                ? $admin->dataDiri->nama_lengkap
+                : $admin->NID;
 
-        $pengajuan = RequestPengadaan::findOrFail($id);
+            $pengajuan = RequestPengadaan::findOrFail($id);
 
-        $pengajuan->update([
-            'id_inventoris_fk' => $validate['id_inventoris_fk'],
-            'id_users_fk' => $admin->id,
-            'jumlah' => $validate['jumlah'],
-            'tanggal_permintaan' => $validate['tanggal_permintaan'],
-            'status' => $validate['status'],
-            'total' => $validate['total'],
-            'status_by' =>$namaLengkap,
-        ]);
+            $pengajuan->update([
+                'id_inventoris_fk' => $validate['id_inventoris_fk'],
+                'id_users_fk' => $admin->id,
+                'jumlah' => $validate['jumlah'],
+                'tanggal_permintaan' => $validate['tanggal_permintaan'],
+                'status' => $validate['status'],
+                'total' => $validate['total'],
+                'status_by' => $namaLengkap,
+            ]);
 
-        $levelApproval = $validate['status'] === 'waiting_approval_2' ? 'Approved Level 2' : 'Rejected Level 2';
+            $levelApproval = $validate['status'] === 'waiting_approval_2' ? 'Approved Level 1' : 'Rejected Level 1';
 
-        DB::table('approval')->insert([
-            'id_request_fk' => $pengajuan->id_request,
-            'id_admin_fk' => $admin->id,
-            'level_approval' => $levelApproval,
-            'status' => $validate['status'] === 'waiting_approval_2' ? 'approved' : 'rejected',
-            'tanggal' => now()->toDateString(),
-            'catatan' => $validate['catatan'] ?? null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+            DB::table('approval')->insert([
+                'id_request_fk' => $pengajuan->id_request,
+                'id_admin_fk' => $admin->id,
+                'level_approval' => $levelApproval,
+                'status' => $validate['status'] === 'waiting_approval_2' ? 'approved' : 'rejected',
+                'tanggal' => now()->toDateString(),
+                'catatan' => $validate['catatan'] ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data pengajuan & riwayat approval berhasil diperbarui',
-            'data' => $pengajuan
-        ], 200);
-
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Data pengajuan gagal diperbarui',
-            'error' => $th->getMessage()
-        ], 500);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data pengajuan & riwayat approval berhasil diperbarui',
+                'data' => $pengajuan
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data pengajuan gagal diperbarui',
+                'error' => $th->getMessage()
+            ], 500);
+        }
     }
-}
 
     public function approval2()
     {
         try {
-            $requests = RequestPengadaan::with(['alat', 'user'])
+            $requests = RequestPengadaan::with(['alat', 'user.dataDiri', 'user.penempatan'])
                 ->where('status', 'waiting_approval_2')
                 ->get();
 
@@ -112,64 +112,65 @@ public function editApproval1(Request $request, string $id)
         }
     }
 
-public function editApproval2(Request $request, string $id)
-{
-    try {
-        $validate = $request->validate([
-            'id_inventoris_fk' => 'required|exists:alat,id_alat',
-            'NID' => 'required|exists:admin,NID',
-            'jumlah' => 'required|integer|min:1',
-            'tanggal_permintaan' => 'required|date',
-            'status' => 'required|in:waiting_approval_3,rejected',
-            'total' => 'required|integer|min:0',
-        ]);
+    public function editApproval2(Request $request, string $id)
+    {
+        try {
+            $validate = $request->validate([
+                'id_inventoris_fk' => 'required|exists:alat,id_alat',
+                'NID' => 'required|exists:admin,NID',
+                'jumlah' => 'required|integer|min:1',
+                'tanggal_permintaan' => 'required|date',
+                'status' => 'required|in:waiting_approval_3,rejected',
+                'catatan' => 'nullable',
+                'total' => 'required|integer|min:0',
+            ]);
 
-        $admin = Admin::with('dataDiri')->where('NID', $validate['NID'])->firstOrFail();
+            $admin = Admin::with('dataDiri')->where('NID', $validate['NID'])->firstOrFail();
 
-        // Ambil nama lengkap admin atau fallback NID
-        $namaLengkap = $admin->dataDiri && $admin->dataDiri->nama_lengkap
-            ? $admin->dataDiri->nama_lengkap
-            : $admin->NID;
+            // Ambil nama lengkap admin atau fallback NID
+            $namaLengkap = $admin->dataDiri && $admin->dataDiri->nama_lengkap
+                ? $admin->dataDiri->nama_lengkap
+                : $admin->NID;
 
-        $pengajuan = RequestPengadaan::findOrFail($id);
+            $pengajuan = RequestPengadaan::findOrFail($id);
 
-        $pengajuan->update([
-            'id_inventoris_fk' => $validate['id_inventoris_fk'],
-            'id_users_fk' => $admin->id,
-            'jumlah' => $validate['jumlah'],
-            'tanggal_permintaan' => $validate['tanggal_permintaan'],
-            'status' => $validate['status'],
-            'total' => $validate['total'],
-            'status_by' =>$namaLengkap,
-        ]);
+            $pengajuan->update([
+                'id_inventoris_fk' => $validate['id_inventoris_fk'],
+                'id_users_fk' => $admin->id,
+                'jumlah' => $validate['jumlah'],
+                'tanggal_permintaan' => $validate['tanggal_permintaan'],
+                'status' => $validate['status'],
+                'catatan' => $validate['catatan'],
+                'total' => $validate['total'],
+                'status_by' => $namaLengkap,
+            ]);
 
-        $levelApproval = $validate['status'] === 'waiting_approval_3' ? 'Approved Level 2' : 'Rejected Level 2';
+            $levelApproval = $validate['status'] === 'waiting_approval_3' ? 'Approved Level 2' : 'Rejected Level 2';
 
-        DB::table('approval')->insert([
-            'id_request_fk' => $pengajuan->id_request,
-            'id_admin_fk' => $admin->id,
-            'level_approval' => $levelApproval,
-            'status' => $validate['status'] === 'waiting_approval_3' ? 'approved' : 'rejected',
-            'tanggal' => now()->toDateString(),
-            'catatan' => $validate['catatan'] ?? null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+            DB::table('approval')->insert([
+                'id_request_fk' => $pengajuan->id_request,
+                'id_admin_fk' => $admin->id,
+                'level_approval' => $levelApproval,
+                'status' => $validate['status'] === 'waiting_approval_3' ? 'approved' : 'rejected',
+                'tanggal' => now()->toDateString(),
+                'catatan' => $validate['catatan'] ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data pengajuan & riwayat approval berhasil diperbarui',
-            'data' => $pengajuan
-        ], 200);
-
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Data pengajuan gagal diperbarui',
-            'error' => $th->getMessage()
-        ], 500);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data pengajuan & riwayat approval berhasil diperbarui',
+                'data' => $pengajuan
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data pengajuan gagal diperbarui',
+                'error' => $th->getMessage()
+            ], 500);
+        }
     }
-}
 
 
     public function approval3()
@@ -192,68 +193,80 @@ public function editApproval2(Request $request, string $id)
         }
     }
 
-public function editApproval3(Request $request, string $id)
-{
-    try {
-        $validate = $request->validate([
-            'id_inventoris_fk' => 'required|exists:alat,id_alat',
-            'NID' => 'required|exists:admin,NID',
-            'jumlah' => 'required|integer|min:1',
-            'tanggal_permintaan' => 'required|date',
-            'status' => 'required|in:approved,rejected',
-            'total' => 'required|integer|min:0',
-        ]);
+    public function editApproval3(Request $request, string $id)
+    {
+        try {
+            $validate = $request->validate([
+                'id_inventoris_fk' => 'required|exists:alat,id_alat',
+                'NID' => 'required|exists:admin,NID',
+                'jumlah' => 'required|integer|min:1',
+                'tanggal_permintaan' => 'required|date',
+                'status' => 'required|in:approved,rejected',
+                'total' => 'required|integer|min:0',
+            ]);
 
-        $admin = Admin::with('dataDiri')->where('NID', $validate['NID'])->firstOrFail();
+            $admin = Admin::with('dataDiri')->where('NID', $validate['NID'])->firstOrFail();
 
-        // Ambil nama lengkap admin atau fallback NID
-        $namaLengkap = $admin->dataDiri->nama_lengkap
-            ? $admin->dataDiri->nama_lengkap
-            : $admin->NID;
+            // Ambil nama lengkap admin atau fallback NID
+            $namaLengkap = $admin->dataDiri->nama_lengkap
+                ? $admin->dataDiri->nama_lengkap
+                : $admin->NID;
 
-        $pengajuan = RequestPengadaan::findOrFail($id);
+            $pengajuan = RequestPengadaan::findOrFail($id);
 
-        $pengajuan->update([
-            'id_inventoris_fk' => $validate['id_inventoris_fk'],
-            'id_users_fk' => $admin->id,
-            'jumlah' => $validate['jumlah'],
-            'tanggal_permintaan' => $validate['tanggal_permintaan'],
-            'status' => $validate['status'],
-            'total' => $validate['total'],
-            'status_by' =>$namaLengkap,
-        ]);
+            $pengajuan->update([
+                'id_inventoris_fk' => $validate['id_inventoris_fk'],
+                'id_users_fk' => $admin->id,
+                'jumlah' => $validate['jumlah'],
+                'tanggal_permintaan' => $validate['tanggal_permintaan'],
+                'status' => $validate['status'],
+                'total' => $validate['total'],
+                'status_by' => $namaLengkap,
+            ]);
 
-        $levelApproval = $validate['status'] === 'approved' ? 'Approved Level 2' : 'Rejected Level 2';
+            $levelApproval = $validate['status'] === 'approved' ? 'Approved Level 3' : 'Rejected Level 3';
 
-        DB::table('approval')->insert([
-            'id_request_fk' => $pengajuan->id_request,
-            'id_admin_fk' => $admin->id,
-            'level_approval' => $levelApproval,
-            'status' => $validate['status'] === 'approved' ? 'approved' : 'rejected',
-            'tanggal' => now()->toDateString(),
-            'catatan' => $validate['catatan'] ?? null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+            DB::table('approval')->insert([
+                'id_request_fk' => $pengajuan->id_request,
+                'id_admin_fk' => $admin->id,
+                'level_approval' => $levelApproval,
+                'status' => $validate['status'] === 'approved' ? 'approved' : 'rejected',
+                'tanggal' => now()->toDateString(),
+                'catatan' => $validate['catatan'] ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data pengajuan & riwayat approval berhasil diperbarui',
-            'data' => $pengajuan
-        ], 200);
-
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Data pengajuan gagal diperbarui',
-            'error' => $th->getMessage()
-        ], 500);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data pengajuan & riwayat approval berhasil diperbarui',
+                'data' => $pengajuan
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data pengajuan gagal diperbarui',
+                'error' => $th->getMessage()
+            ], 500);
+        }
     }
-}
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function index()
+    {
+        try {
+            $request = RequestPengadaan::with(['alat', 'user.dataDiri', 'approvals'])->get();
+            return response()->json([
+                'status' => 'success',
+                'data' => $request,
+                'message' => 'Data approval berhasil diambil.'
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengambil data: ' . $th->getMessage()
+            ], 500);
+        }
+    }
     public function store(Request $request)
     {
         //

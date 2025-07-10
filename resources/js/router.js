@@ -21,7 +21,7 @@ import PengajuanAdd from "./pages/Pengajuan/Pengajuan-add.vue";
 import AlatPemakaian from "./pages/Pengadaan/Alat-pemakaian.vue";
 import AlatStock from "./pages/Pengadaan/Alat-stock.vue";
 import Grafik from "./pages/user_review/Grafik.vue";
-import ManajemenApproval2 from "./pages/approval/ManajemenApproval2.vue";
+import ManajemenApproval from "./pages/approval/ManajemenApproval.vue";
 import LaporanPemakaian from "./pages/user_review/LaporanPemakaian.vue";
 import LaporanATK from "./pages/user_review/LaporanATK.vue";
 import LaporanApproval from "./pages/user_review/LaporanApproval.vue";
@@ -65,7 +65,7 @@ const routes = [
     // Protected routes (butuh token)
     { path: "/dashboard", component: Dashboard, meta: { requiresAuth: true, title: "Dashboard" } },
     { path: "/manajemen-akun", component: ManajemenAkun, meta: { requiresAuth: true, title: "Manajemen Akun" } },
-    { path: "/manajemen-approval-2", component: ManajemenApproval2, meta: { requiresAuth: true, title: "Manajemen Approval 2" } },
+    { path: "/manajemen-approval", component: ManajemenApproval, meta: { requiresAuth: true, title: "Manajemen Approval" } },
     { path: "/profile", component: Profile, meta: { requiresAuth: true, title: "Profile" } },
 
     { path: "/manajemen-alat", component: AlatTulis, meta: { requiresAuth: true, title: "Alat Tulis" } },

@@ -227,12 +227,12 @@ export default {
 
 
 <style scoped>
-th,
-td {
-    padding: 12px 16px;
+th, td {
+    padding: 8px 10px;           /* diperkecil */
     text-align: center;
-    font-size: 14px;
+    font-size: 12px;             /* perkecil font */
     border: 1px solid #ccc;
     word-wrap: break-word;
 }
+
 </style>

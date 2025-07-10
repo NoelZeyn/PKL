@@ -37,12 +37,13 @@
                             <tr>
                                 <th class="w-14">No</th>
                                 <th class="p-3 border">Nama Barang</th>
-                                <th class="p-3 border">Pemohon</th>
-                                <th class="p-3 w-28 border">Tgl Permintaan</th>
-                                <th class="w-50 border">Status</th>
-                                <th class="w-22 border">Jumlah</th>
-                                <th class="w-40 p-3 border">Harga Satuan</th>
-                                <th class="p-3 border">Total</th>
+                                <th class="p-3 border">Nama Pemohon</th>
+                                <th class="p-3 border">Tgl Permintaan</th>
+                                <th class="w-33 border">Status</th>
+                                <th class="w-30 border">Keterangan Status</th>
+                                <th class="border">Jumlah</th>
+                                <!-- <th class="p-3 border">Harga Satuan</th> -->
+                                <th class="w-30 p-3 border">Total</th>
                                 <th class="p-3 border">Keterangan</th>
                                 <!-- <th class="p-3 border">Aksi</th> -->
                             </tr>
@@ -83,13 +84,16 @@
                                     <br><br>
                                     {{ request.status_by || "-" }}
                                 </td>
+                                <td class="p-3">
+                                    {{ request.approvals[0]?.catatan || '-' }}
+                                </td>
 
                                 <td class="p-3">{{ request.jumlah }}</td>
-                                <td class="p-3">
+                                <!-- <td class="p-3">
                                     {{
                                         formatRupiah(request.alat?.harga_satuan)
                                     }}
-                                </td>
+                                </td> -->
                                 <td class="p-3">
                                     {{ formatRupiah(request.total) }}
                                 </td>
@@ -195,7 +199,7 @@ export default {
                     { header: "Tgl Permintaan", key: "tanggal", width: 15 },
                     { header: "Status", key: "status", width: 15 },
                     { header: "Jumlah", key: "jumlah", width: 10 },
-                    { header: "Harga Satuan", key: "harga_satuan", width: 15 },
+                    // { header: "Harga Satuan", key: "harga_satuan", width: 15 },
                     { header: "Total", key: "total", width: 15 },
                 ];
 
@@ -216,7 +220,7 @@ export default {
                         tanggal: this.formatTanggal(item.tanggal_permintaan),
                         status: this.formatStatus(item.status).label,
                         jumlah: item.jumlah,
-                        harga_satuan: item.alat?.harga_satuan || 0,
+                        // harga_satuan: item.alat?.harga_satuan || 0,
                         total: item.total || 0,
                     });
                 });
@@ -331,12 +335,12 @@ export default {
 </script>
 
 <style scoped>
-th,
-td {
-    padding: 12px 16px;
+th, td {
+    padding: 8px 10px;           /* diperkecil */
     text-align: center;
-    font-size: 14px;
+    font-size: 12px;             /* perkecil font */
     border: 1px solid #ccc;
     word-wrap: break-word;
 }
+
 </style>

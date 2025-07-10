@@ -50,19 +50,19 @@
           <table class="w-full table-fixed border-collapse border border-gray-300">
             <thead class="bg-gray-100 text-[#7d7f81]">
               <tr>
-                <th class="w-14">No</th>
+                <!-- <th class="w-14">No</th> -->
                 <th class="p-3 border">Nama Barang</th>
                 <th class="p-3 border">Stock Min</th>
                 <th class="p-3 border">Stock Max</th>
                 <th class="p-3 w-25 border">Stock Sekarang</th>
                 <th class="p-3 border">Harga Satuan</th>
-                <th class="p-3 border">Rekomendasi Pembelian</th>
+                <th class="w-35 p-3 border">Rekomendasi Pembelian</th>
                 <th class="p-3 border">Aksi</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(alat, index) in paginatedAlatList" :key="alat.id" class="text-[#333436]">
-                <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
+                <!-- <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td> -->
                 <td class="p-3">{{ alat.nama_barang }}</td>
                 <td class="p-3">{{ alat.stock_min }}</td>
                 <td class="p-3">{{ alat.stock_max }}</td>
@@ -281,12 +281,12 @@ export default {
 </script>
 
 <style scoped>
-th,
-td {
-  padding: 12px 16px;
-  text-align: center;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  word-wrap: break-word;
+th, td {
+    padding: 8px 10px;           /* diperkecil */
+    text-align: center;
+    font-size: 12px;             /* perkecil font */
+    border: 1px solid #ccc;
+    word-wrap: break-word;
 }
+
 </style>

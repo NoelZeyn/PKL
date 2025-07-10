@@ -8,14 +8,10 @@
       <div class="pb-12">
         <div class="filters space-y-4">
           <div class="relative">
-            <input
-              type="text"
-              v-model="searchQuery"
-              @input="onInputSearch"
-              placeholder="Cari Level atau NID..."
-              class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm text-gray-700"
-            />
-            <img src="@/assets/search.svg" alt="Search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input type="text" v-model="searchQuery" @input="onInputSearch" placeholder="Cari Level atau Nama Approver..."
+              class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm text-gray-700" />
+            <img src="@/assets/search.svg" alt="Search"
+              class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
         </div>
 
@@ -23,15 +19,15 @@
           <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
             <h3 class="text-sm font-semibold text-gray-900">Riwayat Approval</h3>
 
-  <button @click="downloadExcel"
-    class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200 cursor-pointer">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-      stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round"
-        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
-    </svg>
-    Download Excel
-  </button>
+            <button @click="downloadExcel"
+              class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200 cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+              </svg>
+              Download Excel
+            </button>
           </div>
 
           <table class="w-full table-fixed border-collapse border border-gray-300">
@@ -40,6 +36,7 @@
                 <th class="w-15">No</th>
                 <th class="p-3 border">Level Approval</th>
                 <th class="p-3 border">Status</th>
+                <th class="p-3 border">Catatan</th>
                 <th class="p-3 border">Tanggal</th>
                 <th class="p-3 border">Nama Approver</th>
                 <th class="p-3 border">ID Request</th>
@@ -57,6 +54,7 @@
                     {{ item.status }}
                   </span>
                 </td>
+                <td class="p-3">{{ item.catatan }}</td>
                 <td class="p-3">{{ formatTanggal(item.tanggal) }}</td>
                 <td class="p-3">{{ item.request?.status_by || '-' }}</td>
                 <td class="p-3">{{ item.id_request_fk }}</td>
@@ -68,9 +66,11 @@
           </table>
 
           <div class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
-            <button @click="prevPage" :disabled="currentPage === 1" class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
+            <button @click="prevPage" :disabled="currentPage === 1"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
             <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
-            <button @click="nextPage" :disabled="currentPage === totalPages" class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
+            <button @click="nextPage" :disabled="currentPage === totalPages"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
           </div>
         </div>
       </div>
@@ -101,7 +101,7 @@ export default {
     filteredList() {
       return this.approvalList.filter(item =>
         item.level_approval.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        item.admin?.NID?.toLowerCase().includes(this.searchQuery.toLowerCase())
+        item.request?.status_by?.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
     },
     paginatedList() {
@@ -152,8 +152,9 @@ export default {
         { header: 'No', key: 'no', width: 5 },
         { header: 'Level Approval', key: 'level_approval', width: 25 },
         { header: 'Status', key: 'status', width: 15 },
+        { header: 'Catatan', key: 'catatan', width: 15 },
         { header: 'Tanggal', key: 'tanggal', width: 15 },
-        { header: 'NID Approver', key: 'nid', width: 20 },
+        { header: 'Nama Approver', key: 'status_by', width: 20 },
         { header: 'ID Request', key: 'id_request', width: 15 },
       ];
 
@@ -162,8 +163,9 @@ export default {
           no: index + 1,
           level_approval: item.level_approval,
           status: item.status,
+          catatan: item.catatan,
           tanggal: this.formatTanggal(item.tanggal),
-          nid: item.admin?.NID || '-',
+          status_by: item.request?.status_by || '-',
           id_request: item.id_request_fk,
         });
       });
@@ -177,10 +179,11 @@ export default {
 
 <style scoped>
 th, td {
-  padding: 12px 16px;
-  text-align: center;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  word-wrap: break-word;
+    padding: 8px 10px;           /* diperkecil */
+    text-align: center;
+    font-size: 12px;             /* perkecil font */
+    border: 1px solid #ccc;
+    word-wrap: break-word;
 }
+
 </style>

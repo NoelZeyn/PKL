@@ -30,29 +30,18 @@
                             <img src="@/assets/dashboard.svg" class="w-5" alt="Dashboard" />
                             <span>Dashboard</span>
                         </li>
-                    </router-link>                    
+                    </router-link>
                     <router-link v-if="role === 'superadmin'" to="/manajemen-akun" class="block">
                         <li :class="menuClass('manajemenAkun')">
                             <img src="@/assets/profil.svg" class="w-5" alt="Verifikasi" />
                             <span>Manajemen Akun</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role === 'superadmin'" to="/manajemen-approval-2" class="block">
-                        <li :class="menuClass('manajemenApproval2')">
-                            <img src="@/assets/profil.svg" class="w-5" alt="Approval 2" />
-                            <span>Manajemen Approval Level 2</span>
-                        </li>
-                    </router-link>
-                    <router-link v-if="role === 'admin'" to="/manajemen-approval-1" class="block">
-                        <li :class="menuClass('manajemenApproval1')">
-                            <img src="@/assets/profil.svg" class="w-5" alt="Approval 1" />
-                            <span>Manajemen Approval Level 1</span>
-                        </li>
-                    </router-link>
-                    <router-link v-if="role === 'anggaran'" to="/manajemen-approval-anggaran" class="block">
-                        <li :class="menuClass('manajemenApprovalAnggaran')">
-                            <img src="@/assets/profil.svg" class="w-5" alt="Approval anggaran" />
-                            <span>Manajemen Approval Anggaran</span>
+                    <router-link v-if="role === 'superadmin' || role === 'admin' || role === 'anggaran'"
+                        to="/manajemen-approval" class="block">
+                        <li :class="menuClass('manajemenApproval')">
+                            <img src="@/assets/profil.svg" class="w-5" alt="Approval" />
+                            <span>{{ getApprovalMenuName(role) }}</span>
                         </li>
                     </router-link>
                     <router-link v-if="role !== 'user_review'" to="/manajemen-alat" class="block">
@@ -75,33 +64,36 @@
             <div class="flex flex-col gap-2">
                 <p class="text-sm font-semibold text-[#b0b385] mb-1">Laporan</p>
                 <ul>
-                    <router-link v-if="role === 'superadmin' || role==='user_review'" to="/grafik" class="block">
+                    <router-link v-if="role !== 'user' || role === 'user_review'" to="/grafik" class="block">
                         <li :class="menuClass('grafik')" @click="setActive('grafik')">
-                            <img src="@/assets/laporan1.svg" class="w-5" alt="grafik" />
+                            <img src="@/assets/pasien.svg" class="w-5" alt="grafik" />
                             <span>Grafik ATK</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role === 'superadmin' || role==='user_review'" to="/laporan-ATK" class="block">
+                    <router-link v-if="role !== 'user' || role === 'user_review'" to="/laporan-ATK" class="block">
                         <li :class="menuClass('laporanATK')" @click="setActive('laporanATK')">
-                            <img src="@/assets/laporan1.svg" class="w-5" alt="laporanATK" />
+                            <img src="@/assets/pasien.svg" class="w-5" alt="laporanATK" />
                             <span>Data ATK</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role === 'superadmin' || role==='user_review'" to="/laporan-pemakaian" class="block">
+                    <router-link v-if="role !== 'user' || role === 'user_review'" to="/laporan-pemakaian"
+                        class="block">
                         <li :class="menuClass('laporanPemakaian')" @click="setActive('laporanPemakaian')">
-                            <img src="@/assets/laporan1.svg" class="w-5" alt="laporanPemakaian" />
+                            <img src="@/assets/pasien.svg" class="w-5" alt="laporanPemakaian" />
                             <span>History Pemakaian ATK</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role === 'superadmin' || role==='user_review'" to="/laporan-approval" class="block">
+                    <router-link v-if="role !== 'user' || role === 'user_review'" to="/laporan-approval"
+                        class="block">
                         <li :class="menuClass('laporanApproval')" @click="setActive('laporanApproval')">
-                            <img src="@/assets/laporan1.svg" class="w-5" alt="laporanApproval" />
+                            <img src="@/assets/pasien.svg" class="w-5" alt="laporanApproval" />
                             <span>History Approval ATK</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role === 'superadmin' || role==='user_review'" to="/laporan-pengajuan" class="block">
+                    <router-link v-if="role !== 'user' || role === 'user_review'" to="/laporan-pengajuan"
+                        class="block">
                         <li :class="menuClass('laporanPengajuan')" @click="setActive('laporanPengajuan')">
-                            <img src="@/assets/laporan1.svg" class="w-5" alt="laporanPengajuan" />
+                            <img src="@/assets/pasien.svg" class="w-5" alt="laporanPengajuan" />
                             <span>Laporan Pengajuan ATK</span>
                         </li>
                     </router-link>
@@ -162,6 +154,14 @@ export default {
         window.removeEventListener("resize", this.checkScreenSize);
     },
     methods: {
+        getApprovalMenuName(role) {
+            const roleToName = {
+                admin: 'Manajemen Approval Level 1',
+                superadmin: 'Manajemen Approval Level 2',
+                anggaran: 'Manajemen Approval Anggaran',
+            };
+            return roleToName[role] || 'Manajemen Approval';
+        },
         setActive(menu) {
             this.$emit("update:activeMenu", menu);
         },

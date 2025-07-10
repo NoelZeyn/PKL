@@ -45,8 +45,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::delete('alat/{id}', [AlatController::class, 'destroy'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
     Route::apiResource('history_pemakaian', HistoryPemakaianController::class);
     Route::post('/history_pemakaian_multi', [HistoryPemakaianController::class, 'storeMultiple']);
+    Route::get('approval1', [ApprovalController::class, 'approval1']);
+    Route::put('editApproval1/{id}', [ApprovalController::class, 'editApproval1']);
     Route::get('approval2', [ApprovalController::class, 'approval2']);
     Route::put('editApproval2/{id}', [ApprovalController::class, 'editApproval2']);
+    Route::get('approval3', [ApprovalController::class, 'approval3']);
+    Route::put('editApproval3/{id}', [ApprovalController::class, 'editApproval3']);
 });
 
 Route::group(['middleware' => 'auth:api'], function () {

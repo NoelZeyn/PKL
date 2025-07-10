@@ -15,7 +15,7 @@ class RequestController extends Controller
     public function index()
     {
         try {
-            $pengajuan = RequestPengadaan::with(['alat', 'user.dataDiri'])
+            $pengajuan = RequestPengadaan::with(['alat', 'user.dataDiri', 'approvals'])
                 ->where('status', '!=', 'draft')
                 ->orderBy('created_at', 'desc')
                 ->get();

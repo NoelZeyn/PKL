@@ -31,12 +31,11 @@
                     <table class="w-full table-fixed border-collapse border border-gray-300">
                         <thead class="bg-gray-100 text-[#7d7f81]">
                             <tr>
-                                <th class="w-14">No</th>
                                 <th class="p-3 border">Nama Barang</th>
                                 <th class="p-3 border">Pemohon</th>
-                                <th class="p-3 w-28 border">Tgl Permintaan</th>
-                                <th class="w-40 border">Status</th>
-                                <th class="w-22 border">Jumlah</th>
+                                <th class="w-30 p-3 border">Tgl Permintaan</th>
+                                <th class="w-33 p-3 border">Status</th>
+                                <th class="p-3 border">Jumlah</th>
                                 <th class="w-22 p-3 border">Harga Satuan</th>
                                 <th class="p-3 border">Total</th>
                                 <th class="p-3 border">Aksi</th>
@@ -45,13 +44,6 @@
                         <tbody>
                             <tr v-for="(request, index) in paginatedRequestList" :key="request.id_request"
                                 class="text-[#333436]">
-                                <td class="p-3">
-                                    {{
-                                        (currentPage - 1) * itemsPerPage +
-                                        index +
-                                        1
-                                    }}
-                                </td>
                                 <td class="p-3">
                                     {{ request.alat?.nama_barang || "-" }}
                                 </td>
@@ -333,12 +325,13 @@ export default {
 </script>
 
 <style scoped>
-th,
-td {
-    padding: 12px 16px;
+th, td {
+    padding: 8px 10px;           /* diperkecil */
     text-align: center;
-    font-size: 14px;
+    font-size: 12px;             /* perkecil font */
     border: 1px solid #ccc;
     word-wrap: break-word;
 }
+
 </style>
+

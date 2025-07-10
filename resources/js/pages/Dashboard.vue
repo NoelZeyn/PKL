@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-wrap min-h-screen bg-gray-100">
+  <div class="flex flex-wrap h-screen bg-gray-100">
     <!-- Sidebar -->
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="updateActiveMenu" />
 
