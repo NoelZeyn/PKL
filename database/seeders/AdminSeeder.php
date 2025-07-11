@@ -22,10 +22,10 @@ class AdminSeeder extends Seeder
             return;
         }
 
-        $tingkatanList = ['user', 'user_review', 'admin', 'superadmin', 'anggaran'];
+        $tingkatanList = ['user', 'user_review', 'admin', 'superadmin', 'anggaran', 'asman', 'manajer'];
         $accessList = ['pending', 'active', 'inactive'];
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             Admin::create([
                 'NID'                => $faker->unique()->numerify('NID#######'),
                 'password'           => Hash::make('password123'), // Password default
@@ -40,6 +40,15 @@ class AdminSeeder extends Seeder
             'password'           => Hash::make('password123'), // Password default
             'id_penempatan_fk'   => $faker->randomElement($penempatanIds),
             'tingkatan_otoritas' => 'superadmin',
+            'access'             => 'active',
+            'password_changed_at' => now(),
+        ]);
+        Admin::create([
+            'NID'                => '8813066ZJA',
+            'password'           => Hash::make('password123'), // Password default
+            'id_penempatan_fk'   => '14',
+            'id_bidang_fk'   => '4',
+            'tingkatan_otoritas' => 'asman',
             'access'             => 'active',
             'password_changed_at' => now(),
         ]);

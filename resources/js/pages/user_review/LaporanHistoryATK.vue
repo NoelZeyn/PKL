@@ -2,36 +2,22 @@
   <div class="flex h-screen bg-gray-100">
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
     <div class="flex-1 p-8 pt-4 bg-white">
-      <HeaderBar title="Riwayat Approval" />
+      <HeaderBar title="History Data ATK" />
       <div class="my-4 border-b border-gray-300"></div>
 
       <div class="pb-12">
-        <div class="filters flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
-          <!-- Search Input -->
-          <div class="flex-1 relative">
-            <input type="text" v-model="searchQuery" @input="onInputSearch"
-              placeholder="Cari Level, Nama Approver, atau Status..."
+        <div class="filters space-y-4">
+          <div class="relative">
+            <input type="text" v-model="searchQuery" @input="onInputSearch" placeholder="Cari Barang atau Admin..."
               class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm text-gray-700" />
             <img src="@/assets/search.svg" alt="Search"
               class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
-
-          <!-- Status Dropdown -->
-          <div class="flex-1">
-            <select v-model="selectedStatus" @change="onInputSearch"
-              class="cursor-pointer w-full border border-gray-300 rounded-md py-2 px-3 text-sm text-gray-700">
-              <option value="">Semua Status</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="pending">Pending</option>
-            </select>
-          </div>
         </div>
-
 
         <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
           <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
-            <h3 class="text-sm font-semibold text-gray-900">Riwayat Approval</h3>
+            <h3 class="text-sm font-semibold text-gray-900">Riwayat Perubahan Data ATK</h3>
 
             <button @click="downloadExcel"
               class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200 cursor-pointer">
@@ -47,33 +33,24 @@
           <table class="w-full table-fixed border-collapse border border-gray-300">
             <thead class="bg-gray-100 text-[#7d7f81]">
               <tr>
-                <th class="w-15">No</th>
-                <th class="p-3 border">Level Approval</th>
-                <th class="p-3 border">Status</th>
-                <th class="p-3 border">Catatan</th>
+                <th class="w-16">No</th>
+                <th class="p-3 border">Nama Barang</th>
+                <th class="p-3 border">Admin</th>
+                <th class="p-3 border">Aksi</th>
+                <th class="p-3 border">Deskripsi</th>
                 <th class="p-3 border">Tanggal</th>
-                <th class="p-3 border">Nama Approver</th>
-                <th class="p-3 border">ID Request</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in paginatedList" :key="item.id_approval" class="text-[#333436]">
+              <tr v-for="(item, index) in paginatedHistory" :key="index" class="text-[#333436]">
                 <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
-                <td class="p-3">{{ item.level_approval }}</td>
-                <td class="p-3">
-                  <span :class="[
-                    'px-3 py-1 rounded-full text-xs font-semibold',
-                    statusColor(item.status),
-                  ]">
-                    {{ item.status }}
-                  </span>
-                </td>
-                <td class="p-3">{{ item.catatan }}</td>
+                <td class="p-3">{{ item.nama_barang }}</td>
+                <td class="p-3">{{ item.nama_admin }}</td>
+                <td class="p-3 capitalize">{{ item.jenis_aksi }}</td>
+                <td class="p-3">{{ item.deskripsi || '-' }}</td>
                 <td class="p-3">{{ formatTanggal(item.tanggal) }}</td>
-                <td class="p-3">{{ item.request?.status_by || '-' }}</td>
-                <td class="p-3">{{ item.id_request_fk }}</td>
               </tr>
-              <tr v-if="paginatedList.length === 0">
+              <tr v-if="paginatedHistory.length === 0">
                 <td colspan="6" class="text-center p-4 text-gray-500">Data tidak ditemukan</td>
               </tr>
             </tbody>
@@ -100,55 +77,60 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 export default {
-  name: "RiwayatApproval",
+  name: "HistoryDataATK",
   components: { Sidebar, HeaderBar },
+
   data() {
     return {
-      activeMenu: "laporanApproval",
+      activeMenu: "laporanHistoryATK",
       searchQuery: "",
-      selectedStatus: "",
-      approvalList: [],
+      historyList: [],
       currentPage: 1,
       itemsPerPage: 10,
     };
   },
+
   computed: {
-    filteredList() {
-      return this.approvalList.filter(item => {
-        const matchesSearch = item.level_approval?.toLowerCase().includes(this.searchQuery.toLowerCase())
-          || item.request?.status_by?.toLowerCase().includes(this.searchQuery.toLowerCase())
-          || item.status?.toLowerCase().includes(this.searchQuery.toLowerCase());
-
-        const matchesStatus = this.selectedStatus === '' || item.status === this.selectedStatus;
-
-        return matchesSearch && matchesStatus;
-      });
+    filteredHistory() {
+      return this.historyList.filter(item =>
+        (item.nama_barang || '').toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        (item.nama_admin || '').toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
     },
-
-    paginatedList() {
+    paginatedHistory() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
-      return this.filteredList.slice(start, start + this.itemsPerPage);
+      return this.filteredHistory.slice(start, start + this.itemsPerPage);
     },
     totalPages() {
-      return Math.ceil(this.filteredList.length / this.itemsPerPage) || 1;
+      return Math.ceil(this.filteredHistory.length / this.itemsPerPage) || 1;
     },
   },
+
   created() {
-    this.fetchApprovals();
+    this.fetchHistory();
   },
+
   methods: {
-    fetchApprovals() {
+    fetchHistory() {
       const token = localStorage.getItem("token");
-      axios.get("http://localhost:8000/api/history_approval", {
+      axios.get("http://localhost:8000/api/history-atk", {
         headers: { Authorization: `Bearer ${token}` },
       }).then(res => {
-        this.approvalList = res.data.data;
+        this.historyList = res.data.data.map(item => ({
+          nama_barang: item.alat?.nama_barang || '-',
+          nama_admin: item.admin?.NID || '-',
+          jenis_aksi: item.jenis_aksi || '-',
+          deskripsi: item.deskripsi || '-',
+          tanggal: item.tanggal,
+        }));
       }).catch(err => console.error(err));
     },
+
     formatTanggal(dateString) {
       const date = new Date(dateString);
       return date.toLocaleDateString("id-ID", { day: '2-digit', month: '2-digit', year: 'numeric' });
     },
+
     nextPage() {
       if (this.currentPage < this.totalPages) this.currentPage++;
     },
@@ -158,54 +140,43 @@ export default {
     onInputSearch() {
       this.currentPage = 1;
     },
-    statusColor(status) {
-      return {
-        approved: 'bg-green-200 text-green-800',
-        rejected: 'bg-red-200 text-red-800',
-        pending: 'bg-yellow-200 text-yellow-800',
-      }[status] || 'bg-gray-200 text-gray-800';
-    },
+
     async downloadExcel() {
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Riwayat Approval');
+      const worksheet = workbook.addWorksheet('History Data ATK');
 
       worksheet.columns = [
         { header: 'No', key: 'no', width: 5 },
-        { header: 'Level Approval', key: 'level_approval', width: 25 },
-        { header: 'Status', key: 'status', width: 15 },
-        { header: 'Catatan', key: 'catatan', width: 15 },
+        { header: 'Nama Barang', key: 'nama_barang', width: 25 },
+        { header: 'Admin', key: 'nama_admin', width: 20 },
+        { header: 'Aksi', key: 'aksi', width: 15 },
+        { header: 'Deskripsi', key: 'deskripsi', width: 40 },
         { header: 'Tanggal', key: 'tanggal', width: 15 },
-        { header: 'Nama Approver', key: 'status_by', width: 20 },
-        { header: 'ID Request', key: 'id_request', width: 15 },
       ];
 
-      this.filteredList.forEach((item, index) => {
+      this.filteredHistory.forEach((item, index) => {
         worksheet.addRow({
           no: index + 1,
-          level_approval: item.level_approval,
-          status: item.status,
-          catatan: item.catatan,
+          nama_barang: item.nama_barang,
+          nama_admin: item.nama_admin,
+          aksi: item.jenis_aksi,
+          deskripsi: item.deskripsi,
           tanggal: this.formatTanggal(item.tanggal),
-          status_by: item.request?.status_by || '-',
-          id_request: item.id_request_fk,
         });
       });
 
       const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer]), 'Riwayat_Approval.xlsx');
-    }
-  }
+      saveAs(new Blob([buffer]), `History-Data-ATK-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    },
+  },
 };
 </script>
 
 <style scoped>
-th,
-td {
+th, td {
   padding: 8px 10px;
-  /* diperkecil */
   text-align: center;
   font-size: 12px;
-  /* perkecil font */
   border: 1px solid #ccc;
   word-wrap: break-word;
 }

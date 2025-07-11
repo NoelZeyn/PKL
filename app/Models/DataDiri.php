@@ -22,6 +22,6 @@ class DataDiri extends Model
 
     public function admin()
     {
-        return $this->belongsTo(Admin::class, 'id_admin_user_fk');
+        return $this->belongsTo(Admin::class, 'id_admin_user_fk', 'id');
     }
 }

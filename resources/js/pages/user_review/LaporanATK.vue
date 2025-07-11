@@ -20,6 +20,7 @@
               <option value="">Semua Rekomendasi</option>
               <option value="perlu">Perlu Pengajuan</option>
               <option value="aman">Aman</option>
+              <option value="ATK Tidak Digunakan">ATK Tidak Digunakan</option>
             </select>
           </div>
         </div>
@@ -28,15 +29,15 @@
           <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
             <h3 class="text-sm font-semibold text-gray-900">Data ATK</h3>
 
-  <button @click="downloadExcel"
-    class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200 cursor-pointer">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-      stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round"
-        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
-    </svg>
-    Download Excel
-  </button>
+            <button @click="downloadExcel"
+              class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200 cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+              </svg>
+              Download Excel
+            </button>
           </div>
 
           <table class="w-full table-fixed border-collapse border border-gray-300">
@@ -60,7 +61,10 @@
                 <td class="p-3">{{ alat.stock }}</td>
                 <td class="p-3">{{ formatRupiah(alat.harga_satuan) }}</td>
                 <td class="p-3">
-                  <span v-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu Pengajuan</span>
+                  <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
+                    class="text-gray-500 italic">ATK Tidak Digunakan</span>
+                  <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
+                    Pengajuan</span>
                   <span v-else class="text-green-600">Aman</span>
                 </td>
               </tr>
@@ -76,7 +80,7 @@
           </div>
         </div>
       </div>
-      
+
     </div>
 
   </div>
@@ -120,12 +124,21 @@ export default {
           const searchMatch = !this.searchQuery ||
             a.nama_barang.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
             (a.keterangan && a.keterangan.toLowerCase().includes(this.searchQuery.toLowerCase()));
-          const rekomendasiMatch = !this.rekomendasiFilter ||
-            (this.rekomendasiFilter === 'perlu' && a.stock <= a.stock_min) ||
-            (this.rekomendasiFilter === 'aman' && a.stock > a.stock_min);
+
+          const rekomendasi = this.getRekomendasiStatus(a);
+
+          const rekomendasiMatch = !this.rekomendasiFilter || this.rekomendasiFilter === rekomendasi;
+
           return searchMatch && rekomendasiMatch;
         })
-        .sort((a, b) => a.stock - b.stock);
+        .sort((a, b) => {
+          const statusOrder = { 'perlu': 1, 'aman': 2, 'ATK Tidak Digunakan': 3 };
+
+          const aStatus = this.getRekomendasiStatus(a);
+          const bStatus = this.getRekomendasiStatus(b);
+
+          return statusOrder[aStatus] - statusOrder[bStatus];
+        });
     },
     paginatedAlatList() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -142,11 +155,20 @@ export default {
   },
 
   methods: {
+    getRekomendasiStatus(alat) {
+      if (alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0) {
+        return 'ATK Tidak Digunakan';
+      } else if (alat.stock <= alat.stock_min) {
+        return 'perlu';
+      } else {
+        return 'aman';
+      }
+    },
     async downloadExcel() {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Data ATK');
 
-      // Define Columns
+      // Definisikan Kolom
       worksheet.columns = [
         { header: 'No', key: 'no', width: 5 },
         { header: 'Nama Barang', key: 'nama_barang', width: 25 },
@@ -165,37 +187,59 @@ export default {
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       });
 
-      // Group Data by Kategori
-      const groupedData = {};
+      // Kelompokkan Data berdasarkan Status (Perlu, Aman, Tidak Digunakan)
+      const groupedData = {
+        'Perlu Pengajuan': [],
+        'Aman': [],
+        'ATK Tidak Digunakan': [],
+      };
+
       this.filteredAlatList.forEach(alat => {
-        const kategori = alat.kategori?.nama_kategori || 'Tanpa Kategori';
-        if (!groupedData[kategori]) groupedData[kategori] = [];
-        groupedData[kategori].push(alat);
+        const status = this.getRekomendasiStatus(alat);
+        const statusText =
+          status === 'perlu' ? 'Perlu Pengajuan' :
+            status === 'aman' ? 'Aman' : 'ATK Tidak Digunakan';
+        groupedData[statusText].push(alat);
       });
 
       let rowIndex = 2;
       let globalNo = 1;
 
-      for (const [kategoriName, items] of Object.entries(groupedData)) {
-        // Row Kategori
+      // Loop berdasarkan urutan prioritas: Perlu → Aman → Tidak Digunakan
+      const statusOrder = ['Perlu Pengajuan', 'Aman', 'ATK Tidak Digunakan'];
+
+      statusOrder.forEach(statusName => {
+        const items = groupedData[statusName];
+        if (items.length === 0) return;
+
+        // Baris Judul Status
         worksheet.mergeCells(`A${rowIndex}:G${rowIndex}`);
-        const kategoriCell = worksheet.getCell(`A${rowIndex}`);
-        kategoriCell.value = `Kategori: ${kategoriName}`;
-        kategoriCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        kategoriCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } }; // Hijau
-        kategoriCell.alignment = { vertical: 'middle', horizontal: 'center' };
-        kategoriCell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        const statusCell = worksheet.getCell(`A${rowIndex}`);
+        statusCell.value = `Status: ${statusName}`;
+        statusCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+        // Warna berbeda untuk tiap status
+        let bgColor = 'FF10B981'; // Default hijau (Aman)
+        if (statusName === 'Perlu Pengajuan') bgColor = 'FFDC3545'; // Merah
+        if (statusName === 'ATK Tidak Digunakan') bgColor = 'FF6C757D'; // Abu-abu
+
+        statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+        statusCell.alignment = { vertical: 'middle', horizontal: 'center' };
+        statusCell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
         rowIndex++;
 
         items.forEach(alat => {
-          const rekomendasiText = alat.stock <= alat.stock_min ? 'Perlu Pengajuan' : 'Aman';
+          const rekomendasiText =
+            this.getRekomendasiStatus(alat) === 'perlu' ? 'Perlu Pengajuan' :
+              this.getRekomendasiStatus(alat) === 'aman' ? 'Aman' : 'ATK Tidak Digunakan';
+
           const row = worksheet.addRow({
             no: globalNo++,
             nama_barang: alat.nama_barang,
             stock_min: alat.stock_min,
             stock_max: alat.stock_max,
             stock: alat.stock,
-            harga_satuan: alat.harga_satuan,  // Tetap angka
+            harga_satuan: alat.harga_satuan,
             rekomendasi: rekomendasiText,
           });
 
@@ -204,30 +248,32 @@ export default {
             cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
 
             if (colNumber === 6) {
-              cell.numFmt = '"Rp"#,##0'; // Format Harga
+              cell.numFmt = '"Rp"#,##0'; // Format rupiah
             }
           });
 
-          const rekomendasiCell = row.getCell('rekomendasi');
+          // Warnai Cell Rekomendasi
+          const rekomCell = row.getCell('rekomendasi');
           if (rekomendasiText === 'Perlu Pengajuan') {
-            rekomendasiCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC3545' } }; // Merah
-            rekomendasiCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+            rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC3545' } };
+            rekomCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+          } else if (rekomendasiText === 'Aman') {
+            rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28A745' } };
+            rekomCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
           } else {
-            rekomendasiCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28A745' } }; // Hijau
-            rekomendasiCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+            rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6C757D' } }; // Abu
+            rekomCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
           }
 
           rowIndex++;
         });
 
         rowIndex++;
-      }
+      });
 
       const buffer = await workbook.xlsx.writeBuffer();
       saveAs(new Blob([buffer]), `Data-ATK-${new Date().toISOString().slice(0, 10)}.xlsx`);
     },
-
-
 
     formatRupiah(angka) {
       if (!angka) return "-";
@@ -273,12 +319,14 @@ export default {
 </script>
 
 <style scoped>
-th, td {
-    padding: 8px 10px;           /* diperkecil */
-    text-align: center;
-    font-size: 12px;             /* perkecil font */
-    border: 1px solid #ccc;
-    word-wrap: break-word;
+th,
+td {
+  padding: 8px 10px;
+  /* diperkecil */
+  text-align: center;
+  font-size: 12px;
+  /* perkecil font */
+  border: 1px solid #ccc;
+  word-wrap: break-word;
 }
-
 </style>

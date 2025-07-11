@@ -18,6 +18,7 @@ class RequestPengadaan extends Model
         'tanggal_permintaan',
         'status',
         'status_by',
+        'keterangan',
         'jumlah',
         'total'
     ];
@@ -29,7 +30,7 @@ class RequestPengadaan extends Model
 
     public function user()
     {
-        return $this->belongsTo(Admin::class, 'id_users_fk');
+        return $this->belongsTo(Admin::class, 'id_users_fk', 'id');
     }
 
     public function approvals()

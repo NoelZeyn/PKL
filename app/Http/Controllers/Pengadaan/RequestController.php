@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Pengadaan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\Alat;
 use App\Models\RequestPengadaan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class RequestController extends Controller
 {
@@ -36,6 +38,59 @@ class RequestController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    private function hitungTotal($idAlat, $jumlah)
+    {
+        $alat = Alat::find($idAlat);
+        if (!$alat) return 0;
+
+        return $alat->harga_satuan * $jumlah;
+    }
+
+public function storeMultiple(Request $request)
+{
+    // Validasi request
+    $validator = Validator::make($request->all(), [
+        'items' => 'required|array|min:1',
+        'items.*.NID' => 'required|string|exists:admin,NID',
+        'items.*.id_inventoris_fk' => 'required|exists:alat,id_alat',
+        'items.*.jumlah' => 'required|integer|min:1',
+        'items.*.keterangan' => 'nullable|string',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'error',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    $validated = $validator->validated();
+
+    foreach ($validated['items'] as $item) {
+        $admin = Admin::where('NID', $item['NID'])->first();
+        if (!$admin) {
+            continue;
+        }
+
+        // Simpan data pengajuan
+        RequestPengadaan::create([
+            'NID' => $item['NID'],
+            'id_inventoris_fk' => $item['id_inventoris_fk'],
+            'id_users_fk' => $admin->id,
+            'jumlah' => $item['jumlah'],
+            'total' => $this->hitungTotal($item['id_inventoris_fk'], $item['jumlah']),
+            'status' => 'waiting_approval_1',
+            'tanggal_permintaan' => now()->format('Y-m-d'),
+            'keterangan' => $item['keterangan'] ?? '-',
+        ]);
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Pengajuan berhasil disimpan.'
+    ], 200);
+}
+
     public function store(Request $request)
     {
         try {

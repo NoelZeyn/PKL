@@ -25,7 +25,7 @@
                     Main Menu
                 </p>
                 <ul>
-                    <router-link v-if="role !== 'ss'" to="/dashboard" class="block">
+                    <router-link to="/dashboard" class="block">
                         <li :class="menuClass('dashboard')">
                             <img src="@/assets/dashboard.svg" class="w-5" alt="Dashboard" />
                             <span>Dashboard</span>
@@ -37,7 +37,7 @@
                             <span>Manajemen Akun</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role === 'superadmin' || role === 'admin' || role === 'anggaran'"
+                    <router-link v-if="role === 'superadmin' || role === 'admin'"
                         to="/manajemen-approval" class="block">
                         <li :class="menuClass('manajemenApproval')">
                             <img src="@/assets/profil.svg" class="w-5" alt="Approval" />
@@ -61,36 +61,43 @@
             </div>
 
             <!-- Menu Admin -->
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2" >
                 <p class="text-sm font-semibold text-[#b0b385] mb-1">Laporan</p>
                 <ul>
-                    <router-link v-if="role !== 'user' || role === 'user_review'" to="/grafik" class="block">
+                    <router-link to="/grafik" class="block">
                         <li :class="menuClass('grafik')" @click="setActive('grafik')">
                             <img src="@/assets/pasien.svg" class="w-5" alt="grafik" />
                             <span>Grafik ATK</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role !== 'user' || role === 'user_review'" to="/laporan-ATK" class="block">
+                    <router-link to="/laporan-ATK" class="block">
                         <li :class="menuClass('laporanATK')" @click="setActive('laporanATK')">
                             <img src="@/assets/pasien.svg" class="w-5" alt="laporanATK" />
                             <span>Data ATK</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role !== 'user' || role === 'user_review'" to="/laporan-pemakaian"
+                    <router-link v-if="role !== 'user'"  to="/laporan-history-atk"
+                        class="block">
+                        <li :class="menuClass('laporanHistoryATK')" @click="setActive('laporanHistoryATK')">
+                            <img src="@/assets/pasien.svg" class="w-5" alt="laporanHistoryATK" />
+                            <span>Laporan History ATK</span>
+                        </li>
+                    </router-link>
+                    <router-link v-if="role !== 'user'" to="/laporan-pemakaian"
                         class="block">
                         <li :class="menuClass('laporanPemakaian')" @click="setActive('laporanPemakaian')">
                             <img src="@/assets/pasien.svg" class="w-5" alt="laporanPemakaian" />
                             <span>History Pemakaian ATK</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role !== 'user' || role === 'user_review'" to="/laporan-approval"
+                    <router-link v-if="role !== 'user'"  to="/laporan-approval"
                         class="block">
                         <li :class="menuClass('laporanApproval')" @click="setActive('laporanApproval')">
                             <img src="@/assets/pasien.svg" class="w-5" alt="laporanApproval" />
                             <span>History Approval ATK</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role !== 'user' || role === 'user_review'" to="/laporan-pengajuan"
+                    <router-link v-if="role !== 'user'"  to="/laporan-pengajuan"
                         class="block">
                         <li :class="menuClass('laporanPengajuan')" @click="setActive('laporanPengajuan')">
                             <img src="@/assets/pasien.svg" class="w-5" alt="laporanPengajuan" />

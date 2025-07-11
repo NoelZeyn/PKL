@@ -12,7 +12,7 @@ class DataDiriSeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 1; $i <= 11; $i++) {
+        for ($i = 1; $i <= 22; $i++) {
             DB::table('data_diri')->insert([
                 'id_admin_user_fk' => $i,
                 'nama_lengkap' => 'Admin User ' . $i,

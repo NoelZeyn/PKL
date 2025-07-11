@@ -7,38 +7,37 @@ use Illuminate\Support\Facades\DB;
 
 class PenempatanSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $penempatan = [
-            ['nama_penempatan' => 'HAR MESIN PLTU-G'],
-            ['nama_penempatan' => 'HAR MESIN PLTGU & CNG'],
-            ['nama_penempatan' => 'HAR LISTRIK PLTU-G'],
-            ['nama_penempatan' => 'HAR LISTRIK PLTGU & CNG'],
-            ['nama_penempatan' => 'HAR KONIN PLTU-G'],
-            ['nama_penempatan' => 'HAR KONIN PLTGU & CNG'],
-            ['nama_penempatan' => 'RENDAL HAR'],
-            ['nama_penempatan' => 'RENDAL OP'],
-            ['nama_penempatan' => 'ENGINEERING SO TU & CNG'],
-            ['nama_penempatan' => 'ENGINEERING SO GU'],
-            ['nama_penempatan' => 'CONDITION BASE MAINTENANCE (ENGINEERING TO)'],
-            ['nama_penempatan' => 'CCR PLTU 3-4'],
-            ['nama_penempatan' => 'CCR PLTGU'],
-            ['nama_penempatan' => 'LABORATORIUM'],
-            ['nama_penempatan' => 'SARANA'],
-            ['nama_penempatan' => 'K3'],
-            ['nama_penempatan' => 'LINGKUNGAN'],
-            ['nama_penempatan' => 'SDM, UMUM & CSR'],
-            ['nama_penempatan' => 'KEUANGAN'],
-            ['nama_penempatan' => 'IT'],
-            ['nama_penempatan' => 'SINFO'],
-            ['nama_penempatan' => 'CNG'],
-            ['nama_penempatan' => 'OM'],
-            ['nama_penempatan' => 'INVENTORY DAN GUDANG'],
-            ['nama_penempatan' => 'PENGADAAN'],
-            ['nama_penempatan' => 'NIAGA'],
+            // LK3
+            ['nama_penempatan' => 'K3 & KAM', 'id_bidang_fk' => 1],
+            ['nama_penempatan' => 'LINGKUNGAN', 'id_bidang_fk' => 1],
+
+            // OP - Operasi
+            ['nama_penempatan' => 'PERENCANAAN & PENGENDALIAN OPERASI', 'id_bidang_fk' => 2],
+            ['nama_penempatan' => 'PRODUKSI PLTU-PLTG (A,B,C,D)', 'id_bidang_fk' => 2],
+            ['nama_penempatan' => 'PRODUKSI PLTGU & CNG (A,B,C,D)', 'id_bidang_fk' => 2],
+            ['nama_penempatan' => 'NIAGA & BAHAN BAKAR', 'id_bidang_fk' => 2],
+            ['nama_penempatan' => 'KIMIA & LAB', 'id_bidang_fk' => 2],
+
+            // HAR - Pemeliharaan
+            ['nama_penempatan' => 'PERENCANAAN & PENGENDALIAN PEMELIHARAAN', 'id_bidang_fk' => 3],
+            ['nama_penempatan' => 'OUTAGE MANAGEMENT', 'id_bidang_fk' => 3],
+            ['nama_penempatan' => 'PEMELIHARAAN LISTRIK (PLTGU & CNG, PLTU-G)', 'id_bidang_fk' => 3],
+            ['nama_penempatan' => 'PEMELIHARAAN KONTROL & INSTRUMEN (PLTGU & CNG, PLTU-G)', 'id_bidang_fk' => 3],
+            ['nama_penempatan' => 'PEMELIHARAAN MESIN & SIPIL (PLTGU & CNG, PLTU-G)', 'id_bidang_fk' => 3],
+            ['nama_penempatan' => 'INVENTORI KONTROL & GUDANG', 'id_bidang_fk' => 3],
+
+            // EQA - Enginiring & Quality Assurance
+            ['nama_penempatan' => 'SYSTEM OWNER', 'id_bidang_fk' => 4],
+            ['nama_penempatan' => 'CONDITION BASED MAINTENANCE', 'id_bidang_fk' => 4],
+            ['nama_penempatan' => 'MANAJEMEN MUTU, RISIKO & KEPATUHAN', 'id_bidang_fk' => 4],
+
+            // BS - Business Support
+            ['nama_penempatan' => 'KEUANGAN', 'id_bidang_fk' => 5],
+            ['nama_penempatan' => 'SDM, UMUM & CSR', 'id_bidang_fk' => 5],
+            ['nama_penempatan' => 'PENGADAAN', 'id_bidang_fk' => 5],
         ];
 
         DB::table('penempatan')->insert($penempatan);

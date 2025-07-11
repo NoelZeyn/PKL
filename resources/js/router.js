@@ -26,6 +26,7 @@ import LaporanPemakaian from "./pages/user_review/LaporanPemakaian.vue";
 import LaporanATK from "./pages/user_review/LaporanATK.vue";
 import LaporanApproval from "./pages/user_review/LaporanApproval.vue";
 import LaporanPengajuan from "./pages/user_review/LaporanPengajuan.vue";
+import LaporanHistoryATK from "./pages/user_review/LaporanHistoryATK.vue";
 
 // Fungsi validasi token
 const isTokenValid = () => {
@@ -85,6 +86,7 @@ const routes = [
     { path: "/laporan-ATK", component: LaporanATK, meta: { requiresAuth: true, title: "Laporan ATK" } },
     { path: "/laporan-approval", component: LaporanApproval, meta: { requiresAuth: true, title: "Laporan Approval" } },
     { path: "/laporan-pengajuan", component: LaporanPengajuan, meta: { requiresAuth: true, title: "Laporan Pengajuan" } },
+    {path: "/laporan-history-atk", component: LaporanHistoryATK, meta: {requiresAuth: true, title: "Laporan History ATK"}},
 
     
 ];

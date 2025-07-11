@@ -20,6 +20,7 @@
               <option value="">Semua Rekomendasi</option>
               <option value="perlu">Perlu Pengajuan</option>
               <option value="aman">Aman</option>
+              <option value="ATK Tidak Digunakan">ATK Tidak Digunakan</option>
             </select>
           </div>
         </div>
@@ -37,7 +38,8 @@
               Manajemen Stock
             </router-link>
 
-            <button v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'" @click="downloadExcel" class="cursor-pointer px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
+            <button v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'" @click="downloadExcel"
+              class="cursor-pointer px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
               Download Excel
             </button>
             <router-link v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'" to="/alat-add"
@@ -69,7 +71,10 @@
                 <td class="p-3">{{ alat.stock }}</td>
                 <td class="p-3">{{ formatRupiah(alat.harga_satuan) }}</td>
                 <td class="p-3">
-                  <span v-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu Pengajuan</span>
+                  <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
+                    class="text-gray-500 italic">ATK Tidak Digunakan</span>
+                  <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
+                    Pengajuan</span>
                   <span v-else class="text-green-600">Aman</span>
                 </td>
                 <td class="p-3">
@@ -152,13 +157,23 @@ export default {
           const searchMatch = !this.searchQuery ||
             a.nama_barang.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
             (a.keterangan && a.keterangan.toLowerCase().includes(this.searchQuery.toLowerCase()));
-          const rekomendasiMatch = !this.rekomendasiFilter ||
-            (this.rekomendasiFilter === 'perlu' && a.stock <= a.stock_min) ||
-            (this.rekomendasiFilter === 'aman' && a.stock > a.stock_min);
+
+          const rekomendasi = this.getRekomendasiStatus(a);
+
+          const rekomendasiMatch = !this.rekomendasiFilter || this.rekomendasiFilter === rekomendasi;
+
           return searchMatch && rekomendasiMatch;
         })
-        .sort((a, b) => a.stock - b.stock);
+        .sort((a, b) => {
+          const statusOrder = { 'perlu': 1, 'aman': 2, 'ATK Tidak Digunakan': 3 };
+
+          const aStatus = this.getRekomendasiStatus(a);
+          const bStatus = this.getRekomendasiStatus(b);
+
+          return statusOrder[aStatus] - statusOrder[bStatus];
+        });
     },
+
     paginatedAlatList() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       return this.filteredAlatList.slice(start, start + this.itemsPerPage);
@@ -174,40 +189,125 @@ export default {
   },
 
   methods: {
+    getRekomendasiStatus(alat) {
+      if (alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0) {
+        return 'ATK Tidak Digunakan';
+      } else if (alat.stock <= alat.stock_min) {
+        return 'perlu';
+      } else {
+        return 'aman';
+      }
+    },
+
     async downloadExcel() {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Data ATK');
 
-      // Header
+      // Definisikan Kolom
       worksheet.columns = [
         { header: 'No', key: 'no', width: 5 },
         { header: 'Nama Barang', key: 'nama_barang', width: 25 },
         { header: 'Stock Min', key: 'stock_min', width: 12 },
         { header: 'Stock Max', key: 'stock_max', width: 12 },
         { header: 'Stock Sekarang', key: 'stock', width: 15 },
-        { header: 'Harga Satuan', key: 'harga_satuan', width: 15 },
-        { header: 'Rekomendasi Pembelian', key: 'rekomendasi', width: 20 },
+        { header: 'Harga Satuan', key: 'harga_satuan', width: 18 },
+        { header: 'Rekomendasi Pembelian', key: 'rekomendasi', width: 22 },
       ];
 
-      // Data Rows
-      this.filteredAlatList.forEach((alat, index) => {
-        worksheet.addRow({
-          no: index + 1,
-          nama_barang: alat.nama_barang,
-          stock_min: alat.stock_min,
-          stock_max: alat.stock_max,
-          stock: alat.stock,
-          harga_satuan: this.formatRupiah(alat.harga_satuan),
-          rekomendasi: alat.stock <= alat.stock_min ? 'Perlu Pengajuan' : 'Aman',
-        });
+      // Style Header
+      worksheet.getRow(1).eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       });
 
-      // Style Header (optional)
-      worksheet.getRow(1).font = { bold: true };
-      worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+      // Kelompokkan Data berdasarkan Status (Perlu, Aman, Tidak Digunakan)
+      const groupedData = {
+        'Perlu Pengajuan': [],
+        'Aman': [],
+        'ATK Tidak Digunakan': [],
+      };
+
+      this.filteredAlatList.forEach(alat => {
+        const status = this.getRekomendasiStatus(alat);
+        const statusText =
+          status === 'perlu' ? 'Perlu Pengajuan' :
+            status === 'aman' ? 'Aman' : 'ATK Tidak Digunakan';
+        groupedData[statusText].push(alat);
+      });
+
+      let rowIndex = 2;
+      let globalNo = 1;
+
+      // Loop berdasarkan urutan prioritas: Perlu → Aman → Tidak Digunakan
+      const statusOrder = ['Perlu Pengajuan', 'Aman', 'ATK Tidak Digunakan'];
+
+      statusOrder.forEach(statusName => {
+        const items = groupedData[statusName];
+        if (items.length === 0) return;
+
+        // Baris Judul Status
+        worksheet.mergeCells(`A${rowIndex}:G${rowIndex}`);
+        const statusCell = worksheet.getCell(`A${rowIndex}`);
+        statusCell.value = `Status: ${statusName}`;
+        statusCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+        // Warna berbeda untuk tiap status
+        let bgColor = 'FF10B981'; // Default hijau (Aman)
+        if (statusName === 'Perlu Pengajuan') bgColor = 'FFDC3545'; // Merah
+        if (statusName === 'ATK Tidak Digunakan') bgColor = 'FF6C757D'; // Abu-abu
+
+        statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+        statusCell.alignment = { vertical: 'middle', horizontal: 'center' };
+        statusCell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        rowIndex++;
+
+        items.forEach(alat => {
+          const rekomendasiText =
+            this.getRekomendasiStatus(alat) === 'perlu' ? 'Perlu Pengajuan' :
+              this.getRekomendasiStatus(alat) === 'aman' ? 'Aman' : 'ATK Tidak Digunakan';
+
+          const row = worksheet.addRow({
+            no: globalNo++,
+            nama_barang: alat.nama_barang,
+            stock_min: alat.stock_min,
+            stock_max: alat.stock_max,
+            stock: alat.stock,
+            harga_satuan: alat.harga_satuan,
+            rekomendasi: rekomendasiText,
+          });
+
+          row.eachCell((cell, colNumber) => {
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+
+            if (colNumber === 6) {
+              cell.numFmt = '"Rp"#,##0'; // Format rupiah
+            }
+          });
+
+          // Warnai Cell Rekomendasi
+          const rekomCell = row.getCell('rekomendasi');
+          if (rekomendasiText === 'Perlu Pengajuan') {
+            rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC3545' } };
+            rekomCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+          } else if (rekomendasiText === 'Aman') {
+            rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28A745' } };
+            rekomCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+          } else {
+            rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6C757D' } }; // Abu
+            rekomCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+          }
+
+          rowIndex++;
+        });
+
+        rowIndex++;
+      });
 
       const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer]), 'Data_ATK.xlsx');
+      saveAs(new Blob([buffer]), `Data-ATK-${new Date().toISOString().slice(0, 10)}.xlsx`);
     },
 
     formatRupiah(angka) {
@@ -281,12 +381,14 @@ export default {
 </script>
 
 <style scoped>
-th, td {
-    padding: 8px 10px;           /* diperkecil */
-    text-align: center;
-    font-size: 12px;             /* perkecil font */
-    border: 1px solid #ccc;
-    word-wrap: break-word;
+th,
+td {
+  padding: 8px 10px;
+  /* diperkecil */
+  text-align: center;
+  font-size: 12px;
+  /* perkecil font */
+  border: 1px solid #ccc;
+  word-wrap: break-word;
 }
-
 </style>

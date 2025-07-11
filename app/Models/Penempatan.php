@@ -11,10 +11,15 @@ class Penempatan extends Model
 
     protected $table = 'penempatan';
 
-    protected $fillable = ['nama_penempatan'];
+    protected $fillable = ['nama_penempatan', 'id_bidang_fk'];
 
     public function admins()
     {
         return $this->hasMany(Admin::class, 'id_penempatan_fk');
+    }
+
+    public function bidang()
+    {
+        return $this->belongsTo(Bidang::class, 'id_bidang_fk');
     }
 }

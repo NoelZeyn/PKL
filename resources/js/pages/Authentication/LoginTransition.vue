@@ -52,7 +52,7 @@ export default {
         if (access === 'pending') {
           this.$router.push('/pending-access');
         } else if (access === 'inactive') {
-          this.$router.push('/inactive');
+          this.$router.push('/inactive-access');
         } else if (access === 'active') {
           this.loadingMessage = 'Akses Ditemukan. Mengalihkan...';
 

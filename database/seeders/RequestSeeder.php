@@ -37,7 +37,7 @@ class RequestSeeder extends Seeder
 
         $statuses = ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'approved', 'rejected'];
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 100; $i++) {
             $alat = $alatList->random();
             $jumlah = $faker->numberBetween(1, 50);
             $hargaSatuan = $alat->harga_satuan ?? 0;
@@ -51,7 +51,6 @@ class RequestSeeder extends Seeder
                 'jumlah'             => $jumlah,
                 'total'              => $total,
                 'keterangan' => $faker->randomElement($keteranganList),
-
                 'created_at'         => now(),
                 'updated_at'         => now(),
             ]);

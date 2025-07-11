@@ -89,10 +89,10 @@
             </div>
         </div>
 
-        <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
         <ModalConfirm :visible="showModal" title="Konfirmasi Hapus Data"
-            message="Apakah Anda yakin ingin menghapus pengajuan ini?" @cancel="cancelDelete"
-            @confirm="deleteRequest" />
+        message="Apakah Anda yakin ingin menghapus pengajuan ini?" @cancel="cancelDelete"
+        @confirm="deleteRequest" />
+        <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
         <ModalReject :visible="showRejectModal" :reason="rejectReason" @cancel="showRejectModal = false"
             @confirm="confirmReject" />
     </div>

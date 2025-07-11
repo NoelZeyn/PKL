@@ -3,10 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Tymon\JWTAuth\Contracts\JWTSubject;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class Admin extends Authenticatable implements JWTSubject
 {
@@ -18,37 +17,59 @@ class Admin extends Authenticatable implements JWTSubject
         'NID',
         'password',
         'id_penempatan_fk',
+        'id_bidang_fk',  
         'tingkatan_otoritas',
         'access',
         'password_changed_at',
     ];
 
-    protected $hidden = ['password'];
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
+    /**
+     * Relasi ke Penempatan (untuk Asman)
+     */
     public function penempatan()
     {
         return $this->belongsTo(Penempatan::class, 'id_penempatan_fk');
     }
 
+    /**
+     * Relasi ke Bidang (untuk Manajer)
+     */
+    public function bidang()
+    {
+        return $this->belongsTo(Bidang::class, 'id_bidang_fk');
+    }
+
+    /**
+     * Relasi ke Data Diri (bisa untuk profile)
+     */
     public function dataDiri()
     {
         return $this->hasOne(DataDiri::class, 'id_admin_user_fk', 'id');
     }
 
+    /**
+     * Relasi ke Request Pengadaan (pengajuan ATK)
+     */
     public function requests()
     {
-        return $this->hasMany(RequestPengadaan::class, 'id_users_fk');
+        return $this->hasMany(RequestPengadaan::class, 'id_users_fk', 'id_request');
     }
 
+    /**
+     * Relasi ke Approval (untuk persetujuan ATK)
+     */
     public function approvals()
     {
         return $this->hasMany(Approval::class, 'id_admin_fk');
     }
 
     /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
+     * JWT: Return primary key (ID) for token
      */
     public function getJWTIdentifier()
     {
@@ -56,9 +77,7 @@ class Admin extends Authenticatable implements JWTSubject
     }
 
     /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
+     * JWT: Return custom claims (optional)
      */
     public function getJWTCustomClaims()
     {

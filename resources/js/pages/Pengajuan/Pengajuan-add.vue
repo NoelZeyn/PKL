@@ -6,52 +6,75 @@
       <div class="border-b border-gray-300 mb-4"></div>
 
       <div class="bg-white p-6 rounded-2xl shadow">
-        <div class="flex flex-col gap-4 mx-9">
-          <div class="flex items-center gap-5">
-            <label class="min-w-[150px] font-semibold text-sm text-black">NID</label>
-            <input type="text" v-model="formData.NID" placeholder="Masukkan NID"
-              class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
+        <div class="flex flex-col gap-6 mx-9">
+
+          <div v-for="(item, index) in formData.items" :key="index" class="border border-gray-200 p-4 rounded-lg shadow-sm">
+            <div class="flex justify-between items-center mb-3">
+              <h4 class="font-semibold text-sm text-[#333]">Pengajuan Barang {{ index + 1 }}</h4>
+              <button v-if="formData.items.length > 1" @click="removeItem(index)"
+                class="text-red-500 text-xs hover:underline cursor-pointer">Hapus</button>
+            </div>
+
+            <div class="flex items-center gap-5 mb-3">
+              <label class="min-w-[150px] font-semibold text-sm text-black">NID</label>
+              <input type="text" v-model="item.NID" placeholder="Masukkan NID"
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm" required />
+            </div>
+
+            <div class="flex items-center gap-5 mb-3">
+              <label class="min-w-[150px] font-semibold text-sm text-black">Nama Barang</label>
+              <select v-model="item.id_inventoris_fk" @change="updateHargaSatuan(index)"
+                class="cursor-pointer w-full p-2 border border-gray-300 rounded-lg text-sm cursor-pointer" required>
+                <option disabled value="">Pilih Barang</option>
+                <option v-for="alat in alatList" :key="alat.id_alat" :value="alat.id_alat">
+                  {{ alat.nama_barang }}
+                </option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-5 mb-3">
+              <label class="min-w-[150px] font-semibold text-sm text-black">Jumlah</label>
+              <input type="number" v-model.number="item.jumlah" min="1" @input="hitungTotal(index)"
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
+            </div>
+
+            <div class="flex items-center gap-5 mb-3">
+              <label class="min-w-[150px] font-semibold text-sm text-black">Total Harga</label>
+              <input type="text" :value="formatRupiah(item.total)" disabled
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-500 bg-gray-100" />
+            </div>
+
+            <div class="flex items-center gap-5">
+              <label class="min-w-[150px] font-semibold text-sm text-black">Keterangan</label>
+              <textarea v-model="item.keterangan" placeholder="Contoh: Kebutuhan operasional"
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm"></textarea>
+            </div>
           </div>
 
-          <div class="flex items-center gap-5">
-            <label class="min-w-[150px] font-semibold text-sm text-black">Nama Barang</label>
-            <select v-model="formData.id_inventoris_fk" @change="updateHargaSatuan"
-              class="w-full p-2 border border-gray-300 rounded-lg text-sm">
-              <option disabled value="">Pilih Barang</option>
-              <option v-for="item in alatList" :key="item.id_alat" :value="item.id_alat">
-                {{ item.nama_barang }}
-              </option>
-            </select>
-          </div>
+          <button @click="addItem" class="mt-4 w-fit bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer">
+            + Tambah Pengajuan Barang
+          </button>
 
-          <div class="flex items-center gap-5">
-            <label class="min-w-[150px] font-semibold text-sm text-black">Jumlah</label>
-            <input type="number" v-model="formData.jumlah" min="1" @input="hitungTotal"
-              class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
-          </div>
-
-          <div class="flex items-center gap-5">
-            <label class="min-w-[150px] font-semibold text-sm text-black">Total Harga</label>
-            <input type="text" :value="formatRupiah(formData.total)" disabled
-              class="w-full p-2 border border-gray-300 rounded-lg text-sm bg-gray-100 text-gray-700" />
-          </div>
-          <div class="flex items-center gap-5">
-            <label class="min-w-[150px] font-semibold text-sm text-black">Keterangan</label>
-            <input type="text" v-model="formData.keterangan" @input="hitungTotal"
-              class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
-          </div>
           <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
+
           <div class="flex justify-between items-center mt-6">
+            <router-link to="/pengajuan">
+              <button class="bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition cursor-pointer">
+                Kembali
+              </button>
+            </router-link>
             <button @click="submitForm"
               class="bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition cursor-pointer">
-              Simpan Pengajuan
+              Simpan Semua Pengajuan
             </button>
           </div>
+
         </div>
       </div>
     </div>
   </div>
 </template>
+
 <script>
 import Sidebar from "@/components/Sidebar.vue";
 import HeaderBar from "@/components/HeaderBar.vue";
@@ -65,15 +88,12 @@ export default {
     return {
       activeMenu: "pengajuan",
       alatList: [],
-      hargaSatuan: 0,
       formData: {
-        NID: "",
-        id_inventoris_fk: "",
-        jumlah: 1,
-        total: 0,
+        tanggal_permintaan: new Date().toISOString().split("T")[0],
         status: "waiting_approval_1",
-        tanggal_permintaan: "", // akan diisi otomatis
-        keterangan: "",
+        items: [
+          { NID: "", id_inventoris_fk: "", jumlah: "", total: 0, keterangan: "" }
+        ]
       },
       showSuccessAlert: false,
       successMessage: "",
@@ -81,26 +101,33 @@ export default {
   },
   mounted() {
     this.fetchAlat();
-    this.formData.tanggal_permintaan = new Date().toISOString().split("T")[0]; // Format YYYY-MM-DD
   },
   methods: {
     fetchAlat() {
       const token = localStorage.getItem("token");
-      axios
-        .get("http://localhost:8000/api/alat", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((res) => {
-          this.alatList = res.data.data;
-        });
+      axios.get("http://localhost:8000/api/alat", {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(res => {
+        this.alatList = res.data.data;
+      });
     },
-    updateHargaSatuan() {
-      const selected = this.alatList.find(item => item.id_alat === this.formData.id_inventoris_fk);
-      this.hargaSatuan = selected ? selected.harga_satuan : 0;
-      this.hitungTotal();
+    addItem() {
+      this.formData.items.push({ NID: "", id_inventoris_fk: "", jumlah: "", total: 0, keterangan: "" });
     },
-    hitungTotal() {
-      this.formData.total = this.formData.jumlah * this.hargaSatuan;
+    removeItem(index) {
+      this.formData.items.splice(index, 1);
+    },
+    updateHargaSatuan(index) {
+      const selectedItem = this.formData.items[index];
+      const selectedAlat = this.alatList.find(alat => alat.id_alat === selectedItem.id_inventoris_fk);
+      const harga = selectedAlat ? selectedAlat.harga_satuan : 0;
+      selectedItem.total = selectedItem.jumlah * harga;
+    },
+    hitungTotal(index) {
+      const selectedItem = this.formData.items[index];
+      const selectedAlat = this.alatList.find(alat => alat.id_alat === selectedItem.id_inventoris_fk);
+      const harga = selectedAlat ? selectedAlat.harga_satuan : 0;
+      selectedItem.total = selectedItem.jumlah * harga;
     },
     formatRupiah(angka) {
       if (!angka) return "-";
@@ -109,19 +136,15 @@ export default {
     async submitForm() {
       const token = localStorage.getItem("token");
       try {
-        await axios.post("http://localhost:8000/api/request", this.formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        }).then(() => {
-          this.successMessage = "Pengajuan berhasil disimpan.";
-          this.showSuccessAlert = true;
-          setTimeout(() => {
-            this.showSuccessAlert = false;
-            this.$router.push("/pengajuan");
-          }, 2500);
+        await axios.post("http://localhost:8000/api/request-multiple", this.formData, {
+          headers: { Authorization: `Bearer ${token}` },
         });
+        this.successMessage = "Semua pengajuan berhasil disimpan.";
+        this.showSuccessAlert = true;
+        setTimeout(() => {
+          this.showSuccessAlert = false;
+          this.$router.push("/pengajuan");
+        }, 2000);
       } catch (error) {
         console.error(error);
         alert("Gagal menyimpan pengajuan.");
