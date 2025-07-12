@@ -1,115 +1,343 @@
-<template>
-    <div class="flex h-screen bg-gray-100">
-        <Sidebar :activeMenu="activeMenu" @update:activeMenu="updateActiveMenu" />
-        <div class="flex-1 p-8 pt-4 bg-white">
-            <HeaderBar title="Data List Pengajuan Level 2" class="mt-3" />
-            <div class="my-4 border-b border-gray-300"></div>
+    <template>
+        <div class="flex h-screen bg-gray-100">
+            <Sidebar :activeMenu="activeMenu" @update:activeMenu="updateActiveMenu" />
+            <div class="flex-1 p-8 pt-4 bg-white">
+                <HeaderBar title="Data Pengajuan" class="mt-3" />
+                <div class="my-4 border-b border-gray-300"></div>
 
-            <div class="pb-12">
-                <div class="filters space-y-4">
-                    <div class="relative">
-                        <input type="text" v-model="searchQuery" @input="onInputSearch"
-                            placeholder="Cari Nama Barang atau NID Pemohon..."
-                            class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm text-gray-700" />
-                        <img src="@/assets/search.svg" alt="Search"
-                            class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <div class="pb-12">
+                    <div v-if="isAsman || isManajer" class="filters space-y-4">
+                        <div class="relative">
+                            <input type="text" v-model="searchQuery" @input="onInputSearch"
+                                placeholder="Data List Pengajuan : Cari Nama Barang atau Nama Pemohon..."
+                                class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm text-gray-700" />
+                            <img src="@/assets/search.svg" alt="Search"
+                                class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        </div>
                     </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
-                    <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
-                        <h3 class="text-sm font-semibold text-gray-900">
-                            Data List Pengajuan Level 2
-                        </h3>
+                    <div v-if="isSuperAdmin || isAdmin" class="filters space-y-4">
+                        <div class="relative">
+                            <input type="text" v-model="searchQuery" @input="onInputSearch"
+                                placeholder="Pencarian nama barang, catatan, status, nama kategori pengajuan"
+                                class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm text-gray-700" />
+                            <img src="@/assets/search.svg" alt="Search"
+                                class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        </div>
                     </div>
 
-                    <table class="w-full table-fixed border-collapse border border-gray-300">
-                        <thead class="bg-gray-100 text-[#7d7f81]">
-                            <tr>
-                                <th class="p-3 border">Nama Barang</th>
-                                <th class="p-3 border">Pemohon</th>
-                                <th class="w-30 p-3 border">Penempatan</th>
-                                <th class="p-3 border">Tgl Permintaan</th>
-                                <th class="p-3 border">Status</th>
-                                <th class="p-3 border">Jumlah</th>
-                                <!-- <th class=" p-3 border">Harga Satuan</th> -->
-                                <th class=" border">Total</th>
-                                <th class="border">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(request, index) in paginatedRequestList" :key="request.id_request"
-                                class="text-[#333436]">
-                                <td class="p-3">{{ request.alat?.nama_barang || "-" }}</td>
-                                <td class="p-3">{{ request.user?.data_diri?.nama_lengkap || "-" }}</td>
-                                <td class="p-3">{{ request.user?.penempatan?.nama_penempatan || "-" }}</td>
-                                <td class="p-3">{{ formatTanggal(request.tanggal_permintaan) }}</td>
-                                <td class="p-3">
-                                    <span :class="['font-semibold', formatStatus(request.status).color]">
-                                        {{ formatStatus(request.status).label }}
-                                    </span>
-                                </td>
+                    <div v-if="isAsman || isManajer || isAnggaran"
+                        class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
+                        <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
+                            <h3 class="text-sm font-semibold text-gray-900">
+                                Data List Pengajuan {{ tingkatanOtoritas }}
+                            </h3>
+                        </div>
 
-                                <td class="p-3">{{ request.jumlah }}</td>
-                                <!-- <td class="p-3">{{ formatRupiah(request.alat?.harga_satuan) }}</td> -->
-                                <td class="p-3">{{ formatRupiah(request.total) }}</td>
-                                <td class="p-3">
-                                    <div class="flex items-center justify-center space-x-2">
-                                        <button v-if="tingkatanOtoritas !== 'user_review'" title="Informasi"
-                                            @click="navigateTo('info', request)" class="hover:opacity-70">
-                                            <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
-                                        </button>
-                                    </div>
-                                    <div v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin' || tingkatanOtoritas === 'anggaran'"
-                                        class="flex items-center justify-center space-x-2">
-                                        <button @click="approveRequest(request)" title="Setujui"
-                                            class="cursor-pointer bg-green-500 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base shadow">✔</button>
-                                        <button @click="openRejectModal(request)" title="Tolak"
-                                            class="cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-base shadow">✖</button>
-                                    </div>
+                        <table class="w-full table-fixed border-collapse border border-gray-300">
+                            <thead class="bg-gray-100 text-[#7d7f81]">
+                                <tr>
+                                    <!-- <th class="p-3 border">Nama Penempatan</th> -->
+                                    <th v-if="tingkatanOtoritas !== 'anggaran'" class="p-3 border">
+                                        Nama Barang
+                                    </th>
+                                    <th v-if="tingkatanOtoritas === 'anggaran'" class="p-3 border">
+                                        Nama Bidang
+                                    </th>
+                                    <th v-if="tingkatanOtoritas !== 'anggaran'" class="p-3 border">
+                                        Jumlah
+                                    </th>
+                                    <th v-if="tingkatanOtoritas !== 'anggaran'" class="p-3 border">
+                                        Harga Satuan
+                                    </th>
+                                    <th class="p-3 border">Total Harga</th>
+                                    <th class="p-3 border">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="isAnggaran">
+                                    <tr v-for="(pengajuan, index) in paginatedPengajuanList" :key="index"
+                                        class="text-[#333436]">
+                                        <td class="p-3">
+                                            {{ pengajuan.nama_bidang || "-" }}
+                                        </td>
+                                        <td class="p-3">
+                                            {{
+                                                formatRupiah(
+                                                    pengajuan.total_harga_barang
+                                                )
+                                            }}
+                                        </td>
+                                        <td class="p-3">
+                                            <div class="flex items-center justify-center space-x-3">
+                                                <button @click="
+                                                    approvePengajuan(
+                                                        pengajuan.id_bidang_fk,
+                                                        null
+                                                    )
+                                                    " title="Setujui"
+                                                    class="cursor-pointer hover:bg-green-600 text-white rounded-md w-8 h-8 flex items-center justify-center shadow hover:shadow-lg transform hover:scale-105 transition duration-150">
+                                                    <span class="text-sm font-bold">✔</span>
+                                                </button>
+                                                <button @click="
+                                                    rejectPengajuan(
+                                                        pengajuan.id_bidang_fk,
+                                                        null
+                                                    )
+                                                    " title="Tolak"
+                                                    class="cursor-pointer hover:bg-red-600 text-white rounded-md w-8 h-8 flex items-center justify-center shadow hover:shadow-lg transform hover:scale-105 transition duration-150">
+                                                    <span class="text-sm font-bold">✖</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
 
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div
-                        class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
-                        <button @click="prevPage" :disabled="currentPage === 1"
-                            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
-                            Prev
-                        </button>
-                        <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
-                        <button @click="nextPage" :disabled="currentPage === totalPages"
-                            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
-                            Next
-                        </button>
+                                <template v-else>
+                                    <template v-for="(pengajuan, index) in paginatedPengajuanList"
+                                        :key="pengajuan.id_penempatan_fk">
+                                        <tr v-for="(item, idx) in pengajuan.barang" :key="idx" class="text-[#333436]">
+                                            <td class="p-3">
+                                                {{ item.nama_barang || "-" }}
+                                            </td>
+                                            <td class="p-3">
+                                                {{ item.total_jumlah || "-" }}
+                                            </td>
+                                            <td class="p-3">
+                                                {{
+                                                    formatRupiah(item.harga_satuan)
+                                                }}
+                                            </td>
+                                            <td class="p-3">
+                                                {{ formatRupiah(item.total_harga) }}
+                                            </td>
+                                            <td class="p-3">
+                                                <div class="flex items-center justify-center space-x-3">
+                                                    <button @click="
+                                                        approvePengajuan(
+                                                            isManajer
+                                                                ? pengajuan.id_bidang_fk
+                                                                : pengajuan.id_penempatan_fk,
+                                                            item.id_alat
+                                                        )
+                                                        " title="Setujui"
+                                                        class="cursor-pointer hover:bg-green-600 text-white rounded-md w-8 h-8 flex items-center justify-center shadow hover:shadow-lg transform hover:scale-105 transition duration-150">
+                                                        <span class="text-sm font-bold">✔</span>
+                                                    </button>
+                                                    <button @click="
+                                                        rejectPengajuan(
+                                                            isManajer
+                                                                ? pengajuan.id_bidang_fk
+                                                                : pengajuan.id_penempatan_fk,
+                                                            item.id_alat
+                                                        )
+                                                        " title="Tolak"
+                                                        class="cursor-pointer hover:bg-red-600 text-white rounded-md w-8 h-8 flex items-center justify-center shadow hover:shadow-lg transform hover:scale-105 transition duration-150">
+                                                        <span class="text-sm font-bold">✖</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </template>
+                            </tbody>
+                        </table>
                     </div>
+
+                    <!-- table untuk pengajuan jenis atk baru -->
+                    <div v-if="isSuperAdmin || isAdmin"
+                        class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
+                        <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
+                            <h3 class="text-sm font-semibold text-gray-900">
+                                Data List Pengajuan ATK Baru
+                            </h3>
+                            <router-link to="/pengajuan-atk-add"
+                                class="text-sm font-semibold text-[#074a5d] no-underline hover:text-[#0066cc] hover:no-underline">
+                                Tambah Pengajuan ATK Baru
+                            </router-link>
+                        </div>
+
+                        <table class="w-full table-fixed border-collapse border border-gray-300">
+                            <thead class="bg-gray-100 text-[#7d7f81]">
+                                <tr>
+                                    <th class="w-20 p-3 border">Nama Barang</th>
+                                    <th class="w-30 p-3 border">
+                                        Tanggal Pengajuan
+                                    </th>
+                                    <th class="w-25 p-3 border">Status</th>
+                                    <th class="w-30 p-3 border">
+                                        Catatan Approval
+                                    </th>
+                                    <th class="w-20 p-3 border">Satuan</th>
+                                    <th class="p-3 border">Kategori</th>
+                                    <th class="p-3 border">Harga Estimasi</th>
+                                    <th class="p-3 border">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, index) in paginatedPengajuanBaruList" :key="item.id"
+                                    class="text-[#333436]">
+                                    <td class="p-3">{{ item.nama_barang }}</td>
+                                    <td class="p-3">
+                                        {{ formatTanggal(item.created_at) }}
+                                    </td>
+                                    <td class="p-3">
+                                        <span :class="[
+                                            'px-4 py-1 rounded-full text-xs font-semibold',
+                                            formatStatus(item.status).color,
+                                        ]">
+                                            {{ formatStatus(item.status).label }}
+                                        </span>
+                                    </td>
+                                            <td class="p-3">{{ item.catatan || "-" }}</td>
+                                    <td class="p-3">{{ item.satuan }}</td>
+                                    <td class="p-3">
+                                        {{ item.kategori?.nama_kategori || "-" }}
+                                    </td>
+                                    <td class="p-3">
+                                        {{ formatRupiah(item.harga_estimasi) }}
+                                    </td>
+                                    <td class="p-3">
+                                        <div class="flex flex-col items-center space-y-2">
+                                            <!-- Label Delete -->
+                                            <!-- <span v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'" class="text-xs text-gray-600">Delete</span> -->
+
+                                            <!-- Tombol Delete -->
+                                            <!-- <button v-if="
+                                                tingkatanOtoritas === 'admin' ||
+                                                tingkatanOtoritas ===
+                                                'superadmin'
+                                            " @click="confirmDelete(item)" title="Hapus"
+                                                class="cursor-pointer hover:bg-white text-white rounded-md w-6 h-6 flex items-center justify-center shadow hover:shadow-lg transform hover:scale-105 transition duration-150">
+                                                <img :src="deleteIcon" alt="Delete" class="w-4 h-4 object-contain" />
+                                            </button> -->
+
+                                            <!-- Tombol Approve & Reject -->
+                                            <div class="flex space-x-2 pt-2">
+                                                <button @click="
+                                                    approvePengajuan(
+                                                        item.id_penempatan_fk,
+                                                        null
+                                                    )
+                                                    " title="Setujui"
+                                                    class="cursor-pointer hover:bg-green-600 text-white rounded-md w-6 h-6 flex items-center justify-center shadow hover:shadow-lg transform hover:scale-105 transition duration-150">
+                                                    <span class="text-sm font-bold">✔</span>
+                                                </button>
+
+                                                <button @click="
+                                                    rejectPengajuan(
+                                                        item.id_penempatan_fk,
+                                                        null
+                                                    )
+                                                    " title="Tolak"
+                                                    class="cursor-pointer hover:bg-red-600 text-white rounded-md w-6 h-6 flex items-center justify-center shadow hover:shadow-lg transform hover:scale-105 transition duration-150">
+                                                    <span class="text-sm font-bold">✖</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Pagination untuk PengajuanBaru -->
+                        <div
+                            class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
+                            <button @click="prevPagePengajuanBaru" :disabled="currentPagePengajuanBaru === 1"
+                                class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+                                Prev
+                            </button>
+                            <span>Halaman {{ currentPagePengajuanBaru }} dari {{ totalPagesPengajuanBaru }}</span>
+                            <button @click="nextPagePengajuanBaru"
+                                :disabled="currentPagePengajuanBaru === totalPagesPengajuanBaru"
+                                class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+                                Next
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div v-if="isAdmin || isSuperAdmin"
+                        class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
+                        <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
+                            <h3 class="text-sm font-semibold text-gray-900">
+                                Data Rekapitulasi Pengajuan per Bidang
+                            </h3>
+                        </div>
+
+                        <table class="w-full table-auto border-collapse border border-gray-300">
+                            <thead class="bg-gray-100 text-[#7d7f81]">
+                                <tr>
+                                    <th class="w-40 p-3 border">Bidang</th>
+                                    <th class="w-40 p-3 border">Nama Barang</th>
+                                    <th class="w-20 p-3 border">Jumlah</th>
+                                    <th class="w-24 p-3 border">Harga Satuan</th>
+                                    <th class="w-28 p-3 border">Total Harga</th>
+                                    <th class="p-3 border">Keterangan Barang</th>
+                                    <th class="w-24 p-3 border">Status Pengadaan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- bidang dlu baru di loop barang -->
+                                <template v-for="(group, groupIndex) in dataGroupedByBidang" :key="groupIndex">
+                                    <template v-for="(barang, index) in group.barang" :key="index">
+                                        <tr class="text-[#333436]">
+                                            <!-- Tampilkan nama bidang hanya di baris pertama dari group -->
+                                            <td class="p-3 border text-center min-h-[4rem]" v-if="index === 0"
+                                                :rowspan="group.barang.length">
+                                                <div class="h-full flex items-center justify-center">
+                                                    {{ group.nama_bidang }}
+                                                </div>
+                                            </td>
+
+                                            <td class="p-3 border">{{ barang.nama_barang }}</td>
+                                            <td class="p-3 border text-center">{{ barang.jumlah }}</td>
+                                            <td class="p-3 border">{{ formatRupiah(barang.harga_satuan) }}</td>
+                                            <td class="p-3 border">{{ formatRupiah(barang.total_harga) }}</td>
+                                            <td class="p-3 border">{{ barang.keterangan || '-' }}</td>
+                                            <td class="p-3 border"> {{ barang.status || '-' }}
+                                                <!-- <div class="flex space-x-2 justify-center">
+                                                    <button
+                                                        @click="approvePengajuan(group.id_bidang_fk, barang.id_alat)"
+                                                        class="cursor-pointer px-2 py-1 hover:bg-green-700 text-white text-xs rounded">
+                                                        ✔
+                                                    </button>
+                                                    <button @click="rejectPengajuan(group.id_bidang_fk, barang.id_alat)"
+                                                        class="cursor-pointer px-2 py-1 hover:bg-red-700 text-white text-xs rounded">
+                                                        ✖
+                                                    </button>
+                                                </div> -->
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
             </div>
-        </div>
 
-        <ModalConfirm :visible="showModal" title="Konfirmasi Hapus Data"
-        message="Apakah Anda yakin ingin menghapus pengajuan ini?" @cancel="cancelDelete"
-        @confirm="deleteRequest" />
-        <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
-        <ModalReject :visible="showRejectModal" :reason="rejectReason" @cancel="showRejectModal = false"
-            @confirm="confirmReject" />
-    </div>
-</template>
+            <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
+            <ModalReject :visible="showRejectModal" :reason="rejectReason" @cancel="showRejectModal = false"
+                @confirm="confirmReject" />
+        </div>
+    </template>
 
 <script>
 import Sidebar from "@/components/Sidebar.vue";
 import HeaderBar from "@/components/HeaderBar.vue";
 import ModalConfirm from "@/components/ModalConfirm.vue";
-import ModalReject from "@/components/ModalReject.vue";
 import SuccessAlert from "@/components/SuccessAlert.vue";
+import ModalReject from "@/components/ModalReject.vue";
 import informasiIcon from "@/assets/Informasi.svg";
+import updateIcon from "@/assets/Edit.svg";
+import deleteIcon from "@/assets/Delete.svg";
 import axios from "axios";
 
 export default {
-    name: "ManajemenApproval2",
+    name: "ManajemenPengajuan",
     components: { Sidebar, HeaderBar, ModalConfirm, SuccessAlert, ModalReject },
+
     data() {
         return {
             activeMenu: "manajemenApproval",
@@ -118,189 +346,277 @@ export default {
             showModal: false,
             showSuccessAlert: false,
             successMessage: "",
-            showRejectModal: false,
-            rejectReason: "",
-            selectedRequest: null,
             requestToDelete: null,
             requestList: [],
+            pengajuanList: [],
+            PengajuanBaruList: [],
+            dataGroupedByBidang: [],
+
             informasiIcon,
+            updateIcon,
+            deleteIcon,
+
+            showRejectModal: false,
+            rejectReason: "",
+            rejectTarget: null,
+
             currentPage: 1,
+            currentPagePengajuanBaru: 1,
+
             itemsPerPage: 10,
         };
     },
+
     computed: {
-        filteredRequestList() {
-            return this.requestList.filter(r =>
-                !this.searchQuery ||
-                r.alat?.nama_barang?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                r.user?.NID?.toLowerCase().includes(this.searchQuery.toLowerCase())
+        filteredPengajuanList() {
+            if (!this.searchQuery) return this.pengajuanList;
+
+            const query = this.searchQuery.toLowerCase();
+
+            return this.pengajuanList
+                .map((pengajuan) => {
+                    const filteredBarang = pengajuan.barang?.filter((item) =>
+                        item.nama_barang?.toLowerCase().includes(query)
+                    );
+
+                    if (filteredBarang?.length) {
+                        return {
+                            ...pengajuan,
+                            barang: filteredBarang,
+                        };
+                    }
+                    return null;
+                })
+                .filter((item) => item !== null);
+        },
+
+        paginatedPengajuanList() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            return this.filteredPengajuanList.slice(start, start + this.itemsPerPage);
+        },
+
+        totalPages() {
+            return Math.ceil(this.filteredPengajuanList.length / this.itemsPerPage);
+        },
+
+        filteredPengajuanBaruList() {
+            if (!this.searchQuery) return this.PengajuanBaruList;
+
+            const query = this.searchQuery.toLowerCase();
+
+            return this.PengajuanBaruList.filter(item =>
+                item.nama_barang?.toLowerCase().includes(query) ||
+                item.catatan?.toLowerCase().includes(query) ||
+                item.status?.toLowerCase().includes(query) ||
+                item.kategori?.nama_kategori?.toLowerCase().includes(query)
             );
         },
-        paginatedRequestList() {
-            const start = (this.currentPage - 1) * this.itemsPerPage;
-            return this.filteredRequestList.slice(start, start + this.itemsPerPage);
+
+        paginatedPengajuanBaruList() {
+            const start = (this.currentPagePengajuanBaru - 1) * this.itemsPerPage;
+            return this.filteredPengajuanBaruList.slice(start, start + this.itemsPerPage);
         },
-        totalPages() {
-            return Math.ceil(this.filteredRequestList.length / this.itemsPerPage);
+
+        totalPagesPengajuanBaru() {
+            return Math.ceil(this.filteredPengajuanBaruList.length / this.itemsPerPage);
+        },
+
+        isAsman() {
+            return this.tingkatanOtoritas === "asman";
+        },
+        isManajer() {
+            return this.tingkatanOtoritas === "manajer";
+        },
+        isAnggaran() {
+            return this.tingkatanOtoritas === "anggaran";
+        },
+        isAdmin() {
+            return this.tingkatanOtoritas === "admin";
+        },
+        isSuperAdmin() {
+            return this.tingkatanOtoritas === "superadmin";
         },
     },
-    created() {
-        this.getUserInfo();
+
+    async created() {
+        await this.getUserInfo();
+        this.fetchPengajuan();
+        this.fetchPengajuanBaru();
+        this.fetchPengajuanAdminTable(); // <= untuk admin/superadmin
     },
+
     methods: {
-        // Dapatkan status approval berdasarkan role
-        getApprovalStatusByRole() {
-            const roleToStatus = {
-                admin: 'waiting_approval_1',
-                superadmin: 'waiting_approval_2',
-                anggaran: 'waiting_approval_3',
-            };
-            return roleToStatus[this.tingkatanOtoritas] || null;
-        },
-
-        // Dapatkan endpoint GET berdasarkan role
-        getApprovalApiByRole() {
-            const roleToApi = {
-                admin: 'approval1',
-                superadmin: 'approval2',
-                anggaran: 'approval3',
-            };
-            return roleToApi[this.tingkatanOtoritas] || null;
-        },
-
-        // Dapatkan endpoint PUT berdasarkan role
-        getEditApprovalApiByRole() {
-            const roleToEditApi = {
-                admin: 'editApproval1',
-                superadmin: 'editApproval2',
-                anggaran: 'editApproval3',
-            };
-            return roleToEditApi[this.tingkatanOtoritas] || null;
-        },
-
         async getUserInfo() {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.post("http://localhost:8000/api/me", {}, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
+                const res = await axios.post(
+                    "http://localhost:8000/api/me",
+                    {},
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
                 this.tingkatanOtoritas = res.data.tingkatan_otoritas;
-                this.fetchRequest();
             } catch (err) {
                 console.error("Gagal mengambil data user:", err);
             }
         },
 
-        async fetchRequest() {
+        async fetchPengajuan() {
             try {
                 const token = localStorage.getItem("token");
-                const approvalApi = this.getApprovalApiByRole();
+                let url = "";
 
-                if (!approvalApi) {
-                    console.error('API tidak ditemukan untuk role ini.');
+                if (this.isAsman) url = "http://localhost:8000/api/asman";
+                else if (this.isManajer) url = "http://localhost:8000/api/manajer";
+                else if (this.isAnggaran) url = "http://localhost:8000/api/anggaran";
+                else return;
+
+                const res = await axios.get(url, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                this.pengajuanList = res.data.data;
+            } catch (err) {
+                console.error("Gagal mengambil data pengajuan:", err);
+            }
+        },
+
+        async fetchPengajuanBaru() {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get(
+                    "http://localhost:8000/api/pengajuan-baru",
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                this.PengajuanBaruList = res.data.data || [];
+            } catch (error) {
+                console.error("Gagal mengambil data pengajuan baru:", error);
+            }
+        },
+
+        async fetchPengajuanAdminTable() {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get(
+                    "http://localhost:8000/api/admin",
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                this.dataGroupedByBidang = res.data.data || [];
+            } catch (error) {
+                console.error("Gagal mengambil data rekap admin:", error);
+            }
+        },
+
+        async approvePengajuan(id_fk, id_alat) {
+            try {
+                const token = localStorage.getItem("token");
+                let url = "";
+                let payload = { id_alat };
+
+                if (this.isAdmin || this.isSuperAdmin) {
+                    url = "http://localhost:8000/api/pengajuan-baru/approve";
+                    payload = { id: id_fk };
+                } else if (this.isAsman) {
+                    url = "http://localhost:8000/api/asman/approve";
+                    payload.id_penempatan_fk = id_fk;
+                } else if (this.isManajer) {
+                    url = "http://localhost:8000/api/manajer/approve";
+                    payload.id_bidang_fk = id_fk;
+                } else if (this.isAnggaran) {
+                    url = "http://localhost:8000/api/anggaran/approve";
+                    payload.id_bidang_fk = id_fk;
+                } else {
                     return;
                 }
 
-                const res = await axios.get(`http://localhost:8000/api/${approvalApi}`, {
+                const res = await axios.patch(url, payload, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                this.requestList = res.data.data;
+
+                this.successMessage = res.data.message;
+                this.showSuccessAlert = true;
+
+                // refresh semua data
+                this.fetchPengajuan();
+                this.fetchPengajuanBaru();
+                this.fetchPengajuanAdminTable();
+
+                setTimeout(() => (this.showSuccessAlert = false), 2000);
             } catch (err) {
-                console.error("Gagal mengambil data request:", err);
+                console.error("Gagal menyetujui:", err);
             }
         },
 
-        approveRequest(request) {
-            const status = this.getApprovalStatusByRole();
-            if (!status) {
-                alert('Anda tidak memiliki otoritas untuk melakukan approval.');
-                return;
-            }
-            this.updateApproval(request, status);
-        },
-
-        openRejectModal(request) {
-            this.selectedRequest = request;
+        rejectPengajuan(id_fk, id_alat) {
+            this.rejectTarget = { id_fk, id_alat };
             this.rejectReason = "";
             this.showRejectModal = true;
         },
 
-        async confirmReject(reason) {
-            if (!this.selectedRequest) return;
-            await this.updateApproval(this.selectedRequest, 'rejected', reason);
-            this.showRejectModal = false;
-            this.selectedRequest = null;
-        },
+        confirmReject(keterangan) {
+            if (!this.rejectTarget) return;
 
-        async updateApproval(request, newStatus, catatan = "") {
-            try {
-                const token = localStorage.getItem("token");
-                const resUser = await axios.post("http://localhost:8000/api/me", {}, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
+            const { id_fk, id_alat } = this.rejectTarget;
+            const token = localStorage.getItem("token");
+            let url = "";
+            let payload = { id_alat, keterangan };
 
-                const NID = resUser.data.NID;
-                const editApi = this.getEditApprovalApiByRole();
-
-                if (!editApi) {
-                    alert('API tidak ditemukan untuk role ini.');
-                    return;
-                }
-
-                const payload = {
-                    id_inventoris_fk: request.id_inventoris_fk,
-                    NID,
-                    jumlah: request.jumlah,
-                    tanggal_permintaan: request.tanggal_permintaan,
-                    status: newStatus,
-                    total: request.total,
-                    catatan: catatan,
-                };
-
-                await axios.put(`http://localhost:8000/api/${editApi}/${request.id_request}`, payload, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-
-                this.successMessage = newStatus.includes('waiting_approval') ? 'Pengajuan berhasil disetujui!' : 'Pengajuan berhasil ditolak!';
-                this.showSuccessAlert = true;
-                setTimeout(() => (this.showSuccessAlert = false), 2000);
-                this.fetchRequest();
-
-            } catch (err) {
-                console.error("Gagal memperbarui pengajuan:", err);
+            if (this.isAdmin || this.isSuperAdmin) {
+                url = "http://localhost:8000/api/pengajuan-baru/reject";
+                payload = { id: id_fk, keterangan };
+            } else if (this.isAsman) {
+                url = "http://localhost:8000/api/asman/reject";
+                payload.id_penempatan_fk = id_fk;
+            } else if (this.isManajer) {
+                url = "http://localhost:8000/api/manajer/reject";
+                payload.id_bidang_fk = id_fk;
+            } else if (this.isAnggaran) {
+                url = "http://localhost:8000/api/anggaran/reject";
+                payload.id_bidang_fk = id_fk;
+            } else {
+                this.showRejectModal = false;
+                return;
             }
+
+            axios
+                .patch(url, payload, {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+                .then((res) => {
+                    this.successMessage = res.data.message;
+                    this.showSuccessAlert = true;
+
+                    // refresh semua data
+                    this.fetchPengajuan();
+                    this.fetchPengajuanBaru();
+                    this.fetchPengajuanAdminTable();
+
+                    setTimeout(() => (this.showSuccessAlert = false), 2000);
+                })
+                .catch((err) => {
+                    console.error("Gagal menolak:", err);
+                })
+                .finally(() => {
+                    this.showRejectModal = false;
+                    this.rejectTarget = null;
+                });
         },
 
-        navigateTo(action, request) {
-            localStorage.setItem(`dataRequest${action}`, JSON.stringify(request));
-            this.$router.push(`/pengajuan-${action}/${request.id_request}`);
+        updateActiveMenu(menu) {
+            this.activeMenu = menu;
         },
 
-        confirmDelete(request) {
-            this.requestToDelete = request;
-            this.showModal = true;
+        confirmDelete(item) {
+            if (item.id_request) {
+                this.requestToDelete = item;
+                this.showModal = true;
+            }
         },
 
         cancelDelete() {
             this.requestToDelete = null;
             this.showModal = false;
-        },
-
-        async deleteRequest() {
-            try {
-                const token = localStorage.getItem("token");
-                await axios.delete(`http://localhost:8000/api/request/${this.requestToDelete.id_request}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                this.successMessage = "Pengajuan berhasil dihapus!";
-                this.showSuccessAlert = true;
-                setTimeout(() => (this.showSuccessAlert = false), 2000);
-                this.fetchRequest();
-            } catch (err) {
-                console.error("Gagal menghapus pengajuan:", err);
-            } finally {
-                this.cancelDelete();
-            }
         },
 
         nextPage() {
@@ -311,31 +627,71 @@ export default {
             if (this.currentPage > 1) this.currentPage--;
         },
 
-        onInputSearch() {
-            this.currentPage = 1;
+        nextPagePengajuanBaru() {
+            if (this.currentPagePengajuanBaru < this.totalPagesPengajuanBaru)
+                this.currentPagePengajuanBaru++;
         },
 
-        formatStatus(status) {
-            const statusMap = {
-                draft: { label: "Draft", color: "text-yellow-600" },
-                waiting_approval_1: { label: "Approval 1", color: "text-yellow-600" },
-                waiting_approval_2: { label: "Approval 2", color: "text-yellow-600" },
-                waiting_approval_3: { label: "Approval 3", color: "text-yellow-600" },
-                approved: { label: "Disetujui", color: "text-green-600" },
-                rejected: { label: "Ditolak", color: "text-red-600" },
-            };
-            return statusMap[status] || { label: status, color: "text-gray-600" };
+        prevPagePengajuanBaru() {
+            if (this.currentPagePengajuanBaru > 1) this.currentPagePengajuanBaru--;
+        },
+
+        onInputSearch() {
+            this.currentPage = 1;
+            this.currentPagePengajuanBaru = 1;
+        },
+
+        formatRupiah(angka) {
+            if (!angka) return "-";
+            return (
+                "Rp. " + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+            );
         },
 
         formatTanggal(dateString) {
             if (!dateString) return "-";
             const date = new Date(dateString);
-            return date.toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric" });
+            return date.toLocaleDateString("id-ID", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            });
         },
 
-        formatRupiah(angka) {
-            if (!angka) return "-";
-            return "Rp. " + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        formatStatus(status) {
+            const statusMap = {
+                draft: {
+                    label: "Draft",
+                    color: "bg-yellow-200 text-yellow-800",
+                },
+                waiting_approval_1: {
+                    label: "Approval 1",
+                    color: "bg-yellow-200 text-yellow-800",
+                },
+                waiting_approval_2: {
+                    label: "Approval 2",
+                    color: "bg-yellow-200 text-yellow-800",
+                },
+                waiting_approval_3: {
+                    label: "Approval 3",
+                    color: "bg-yellow-200 text-yellow-800",
+                },
+                approved: {
+                    label: "Disetujui",
+                    color: "bg-green-200 text-green-800",
+                },
+                rejected: {
+                    label: "Ditolak",
+                    color: "bg-red-200 text-red-800",
+                },
+            };
+
+            return (
+                statusMap[status] || {
+                    label: status,
+                    color: "bg-gray-200 text-gray-800",
+                }
+            );
         },
     },
 };

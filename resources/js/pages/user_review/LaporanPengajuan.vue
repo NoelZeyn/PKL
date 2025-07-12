@@ -36,14 +36,15 @@
                         <thead class="bg-gray-100 text-[#7d7f81]">
                             <tr>
                                 <th class="w-14">No</th>
+                                <th class="w-14">ID Req</th>
                                 <th class="p-3 border">Nama Barang</th>
-                                <th class="p-3 border">Nama Pemohon</th>
+                                <th class="p-3 border">Pemohon</th>
                                 <th class="p-3 border">Tgl Permintaan</th>
                                 <th class="w-33 border">Status</th>
-                                <th class="w-30 border">Keterangan Status</th>
+                                <th class="w-20 border">Ket. Status</th>
                                 <th class="border">Jumlah</th>
                                 <!-- <th class="p-3 border">Harga Satuan</th> -->
-                                <th class="w-30 p-3 border">Total</th>
+                                <th class="w-25 p-3 border">Total</th>
                                 <th class="p-3 border">Keterangan</th>
                                 <!-- <th class="p-3 border">Aksi</th> -->
                             </tr>
@@ -58,6 +59,7 @@
                                         1
                                     }}
                                 </td>
+                                <td class="p-3">{{ request.id_request }}</td>
                                 <td class="p-3">
                                     {{ request.alat?.nama_barang || "-" }}
                                 </td>
@@ -186,59 +188,106 @@ export default {
     },
 
     methods: {
-        async downloadExcel() {
-            try {
-                const workbook = new ExcelJS.Workbook();
-                const worksheet = workbook.addWorksheet("Data Pengajuan");
+async downloadExcel() {
+    try {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Data Pengajuan");
 
-                // Header kolom
-                worksheet.columns = [
-                    { header: "No", key: "no", width: 5 },
-                    { header: "Nama Barang", key: "nama_barang", width: 25 },
-                    { header: "Pemohon", key: "pemohon", width: 25 },
-                    { header: "Tgl Permintaan", key: "tanggal", width: 15 },
-                    { header: "Status", key: "status", width: 15 },
-                    { header: "Jumlah", key: "jumlah", width: 10 },
-                    // { header: "Harga Satuan", key: "harga_satuan", width: 15 },
-                    { header: "Total", key: "total", width: 15 },
-                ];
+        // Header Kolom
+        worksheet.columns = [
+            { header: "No", key: "no", width: 5 },
+            { header: "ID Request", key: "id_request", width: 15 },
+            { header: "Nama Barang", key: "nama_barang", width: 25 },
+            { header: "Pemohon", key: "pemohon", width: 25 },
+            { header: "Tgl Permintaan", key: "tanggal", width: 15 },
+            { header: "Status", key: "status", width: 15 },
+            { header: "Status By", key: "status_by", width: 20 },
+            { header: "Catatan", key: "catatan", width: 25 },
+            { header: "Jumlah", key: "jumlah", width: 10 },
+            { header: "Total", key: "total", width: 15 },
+            { header: "Keterangan", key: "keterangan", width: 25 },
+        ];
 
-                // Styling Header
-                worksheet.getRow(1).eachCell(cell => {
-                    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-                    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4F46E5" } };
-                    cell.alignment = { vertical: "middle", horizontal: "center" };
-                    cell.border = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
-                });
+        // Header styling
+        worksheet.getRow(1).eachCell(cell => {
+            cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+            cell.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "FF4F46E5" },
+            };
+            cell.alignment = { vertical: "middle", horizontal: "center" };
+            cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" },
+            };
+        });
 
-                // Isi Data
-                this.filteredRequestList.forEach((item, index) => {
-                    worksheet.addRow({
-                        no: index + 1,
-                        nama_barang: item.alat?.nama_barang || "-",
-                        pemohon: item.user?.data_diri?.nama_lengkap || "-",
-                        tanggal: this.formatTanggal(item.tanggal_permintaan),
-                        status: this.formatStatus(item.status).label,
-                        jumlah: item.jumlah,
-                        // harga_satuan: item.alat?.harga_satuan || 0,
-                        total: item.total || 0,
-                    });
-                });
+        // Isi Data + Warna berdasarkan status
+        this.filteredRequestList.forEach((item, index) => {
+            const rowData = {
+                no: index + 1,
+                id_request: item.id_request || "-",
+                nama_barang: item.alat?.nama_barang || "-",
+                pemohon: item.user?.data_diri?.nama_lengkap || "-",
+                tanggal: this.formatTanggal(item.tanggal_permintaan),
+                status: this.formatStatus(item.status).label,
+                status_by: item.status_by || "-",
+                catatan: item.approvals[0]?.catatan || "-",
+                jumlah: item.jumlah,
+                total: item.total || 0,
+                keterangan: item.keterangan || "-",
+            };
 
-                // Format angka Rupiah
-                worksheet.eachRow((row, rowNumber) => {
-                    if (rowNumber > 1) {
-                        row.getCell(7).numFmt = '"Rp"#,##0';
-                        row.getCell(8).numFmt = '"Rp"#,##0';
-                    }
-                });
+            const row = worksheet.addRow(rowData);
 
-                const buffer = await workbook.xlsx.writeBuffer();
-                saveAs(new Blob([buffer]), `Data-Pengajuan-${new Date().toISOString().slice(0, 10)}.xlsx`);
-            } catch (error) {
-                console.error("Gagal export Excel:", error);
+            // Styling baris berdasarkan status
+            let bgColor = "FFFFFFFF"; // default putih
+            switch (item.status) {
+                case "approved":
+                    bgColor = "FFDCFCE7"; // hijau muda
+                    break;
+                case "rejected":
+                    bgColor = "FFFEE2E2"; // merah muda
+                    break;
+                case "waiting_approval_1":
+                case "waiting_approval_2":
+                case "waiting_approval_3":
+                    bgColor = "FFFEF9C3"; // kuning muda
+                    break;
+                default:
+                    bgColor = "FFF3F4F6"; // abu muda
+                    break;
             }
-        },
+
+            row.eachCell(cell => {
+                cell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: bgColor },
+                };
+                cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+                cell.border = {
+                    top: { style: "thin" },
+                    left: { style: "thin" },
+                    bottom: { style: "thin" },
+                    right: { style: "thin" },
+                };
+            });
+
+            // Format kolom total ke bentuk Rupiah
+            row.getCell("total").numFmt = '"Rp"#,##0';
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const filename = `Data-Pengajuan-${new Date().toISOString().slice(0, 10)}.xlsx`;
+        saveAs(new Blob([buffer]), filename);
+    } catch (error) {
+        console.error("Gagal export Excel:", error);
+    }
+},
         async getUserInfo() {
             try {
                 const token = localStorage.getItem("token");

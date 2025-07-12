@@ -141,33 +141,71 @@ export default {
       this.currentPage = 1;
     },
 
-    async downloadExcel() {
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('History Data ATK');
+async downloadExcel() {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('History Data ATK');
 
-      worksheet.columns = [
-        { header: 'No', key: 'no', width: 5 },
-        { header: 'Nama Barang', key: 'nama_barang', width: 25 },
-        { header: 'Admin', key: 'nama_admin', width: 20 },
-        { header: 'Aksi', key: 'aksi', width: 15 },
-        { header: 'Deskripsi', key: 'deskripsi', width: 40 },
-        { header: 'Tanggal', key: 'tanggal', width: 15 },
-      ];
+  worksheet.columns = [
+    { header: 'No', key: 'no', width: 5 },
+    { header: 'Nama Barang', key: 'nama_barang', width: 25 },
+    { header: 'Admin', key: 'nama_admin', width: 20 },
+    { header: 'Aksi', key: 'aksi', width: 15 },
+    { header: 'Deskripsi', key: 'deskripsi', width: 40 },
+    { header: 'Tanggal', key: 'tanggal', width: 15 },
+  ];
 
-      this.filteredHistory.forEach((item, index) => {
-        worksheet.addRow({
-          no: index + 1,
-          nama_barang: item.nama_barang,
-          nama_admin: item.nama_admin,
-          aksi: item.jenis_aksi,
-          deskripsi: item.deskripsi,
-          tanggal: this.formatTanggal(item.tanggal),
-        });
-      });
+  // Header Styling
+  worksheet.getRow(1).eachCell(cell => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4F46E5" }, // ungu
+    };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+    cell.border = {
+      top: { style: "thin" },
+      left: { style: "thin" },
+      bottom: { style: "thin" },
+      right: { style: "thin" },
+    };
+  });
 
-      const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer]), `History-Data-ATK-${new Date().toISOString().slice(0, 10)}.xlsx`);
-    },
+  this.filteredHistory.forEach((item, index) => {
+    const row = worksheet.addRow({
+      no: index + 1,
+      nama_barang: item.nama_barang,
+      nama_admin: item.nama_admin,
+      aksi: item.jenis_aksi,
+      deskripsi: item.deskripsi,
+      tanggal: this.formatTanggal(item.tanggal),
+    });
+
+    let bgColor = "FFFFFFFF"; // default putih
+    if (item.jenis_aksi === "tambah") bgColor = "FFDCFCE7";        // hijau muda
+    else if (item.jenis_aksi === "hapus" || item.jenis_aksi === "nonaktif") bgColor = "FFFEE2E2"; // merah muda
+    else if (item.jenis_aksi === "edit") bgColor = "FFFEF9C3"; // kuning muda
+
+    row.eachCell(cell => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: bgColor },
+      };
+      cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const filename = `History-Data-ATK-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  saveAs(new Blob([buffer]), filename);
+},
   },
 };
 </script>

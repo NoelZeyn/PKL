@@ -6,6 +6,7 @@ use App\Http\Controllers\Authentication\ApprovalController;
 use App\Http\Controllers\Inventoris\AlatController;
 use App\Http\Controllers\Inventoris\HistoryAtkController;
 use App\Http\Controllers\Inventoris\HistoryPemakaianController;
+use App\Http\Controllers\Inventoris\RequestATKBaruController;
 use App\Http\Controllers\Penempatan\BidangController;
 use App\Http\Controllers\Penempatan\PenempatanController;
 use App\Http\Controllers\Authentication\ProfileController;
@@ -44,6 +45,10 @@ Route::group(['middleware' => 'api'], function () {
 
     // Route::get('anggaran-all', [PengajuanController::class, 'anggaranAll']);
     Route::get('anggaran', [PengajuanController::class, 'anggaranAll']);
+    Route::patch('/anggaran/approve', [PengajuanController::class, 'approveAnggaran']);
+    Route::patch('/anggaran/reject', [PengajuanController::class, 'rejectAnggaran']);
+    
+    Route::get('admin', [PengajuanController::class, 'pengajuanAdminTable']);
     Route::apiResource('account', AccountController::class)->middleware(['api', RoleMiddleware::class . ':superadmin']);
 });
 
@@ -61,12 +66,6 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::delete('alat/{id}', [AlatController::class, 'destroy'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
     Route::apiResource('history_pemakaian', HistoryPemakaianController::class);
     Route::post('/history_pemakaian_multi', [HistoryPemakaianController::class, 'storeMultiple']);
-    Route::get('approval1', [ApprovalController::class, 'approval1']);
-    Route::put('editApproval1/{id}', [ApprovalController::class, 'editApproval1']);
-    Route::get('approval2', [ApprovalController::class, 'approval2']);
-    Route::put('editApproval2/{id}', [ApprovalController::class, 'editApproval2']);
-    Route::get('approval3', [ApprovalController::class, 'approval3']);
-    Route::put('editApproval3/{id}', [ApprovalController::class, 'editApproval3']);
 });
 
 Route::group(['middleware' => 'auth:api'], function () {
@@ -80,15 +79,22 @@ Route::group(['middleware' => 'auth:api'], function () {
 });
 Route::group(['middleware' => 'api'], function () {
     // Route::apiResource('alat', AlatController::class)->middleware(['api', RoleMiddleware::class.':superadmin']);
+    Route::get('/pengajuan-baru', [RequestATKBaruController::class, 'index']);
+    Route::post('/pengajuan-baru', [RequestATKBaruController::class, 'store']);
+    Route::delete('/pengajuan-baru/{id}', [RequestATKBaruController::class, 'destroy']);
+    Route::patch('pengajuan-baru/approve/{id}', [RequestATKBaruController::class, 'approve']);
+    Route::patch('pengajuan-baru/reject/{id}', [RequestATKBaruController::class, 'reject']);
+
+
     Route::apiResource('kategori_pengadaan', KategoriPengadaanController::class);
-    Route::apiResource('history_pemakaian', HistoryPemakaianController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,user,anggaran']);
-    Route::apiResource('history_approval', HistoryApprovalController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer']);
+    Route::apiResource('history_pemakaian', HistoryPemakaianController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);
+    Route::apiResource('history_approval', HistoryApprovalController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);
     // Route::apiResource('request', RequestController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,user,anggaran']);
 });
 
 Route::group(['middleware' => 'api'], function () {
 
-    Route::get('history-atk', [HistoryAtkController::class, 'index']);
-    Route::get('history-atk-alat/{id}', [HistoryAtkController::class, 'historyByAlat']);
-    Route::get('history-atk-admin/{id}', [HistoryAtkController::class, 'historyByAdmin']);
+    Route::get('history-atk', [HistoryAtkController::class, 'index'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);
+    Route::get('history-atk-alat/{id}', [HistoryAtkController::class, 'historyByAlat'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);
+    Route::get('history-atk-admin/{id}', [HistoryAtkController::class, 'historyByAdmin'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);
 });

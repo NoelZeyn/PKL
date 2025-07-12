@@ -351,22 +351,34 @@ export default {
       this.alatToDelete = null;
       this.showModal = false;
     },
-    async deleteAlat() {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.delete(`http://localhost:8000/api/alat/${this.alatToDelete.id_alat}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        this.successMessage = "Alat berhasil dihapus!";
-        this.showSuccessAlert = true;
-        setTimeout(() => (this.showSuccessAlert = false), 2000);
-        this.fetchAlat();
-      } catch (err) {
-        console.error("Gagal menghapus alat:", err);
-      } finally {
-        this.cancelDelete();
+async deleteAlat() {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await axios.delete(
+      `http://localhost:8000/api/alat/${this.alatToDelete.id_alat}`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
       }
-    },
+    );
+
+    // ✅ Tangani berbagai jenis status respon
+    if (res.data.status === "info") {
+      this.successMessage = res.data.message; // Sudah dinonaktifkan sebelumnya
+    } else if (res.data.status === "success") {
+      this.successMessage = res.data.message; // Berhasil hapus atau nonaktif
+    }
+
+    this.showSuccessAlert = true;
+    setTimeout(() => (this.showSuccessAlert = false), 2000);
+
+    this.fetchAlat();
+  } catch (err) {
+    console.error("Gagal menghapus alat:", err);
+  } finally {
+    this.cancelDelete();
+  }
+},
     nextPage() {
       if (this.currentPage < this.totalPages) this.currentPage++;
     },

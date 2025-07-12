@@ -17,7 +17,7 @@
 
         <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
           <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
-            <h3 class="text-sm font-semibold text-gray-900">Data Pemakaian Alat</h3>
+            <h3 class="text-sm font-semibold text-gray-900">Riwayat Pemakaian Alat</h3>
 
             <button @click="downloadExcel"
               class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200 cursor-pointer">

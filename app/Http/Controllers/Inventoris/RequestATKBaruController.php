@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Http\Controllers\Inventoris;
+
+use App\Http\Controllers\Controller;
+use App\Models\RequestATKBaru;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class RequestATKBaruController extends Controller
+{
+    // ✅ List Semua Pengajuan
+    public function index()
+    {
+        $pengajuan = RequestATKBaru::with(['kategori', 'user.dataDiri'])->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $pengajuan
+        ]);
+    }
+
+    // ✅ Buat Banyak Pengajuan (oleh User)
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.id_kategori_fk' => 'required|exists:kategori_pengadaan,id_kategori',
+            'items.*.nama_barang' => 'required|string|max:255',
+            'items.*.satuan' => 'required|string|max:100',
+            'items.*.harga_estimasi' => 'nullable|integer|min:0',
+            'items.*.keterangan' => 'nullable|string',
+        ]);
+
+        $idUser = Auth::id(); // ambil dari token login
+
+        $createdItems = [];
+
+        foreach ($validated['items'] as $item) {
+            $item['status'] = 'pending';
+            $item['id_user_fk'] = $idUser;
+
+            $created = RequestATKBaru::create($item);
+            $createdItems[] = $created;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Semua pengajuan berhasil disimpan.',
+            'data' => $createdItems
+        ]);
+    }
+
+    // ✅ Tampilkan Detail Pengajuan
+    public function show($id)
+    {
+        $pengajuan = RequestATKBaru::with(['kategori', 'user'])->findOrFail($id);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $pengajuan
+        ]);
+    }
+
+    // ✅ Approve oleh Admin
+    public function approve($id)
+    {
+        $pengajuan = RequestATKBaru::findOrFail($id);
+        $pengajuan->status = 'approved';
+        $pengajuan->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pengajuan telah disetujui.'
+        ]);
+    }
+
+    // ✅ Reject oleh Admin
+    public function reject($id)
+    {
+        $pengajuan = RequestATKBaru::findOrFail($id);
+        $pengajuan->status = 'rejected';
+        $pengajuan->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pengajuan telah ditolak.'
+        ]);
+    }
+
+    // ✅ Hapus Pengajuan
+    public function destroy($id)
+    {
+        $pengajuan = RequestATKBaru::findOrFail($id);
+        $pengajuan->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pengajuan berhasil dihapus.'
+        ]);
+    }
+}

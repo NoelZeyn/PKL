@@ -28,7 +28,7 @@ class HistoryPemakaianController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengambil data history pemakaian: ' . $e->getMessage()
+                'message' => 'Gagal mengambil data riwayat pemakaian: ' . $e->getMessage()
             ], 500);
         }
     }

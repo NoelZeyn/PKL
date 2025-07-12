@@ -27,6 +27,7 @@ import LaporanATK from "./pages/user_review/LaporanATK.vue";
 import LaporanApproval from "./pages/user_review/LaporanApproval.vue";
 import LaporanPengajuan from "./pages/user_review/LaporanPengajuan.vue";
 import LaporanHistoryATK from "./pages/user_review/LaporanHistoryATK.vue";
+import PengajuanAtkAdd from "./pages/Pengajuan/Pengajuan-atk-add.vue";
 
 // Fungsi validasi token
 const isTokenValid = () => {
@@ -80,13 +81,14 @@ const routes = [
     { path: "/pengajuan", component: Pengajuan, meta: { requiresAuth: true, title: "Pengajuan" } },
     { path: "/pengajuan-info/:id", component: PengajuanInfo, meta: { requiresAuth: true, title: "Info Pengajuan" } },
     { path: "/pengajuan-add", component: PengajuanAdd, meta: { requiresAuth: true, title: "Tambah Pengajuan" } },
+    { path: "/pengajuan-atk-add", component: PengajuanAtkAdd, meta: { requiresAuth: true, title: "Tambah Pengajuan Jenis ATK" } },
 
     { path: "/grafik", component: Grafik, meta: { requiresAuth: true, title: "Grafik RAB Temporary"} },
     { path: "/laporan-pemakaian", component: LaporanPemakaian, meta: { requiresAuth: true, title: "Laporan Pemakaian Alat"} },
     { path: "/laporan-ATK", component: LaporanATK, meta: { requiresAuth: true, title: "Laporan ATK" } },
     { path: "/laporan-approval", component: LaporanApproval, meta: { requiresAuth: true, title: "Laporan Approval" } },
     { path: "/laporan-pengajuan", component: LaporanPengajuan, meta: { requiresAuth: true, title: "Laporan Pengajuan" } },
-    {path: "/laporan-history-atk", component: LaporanHistoryATK, meta: {requiresAuth: true, title: "Laporan History ATK"}},
+    {path: "/laporan-history-atk", component: LaporanHistoryATK, meta: {requiresAuth: true, title: "Riwayat Manajemen ATK"}},
 
     
 ];
@@ -99,12 +101,17 @@ const router = createRouter({
 
 // Middleware validasi token
 router.beforeEach((to, from, next) => {
-    if (to.meta.requiresAuth && !isTokenValid()) {
-        next("/login");
-    } else {
-        next();
-    }
+  const tokenValid = isTokenValid();
+
+  if (to.meta.requiresAuth && !tokenValid) {
+    localStorage.clear();
+    sessionStorage.clear();
+    next("/login");
+  } else {
+    next();
+  }
 });
+
 
 // Set judul halaman
 router.afterEach((to) => {

@@ -165,35 +165,76 @@ export default {
         pending: 'bg-yellow-200 text-yellow-800',
       }[status] || 'bg-gray-200 text-gray-800';
     },
-    async downloadExcel() {
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Riwayat Approval');
+async downloadExcel() {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Riwayat Approval');
 
-      worksheet.columns = [
-        { header: 'No', key: 'no', width: 5 },
-        { header: 'Level Approval', key: 'level_approval', width: 25 },
-        { header: 'Status', key: 'status', width: 15 },
-        { header: 'Catatan', key: 'catatan', width: 15 },
-        { header: 'Tanggal', key: 'tanggal', width: 15 },
-        { header: 'Nama Approver', key: 'status_by', width: 20 },
-        { header: 'ID Request', key: 'id_request', width: 15 },
-      ];
+  worksheet.columns = [
+    { header: 'No', key: 'no', width: 5 },
+    { header: 'Level Approval', key: 'level_approval', width: 25 },
+    { header: 'Status', key: 'status', width: 15 },
+    { header: 'Catatan', key: 'catatan', width: 30 },
+    { header: 'Tanggal', key: 'tanggal', width: 15 },
+    { header: 'Nama Approver', key: 'status_by', width: 20 },
+    { header: 'ID Request', key: 'id_request', width: 15 },
+  ];
 
-      this.filteredList.forEach((item, index) => {
-        worksheet.addRow({
-          no: index + 1,
-          level_approval: item.level_approval,
-          status: item.status,
-          catatan: item.catatan,
-          tanggal: this.formatTanggal(item.tanggal),
-          status_by: item.request?.status_by || '-',
-          id_request: item.id_request_fk,
-        });
-      });
+  // Header styling
+  worksheet.getRow(1).eachCell(cell => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4F46E5" },
+    };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+    cell.border = {
+      top: { style: "thin" },
+      left: { style: "thin" },
+      bottom: { style: "thin" },
+      right: { style: "thin" },
+    };
+  });
 
-      const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer]), 'Riwayat_Approval.xlsx');
+  this.filteredList.forEach((item, index) => {
+    const row = worksheet.addRow({
+      no: index + 1,
+      level_approval: item.level_approval,
+      status: item.status,
+      catatan: item.catatan,
+      tanggal: this.formatTanggal(item.tanggal),
+      status_by: item.request?.status_by || '-',
+      id_request: item.id_request_fk,
+    });
+
+    // Row background color based on status
+    let bgColor = "FFFFFFFF"; // default white
+    switch (item.status) {
+      case "approved": bgColor = "FFDCFCE7"; break;   // light green
+      case "rejected": bgColor = "FFFEE2E2"; break;   // light red
+      case "pending": bgColor = "FFFEF9C3"; break;    // light yellow
     }
+
+    row.eachCell(cell => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: bgColor },
+      };
+      cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const filename = `Riwayat-Approval-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  saveAs(new Blob([buffer]), filename);
+},
   }
 };
 </script>

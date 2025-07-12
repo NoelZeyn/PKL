@@ -37,11 +37,11 @@
                             <span>Manajemen Akun</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role === 'superadmin' || role === 'admin'"
+                    <router-link v-if="role === 'superadmin' || role === 'admin' || role === 'asman' || role === 'manajer' || role === 'anggaran'"
                         to="/manajemen-approval" class="block">
                         <li :class="menuClass('manajemenApproval')">
                             <img src="@/assets/profil.svg" class="w-5" alt="Approval" />
-                            <span>{{ getApprovalMenuName(role) }}</span>
+                            <span>Manajemen Approval</span>
                         </li>
                     </router-link>
                     <router-link v-if="role !== 'user_review'" to="/manajemen-alat" class="block">
@@ -80,24 +80,24 @@
                         class="block">
                         <li :class="menuClass('laporanHistoryATK')" @click="setActive('laporanHistoryATK')">
                             <img src="@/assets/pasien.svg" class="w-5" alt="laporanHistoryATK" />
-                            <span>Laporan History ATK</span>
+                            <span>Riwayat Manajemen ATK</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role !== 'user'" to="/laporan-pemakaian"
+                    <router-link v-if="role !== 'user' " to="/laporan-pemakaian"
                         class="block">
                         <li :class="menuClass('laporanPemakaian')" @click="setActive('laporanPemakaian')">
                             <img src="@/assets/pasien.svg" class="w-5" alt="laporanPemakaian" />
-                            <span>History Pemakaian ATK</span>
+                            <span>Riwayat Pemakaian ATK</span>
                         </li>
                     </router-link>
                     <router-link v-if="role !== 'user'"  to="/laporan-approval"
                         class="block">
                         <li :class="menuClass('laporanApproval')" @click="setActive('laporanApproval')">
                             <img src="@/assets/pasien.svg" class="w-5" alt="laporanApproval" />
-                            <span>History Approval ATK</span>
+                            <span>Riwayat Approval ATK</span>
                         </li>
                     </router-link>
-                    <router-link v-if="role !== 'user'"  to="/laporan-pengajuan"
+                    <router-link  to="/laporan-pengajuan"
                         class="block">
                         <li :class="menuClass('laporanPengajuan')" @click="setActive('laporanPengajuan')">
                             <img src="@/assets/pasien.svg" class="w-5" alt="laporanPengajuan" />
@@ -161,14 +161,6 @@ export default {
         window.removeEventListener("resize", this.checkScreenSize);
     },
     methods: {
-        getApprovalMenuName(role) {
-            const roleToName = {
-                admin: 'Manajemen Approval Level 1',
-                superadmin: 'Manajemen Approval Level 2',
-                anggaran: 'Manajemen Approval Anggaran',
-            };
-            return roleToName[role] || 'Manajemen Approval';
-        },
         setActive(menu) {
             this.$emit("update:activeMenu", menu);
         },
