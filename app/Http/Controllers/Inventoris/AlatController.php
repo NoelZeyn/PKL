@@ -164,19 +164,25 @@ public function destroy(string $id)
         $namaBarang = $alat->nama_barang;
         $idAlat = $alat->id_alat;
 
-        // ❗ Jika sudah dinonaktifkan sebelumnya
-        if ($alat->stock == 0 && $alat->keterangan === 'ATK Tidak Digunakan') {
+        // Cek jika sudah dinonaktifkan sebelumnya
+        if (
+            $alat->stock == 0 &&
+            $alat->stock_min == 0 &&
+            $alat->stock_max == 0 &&
+            $alat->keterangan === 'ATK Tidak Digunakan'
+        ) {
             return response()->json([
                 'status' => 'info',
-                'message' => 'Alat tidak bisa dihapus karena sudah dinonaktifkan dan terhubung dengan pengajuan.'
+                'message' => 'Alat tidak bisa dihapus karena sudah dinonaktifkan dan masih memiliki riwayat penggunaan.'
             ], 200);
         }
 
-        // Cek apakah ada request yang masih terhubung
-        $jumlahRequest = RequestPengadaan::where('id_inventoris_fk', $idAlat)->count();
+        // Cek apakah terhubung ke request atau history
+        $terhubungKeRequest = RequestPengadaan::where('id_inventoris_fk', $idAlat)->exists();
+        $terhubungKeHistory = HistoryAtk::where('id_alat_fk', $idAlat)->exists();
 
-        if ($jumlahRequest > 0) {
-            // Tidak bisa dihapus → Nonaktifkan ATK (stock, min, max → 0)
+        if ($terhubungKeRequest || $terhubungKeHistory) {
+            // Tidak bisa dihapus → Nonaktifkan
             $alat->update([
                 'stock_min' => 0,
                 'stock_max' => 0,
@@ -184,7 +190,7 @@ public function destroy(string $id)
                 'keterangan' => 'ATK Tidak Digunakan',
             ]);
 
-            // Log History
+            // Buat log nonaktif
             HistoryAtk::create([
                 'id_admin_fk' => Auth::id(),
                 'id_alat_fk' => $idAlat,
@@ -196,10 +202,13 @@ public function destroy(string $id)
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Alat tidak bisa dihapus karena terhubung dengan pengajuan. Stock telah diset ke 0.'
+                'message' => 'Alat tidak bisa dihapus karena terhubung dengan pengajuan atau histori. Stock telah diset ke 0.'
             ], 200);
         } else {
-            // Tidak terhubung → hapus langsung
+            // Hapus alat terlebih dahulu
+            $alat->delete();
+
+            // Baru buat log penghapusan setelah berhasil
             HistoryAtk::create([
                 'id_admin_fk' => Auth::id(),
                 'id_alat_fk' => $idAlat,
@@ -208,8 +217,6 @@ public function destroy(string $id)
                 'jumlah' => null,
                 'tanggal' => now()->toDateString(),
             ]);
-
-            $alat->delete();
 
             return response()->json([
                 'status' => 'success',
@@ -223,5 +230,6 @@ public function destroy(string $id)
         ], 500);
     }
 }
+
 
 }

@@ -63,7 +63,6 @@ export default {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Perbandingan Anggaran ATK');
 
-        // Header Kolom
         worksheet.columns = [
           { header: 'No', key: 'no', width: 5 },
           { header: 'Nama Barang', key: 'nama_barang', width: 25 },
@@ -72,9 +71,9 @@ export default {
           { header: 'Harga Total', key: 'harga_total', width: 18 },
           { header: 'Estimasi Satuan', key: 'estimasi_satuan', width: 20 },
           { header: 'Estimasi Total', key: 'estimasi_total', width: 20 },
+          { header: 'Rekomendasi', key: 'rekomendasi', width: 22 },
         ];
 
-        // Style Header
         worksheet.getRow(1).eachCell(cell => {
           cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
@@ -82,7 +81,6 @@ export default {
           cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
         });
 
-        // Group data berdasarkan nama_kategori
         const groupedByCategory = {};
         dataAlat.forEach(item => {
           const kategori = item.kategori?.nama_kategori || 'Tanpa Kategori';
@@ -96,8 +94,7 @@ export default {
         let grandTotalEstimasi = 0;
 
         for (const [kategoriName, items] of Object.entries(groupedByCategory)) {
-          // Baris Kategori
-          worksheet.mergeCells(`A${rowIndex}:G${rowIndex}`);
+          worksheet.mergeCells(`A${rowIndex}:H${rowIndex}`);
           const kategoriCell = worksheet.getCell(`A${rowIndex}`);
           kategoriCell.value = `Kategori: ${kategoriName}`;
           kategoriCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -118,7 +115,17 @@ export default {
             totalKategoriHarga += hargaTotal;
             totalKategoriEstimasi += estimasiTotal;
 
-            worksheet.addRow({
+            let rekomendasi = 'Aman'; // default
+            if (item.stock_min === 0 && item.stock_max === 0 && stock === 0) {
+              rekomendasi = 'ATK Tidak Digunakan';
+            } else if (stock < item.stock_min) {
+              rekomendasi = 'Perlu Pengajuan';
+            }
+
+
+
+
+            const row = worksheet.addRow({
               no: globalNo++,
               nama_barang: item.nama_barang,
               harga_satuan: hargaSatuan,
@@ -126,12 +133,36 @@ export default {
               harga_total: hargaTotal,
               estimasi_satuan: estimasiSatuan,
               estimasi_total: estimasiTotal,
+              rekomendasi: rekomendasi
             });
+
+            // Style per baris
+            row.eachCell((cell, colNumber) => {
+              cell.alignment = { vertical: 'middle', horizontal: 'center' };
+              cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+
+              if ([3, 5, 6, 7].includes(colNumber)) {
+                cell.numFmt = '"Rp"#,##0';
+              }
+            });
+
+            // Warna rekomendasi
+            const rekomCell = row.getCell('rekomendasi');
+            if (rekomendasi === 'Perlu Pengajuan') {
+              rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC3545' } };
+              rekomCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            } else if (rekomendasi === 'Aman') {
+              rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28A745' } };
+              rekomCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            } else {
+              rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6C757D' } };
+              rekomCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            }
 
             rowIndex++;
           });
 
-          // Total per Kategori (Opsional, bisa dihapus kalau tidak mau)
+          // Subtotal Kategori
           const totalRow = worksheet.addRow({
             no: '',
             nama_barang: 'Subtotal',
@@ -140,6 +171,7 @@ export default {
             harga_total: totalKategoriHarga,
             estimasi_satuan: '',
             estimasi_total: totalKategoriEstimasi,
+            rekomendasi: '',
           });
 
           totalRow.eachCell(cell => {
@@ -149,11 +181,9 @@ export default {
 
           grandTotalHarga += totalKategoriHarga;
           grandTotalEstimasi += totalKategoriEstimasi;
-
           rowIndex++;
         }
 
-        // Baris TOTAL Akhir
         const totalAkhirRow = worksheet.addRow({
           no: '',
           nama_barang: 'TOTAL',
@@ -162,30 +192,13 @@ export default {
           harga_total: grandTotalHarga,
           estimasi_satuan: '',
           estimasi_total: grandTotalEstimasi,
+          rekomendasi: '',
         });
 
         totalAkhirRow.eachCell(cell => {
           cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEF4444' } };
           cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        });
-
-        // Style Seluruh Baris
-        worksheet.eachRow((row, rowNumber) => {
-          if (rowNumber !== 1) {
-            row.eachCell((cell, colNumber) => {
-              cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-              cell.alignment = { vertical: 'middle', horizontal: 'center' };
-
-              if ([3, 5, 6, 7].includes(colNumber)) {
-                cell.numFmt = '"Rp"#,##0';
-              }
-
-              if (colNumber === 1) {
-                cell.numFmt = '0';
-              }
-            });
-          }
         });
 
         const buffer = await workbook.xlsx.writeBuffer();
@@ -195,8 +208,6 @@ export default {
       }
     };
 
-
-
     const fetchDataAndRenderChart = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -205,11 +216,17 @@ export default {
         });
 
         const dataAlat = res.data.data || [];
+
         const labels = dataAlat.map(item => item.nama_barang);
-        const hargaSatuan = dataAlat.map(item => item.harga_satuan);
-        const hargaTotal = dataAlat.map(item => item.harga_satuan * item.stock);
-        const estimasiSatuan = dataAlat.map(item => item.harga_estimasi);
-        const estimasiTotal = dataAlat.map(item => item.harga_estimasi * item.stock);
+        const hargaSatuan = dataAlat.map(item => item.harga_satuan || 0);
+        const hargaTotal = dataAlat.map(item => (item.harga_satuan || 0) * (item.stock || 0));
+        const estimasiSatuan = dataAlat.map(item => item.harga_estimasi || 0);
+        const estimasiTotal = dataAlat.map(item => (item.harga_estimasi || 0) * (item.stock || 0));
+
+        // 🔁 Hapus grafik sebelumnya jika ada
+        if (chartInstance.value) {
+          chartInstance.value.destroy();
+        }
 
         const ctx = chartCanvas.value.getContext('2d');
 
@@ -218,40 +235,95 @@ export default {
           data: {
             labels: labels,
             datasets: [
-              { label: 'Harga Satuan', data: hargaSatuan, backgroundColor: '#4f46e5' },
-              { label: 'Harga Total', data: hargaTotal, backgroundColor: '#10b981' },
-              { label: 'Estimasi Satuan', data: estimasiSatuan, backgroundColor: '#f59e0b' },
-              { label: 'Estimasi Total', data: estimasiTotal, backgroundColor: '#ef4444' },
-            ]
+              {
+                label: 'Harga Satuan',
+                data: hargaSatuan,
+                backgroundColor: '#6366f1',
+              },
+              {
+                label: 'Harga Total',
+                data: hargaTotal,
+                backgroundColor: '#10b981',
+              },
+              {
+                label: 'Estimasi Satuan',
+                data: estimasiSatuan,
+                backgroundColor: '#fbbf24',
+              },
+              {
+                label: 'Estimasi Total',
+                data: estimasiTotal,
+                backgroundColor: '#ef4444',
+              },
+            ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+              mode: 'index',
+              intersect: false,
+            },
             plugins: {
-              legend: { position: 'bottom', labels: { color: '#374151', font: { size: 12 } } },
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: '#374151',
+                  font: {
+                    size: 13,
+                    family: 'Arial',
+                  },
+                },
+              },
               tooltip: {
                 callbacks: {
-                  label: ctx => `${ctx.dataset.label}: Rp ${ctx.raw.toLocaleString('id-ID')}`
-                }
-              }
+                  label: ctx =>
+                    `${ctx.dataset.label}: Rp ${Number(ctx.raw).toLocaleString('id-ID')}`,
+                },
+              },
+              title: {
+                display: true,
+                text: 'Perbandingan Anggaran ATK',
+                font: {
+                  size: 16,
+                  weight: 'bold',
+                },
+                color: '#111827',
+              },
             },
             scales: {
+              x: {
+                ticks: {
+                  color: '#374151',
+                  maxRotation: 60,
+                  minRotation: 45,
+                  autoSkip: false,
+                  font: { size: 11 },
+                },
+                grid: {
+                  display: false,
+                },
+              },
               y: {
                 beginAtZero: true,
                 ticks: {
-                  callback: value => 'Rp ' + value.toLocaleString('id-ID'),
-                  color: '#6b7280'
+                  callback: val => 'Rp ' + val.toLocaleString('id-ID'),
+                  color: '#6b7280',
+                  font: { size: 12 },
                 },
-                grid: { color: '#e5e7eb' }
+                grid: {
+                  color: '#e5e7eb',
+                },
+                title: {
+                  display: true,
+                  text: 'Jumlah (Rupiah)',
+                  color: '#374151',
+                  font: { size: 13, weight: 'bold' },
+                },
               },
-              x: {
-                ticks: { color: '#6b7280' },
-                grid: { display: false }
-              }
-            }
-          }
+            },
+          },
         });
-
       } catch (error) {
         console.error('Gagal mengambil data alat:', error);
       }
@@ -269,6 +341,7 @@ export default {
     onMounted(() => {
       fetchDataAndRenderChart();
     });
+
 
     return { activeMenu, chartCanvas, downloadChart, downloadExcel };
   }
