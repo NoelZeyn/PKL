@@ -42,14 +42,14 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in paginatedHistory" :key="index" class="text-[#333436]">
-                <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
-                <td class="p-3">{{ item.nama_barang }}</td>
-                <td class="p-3">{{ item.nama_admin }}</td>
-                <td class="p-3 capitalize">{{ item.jenis_aksi }}</td>
-                <td class="p-3">{{ item.deskripsi || '-' }}</td>
-                <td class="p-3">{{ formatTanggal(item.tanggal) }}</td>
-              </tr>
+                <tr v-for="(item, index) in paginatedHistory" :key="index" class="text-[#333436]">
+                  <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
+                  <td class="p-3">{{ item.nama_barang }}</td>
+                  <td class="p-3">{{ item.nama_admin }}</td>
+                  <td class="p-3 capitalize">{{ item.jenis_aksi }}</td>
+                  <td class="p-3">{{ item.deskripsi || '-' }}</td>
+                  <td class="p-3">{{ formatTanggal(item.tanggal) }}</td>
+                </tr>
               <tr v-if="paginatedHistory.length === 0">
                 <td colspan="6" class="text-center p-4 text-gray-500">Data tidak ditemukan</td>
               </tr>
@@ -118,7 +118,7 @@ export default {
       }).then(res => {
         this.historyList = res.data.data.map(item => ({
           nama_barang: item.alat?.nama_barang || '-',
-          nama_admin: item.admin?.NID || '-',
+          nama_admin: item.admin?.data_diri?.nama_lengkap || '-',
           jenis_aksi: item.jenis_aksi || '-',
           deskripsi: item.deskripsi || '-',
           tanggal: item.tanggal,

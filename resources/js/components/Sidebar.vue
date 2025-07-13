@@ -9,7 +9,7 @@
 
         <!-- Sidebar -->
         <aside :class="[
-            'transition-transform duration-300 z-[1000] fixed md:static top-0 left-0 min-h-screen w-[320px] bg-white border-r border-gray-200 pl-7 pt-7 flex flex-col gap-6',
+            'transition-transform duration-300 z-[1000] fixed md:static top-0 left-0 min-h-screen w-[300px] bg-white border-r border-gray-200 pl-7 pt-7 flex flex-col gap-6',
             { '-translate-x-full': !isSidebarOpen && isMobile },
         ]">
             <!-- Logo -->

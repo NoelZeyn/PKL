@@ -12,7 +12,7 @@ class HistoryAtkController extends Controller
      */
     public function index()
     {
-        $history = HistoryAtk::with(['admin', 'alat'])
+        $history = HistoryAtk::with(['admin.dataDiri', 'alat'])
             ->orderBy('created_at', 'desc')
             ->get();
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pengadaan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Alat;
 use App\Models\Approval;
 use App\Models\DataDiri;
 use App\Models\Penempatan;
@@ -11,8 +12,9 @@ use App\Models\Bidang;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
-class PengajuanController extends Controller
+class PengajuanIntiController extends Controller
 {
 
 
@@ -57,101 +59,100 @@ class PengajuanController extends Controller
             'data'   => $result
         ]);
     }
-public function approveManajer(Request $request)
-{
-    try {
-        $request->validate([
-            'id_bidang_fk' => 'required|integer',
-            'id_alat'      => 'required|integer',
-        ]);
+    public function approveManajer(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_bidang_fk' => 'required|integer',
+                'id_alat'      => 'required|integer',
+            ]);
 
-        $user = Auth::user();
+            $user = Auth::user();
 
-        $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
-        $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
+            $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
+            $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
 
-        // Ambil data yang akan diupdate
-        $pengajuan = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
-            $query->where('id_bidang_fk', $request->id_bidang_fk);
-        })
-        ->where('id_inventoris_fk', $request->id_alat)
-        ->where('status', 'waiting_approval_2')
-        ->first();
+            // Ambil data yang akan diupdate
+            $pengajuan = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
+                $query->where('id_bidang_fk', $request->id_bidang_fk);
+            })
+                ->where('id_inventoris_fk', $request->id_alat)
+                ->where('status', 'waiting_approval_2')
+                ->first();
 
-        if (!$pengajuan) {
+            if (!$pengajuan) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Tidak ada pengajuan yang bisa disetujui.',
+                    'data'    => null
+                ]);
+            }
+
+            // Update status
+            $pengajuan->status = 'waiting_approval_3';
+            $pengajuan->status_by = $namaLengkap;
+            $pengajuan->save();
+
             return response()->json([
                 'status'  => 'success',
-                'message' => 'Tidak ada pengajuan yang bisa disetujui.',
-                'data'    => null
-            ]);
+                'message' => 'Pengajuan berhasil disetujui.',
+                'data'    => $pengajuan
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $th->getMessage(),
+            ], 500);
         }
-
-        // Update status
-        $pengajuan->status = 'waiting_approval_3';
-        $pengajuan->status_by = $namaLengkap;
-        $pengajuan->save();
-
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Pengajuan berhasil disetujui.',
-            'data'    => $pengajuan
-        ], 200);
-
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => $th->getMessage(),
-        ], 500);
     }
-}
 
 
 
-public function rejectManajer(Request $request)
-{
-    try {
-        $request->validate([
-            'id_bidang_fk' => 'required|integer',
-            'id_alat'      => 'required|integer',
-            'keterangan'   => 'required|string|max:255',
-        ]);
+    public function rejectManajer(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_bidang_fk' => 'required|integer',
+                'id_alat'      => 'required|integer',
+                'keterangan'   => 'required|string|max:255',
+            ]);
 
-        $user = Auth::user();
-        $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
-        $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
+            $user = Auth::user();
+            $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
+            $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
 
-        $pengajuan = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
-            $query->where('id_bidang_fk', $request->id_bidang_fk);
-        })
-        ->where('id_inventoris_fk', $request->id_alat)
-        ->where('status', 'waiting_approval_2')
-        ->first();
+            $pengajuan = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
+                $query->where('id_bidang_fk', $request->id_bidang_fk);
+            })
+                ->where('id_inventoris_fk', $request->id_alat)
+                ->where('status', 'waiting_approval_2')
+                ->first();
 
-        if (!$pengajuan) {
+            if (!$pengajuan) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Tidak ada pengajuan yang bisa ditolak.',
+                    'data'    => null
+                ]);
+            }
+
+            $pengajuan->status = 'rejected';
+            $pengajuan->status_by = $namaLengkap;
+            $pengajuan->keterangan = $request->keterangan;
+            $pengajuan->save();
+
             return response()->json([
                 'status'  => 'success',
-                'message' => 'Tidak ada pengajuan yang bisa ditolak.',
-                'data'    => null
+                'message' => 'Pengajuan berhasil ditolak.',
+                'data'    => $pengajuan
             ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $th->getMessage(),
+            ], 500);
         }
-
-        $pengajuan->status = 'rejected';
-        $pengajuan->status_by = $namaLengkap;
-        $pengajuan->keterangan = $request->keterangan;
-        $pengajuan->save();
-
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Pengajuan berhasil ditolak.',
-            'data'    => $pengajuan
-        ]);
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => $th->getMessage(),
-        ], 500);
     }
-}
 
 
 
@@ -169,98 +170,121 @@ public function rejectManajer(Request $request)
         ]);
     }
 
-public function approveAnggaran(Request $request)
-{
-    try {
-        $request->validate([
-            'id_bidang_fk' => 'required|integer',
-        ]);
+    public function approveAnggaran(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                'id_bidang_fk' => 'required|integer',
+            ]);
 
-        $user = Auth::user();
-        $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
-        $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
+            $user = Auth::user();
+            $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
+            $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : ($user->NID ?? 'system');
 
-        $requests = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
+            // Ambil semua pengajuan yang menunggu approval anggaran dari bidang terkait
+            $requests = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
                 $query->where('id_bidang_fk', $request->id_bidang_fk);
             })
-            ->where('status', 'waiting_approval_3')
-            ->get();
+                ->where('status', 'waiting_approval_3')
+                ->get();
 
-        foreach ($requests as $req) {
-            $req->update([
-                'status' => 'approved',
-                'status_by' => $namaLengkap,
-            ]);
+            if ($requests->isEmpty()) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Tidak ada pengajuan yang bisa disetujui.',
+                ]);
+            }
 
-            Approval::create([
-                'id_request_fk'   => $req->id_request,
-                'id_admin_fk'     => $user->id,
-                'level_approval'  => 'Anggaran',
-                'status'          => 'approved',
-                'tanggal'         => now()->toDateString(),
-                'catatan'         => null,
+            $alatIds = collect();
+
+            $requests->each(function ($req) use ($namaLengkap, $user, &$alatIds) {
+                $req->update([
+                    'status'     => 'approved',
+                    'status_by'  => $namaLengkap,
+                ]);
+                $alatIds->push($req->id_inventoris_fk);
+
+                Approval::create([
+                    'id_request_fk'   => $req->id_request,
+                    'id_admin_fk'     => $user->id,
+                    'level_approval'  => 'Anggaran',
+                    'status'          => 'approved',
+                    'tanggal'         => now()->toDateString(),
+                    'catatan'         => null,
+                ]);
+            });
+
+            // Update order di tabel alat berdasarkan total pengajuan yang sudah di-approve
+            Alat::whereIn('id_alat', $alatIds->unique())->get()->each(function ($alat) {
+                $totalOrder = RequestPengadaan::where('id_inventoris_fk', $alat->id_alat)
+                    ->where('status', 'approved')
+                    ->sum('jumlah');
+                $alat->update(['order' => $totalOrder]);
+            });
+
+            DB::commit();
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Pengajuan berhasil disetujui.',
             ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status'  => 'error',
+                'message' => $th->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'status'  => 'success',
-            'message' => $requests->count() > 0 ? 'Pengajuan berhasil disetujui.' : 'Tidak ada pengajuan yang bisa disetujui.',
-        ]);
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => $th->getMessage(),
-        ], 500);
     }
-}
 
 
-public function rejectAnggaran(Request $request)
-{
-    try {
-        $request->validate([
-            'id_bidang_fk' => 'required|integer',
-            'keterangan'   => 'required|string|max:255',
-        ]);
+    public function rejectAnggaran(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_bidang_fk' => 'required|integer',
+                'keterangan'   => 'required|string|max:255',
+            ]);
 
-        $user = Auth::user();
-        $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
-        $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
+            $user = Auth::user();
+            $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
+            $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
 
-        $requests = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
+            $requests = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
                 $query->where('id_bidang_fk', $request->id_bidang_fk);
             })
-            ->where('status', 'waiting_approval_3')
-            ->get();
+                ->where('status', 'waiting_approval_3')
+                ->get();
 
-        foreach ($requests as $req) {
-            $req->update([
-                'status'      => 'rejected',
-                'status_by'   => $namaLengkap,
-                'keterangan'  => $request->keterangan,
-            ]);
+            foreach ($requests as $req) {
+                $req->update([
+                    'status'      => 'rejected',
+                    'status_by'   => $namaLengkap,
+                    'keterangan'  => $request->keterangan,
+                ]);
 
-            Approval::create([
-                'id_request_fk'   => $req->id_request,
-                'id_admin_fk'     => $user->id,
-                'level_approval'  => 'Anggaran',
-                'status'          => 'rejected',
-                'tanggal'         => now()->toDateString(),
-                'catatan'         => $request->keterangan,
+                Approval::create([
+                    'id_request_fk'   => $req->id_request,
+                    'id_admin_fk'     => $user->id,
+                    'level_approval'  => 'Anggaran',
+                    'status'          => 'rejected',
+                    'tanggal'         => now()->toDateString(),
+                    'catatan'         => $request->keterangan,
+                ]);
+            }
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => $requests->count() > 0 ? 'Pengajuan berhasil ditolak.' : 'Tidak ada pengajuan yang bisa ditolak.',
             ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $th->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'status'  => 'success',
-            'message' => $requests->count() > 0 ? 'Pengajuan berhasil ditolak.' : 'Tidak ada pengajuan yang bisa ditolak.',
-        ]);
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => $th->getMessage(),
-        ], 500);
     }
-}
 
     public function asmanAll()
     {
@@ -533,7 +557,7 @@ public function rejectAnggaran(Request $request)
     {
         try {
             $requests = RequestPengadaan::with(['alat', 'user.penempatan.bidang'])
-                ->whereIn('status', ['approved'])
+                ->whereNotIn('status', ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'rejected'])
                 ->get();
 
             $grouped = $requests->groupBy(function ($item) {
@@ -559,10 +583,12 @@ public function rejectAnggaran(Request $request)
                     $totalHarga = $jumlah * $hargaSatuan;
 
                     $barangList[] = [
+                        'id_alat'      => $item->id_inventoris_fk, // <- tambahkan ini
                         'nama_barang'  => $barang->nama_barang ?? 'Tidak Diketahui',
                         'jumlah'       => $jumlah,
                         'harga_satuan' => $hargaSatuan,
                         'total_harga'  => $totalHarga,
+                        'status'       => $item->status ?? '-',
                         'keterangan'   => $item->keterangan ?? '-',
                     ];
                 }
@@ -586,4 +612,79 @@ public function rejectAnggaran(Request $request)
         }
     }
 
+    public function updateStatus(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'id_alat' => 'required|integer',
+            'status'  => 'required|in:approved,purchasing,on_the_way,done',
+        ]);
+
+        $req = RequestPengadaan::where('id_inventoris_fk', $request->id_alat)
+            ->whereNotIn('status', ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'rejected'])
+            ->first();
+
+        if (!$req) {
+            return response()->json([
+                'message' => 'Data tidak ditemukan atau bukan status yang dapat diubah'
+            ], 404);
+        }
+
+        $currentStatus = $req->status;
+        $newStatus = $request->status;
+
+        // Validasi transisi status satu arah
+        $allowedTransitions = [
+            'approved'    => ['purchasing'],
+            'purchasing'  => ['on_the_way'],
+            'on_the_way'  => ['done'],
+        ];
+
+        if (!isset($allowedTransitions[$currentStatus]) || !in_array($newStatus, $allowedTransitions[$currentStatus])) {
+            return response()->json([
+                'message' => "Transisi status tidak valid dari \"$currentStatus\" ke \"$newStatus\""
+            ], 422);
+        }
+
+        // Update status permintaan
+        $req->status = $newStatus;
+        $req->save();
+
+        // Jika selesai, update stok alat
+        if ($newStatus === 'done') {
+            $this->updateStokAlat($req->id_inventoris_fk, $req->jumlah);
+        }
+
+        // Buat catatan approval
+        $catatan = $newStatus === 'done'
+            ? "Barang telah diterima dan stok diperbarui oleh " . ($user->dataDiri->nama_lengkap ?? 'Staff')
+            : "Status diubah dari \"$currentStatus\" ke \"$newStatus\" oleh " . ($user->dataDiri->nama_lengkap ?? 'Staff');
+
+        Approval::create([
+            'id_request_fk'  => $req->id_request,
+            'id_admin_fk'    => $user->id,
+            'level_approval' => 'Staff System',
+            'status'         => $newStatus,
+            'tanggal'        => now()->toDateString(),
+            'catatan'        => $catatan,
+        ]);
+
+        return response()->json(['message' => 'Status berhasil diupdate.']);
+    }
+
+    private function updateStokAlat($idAlat, $jumlah)
+    {
+        $alat = Alat::find($idAlat);
+
+        if (!$alat) return;
+
+        $alat->order = $alat->order ?? 0;
+        $alat->stock = $alat->stock ?? 0;
+
+        $alat->order = max(0, $alat->order - $jumlah); // Hindari minus
+        $alat->stock += $jumlah;
+
+        $alat->save();
+    }
 }

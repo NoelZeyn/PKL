@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_inventoris_fk');
             $table->unsignedBigInteger('id_users_fk');
             $table->date('tanggal_permintaan');
-            $table->enum('status', ['draft', 'waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'approved','rejected']);
+            $table->enum('status', ['draft', 'waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'approved','rejected','purchasing', 'on_the_way', 'done',]);
             $table->integer('jumlah');
             $table->integer('total');
             $table->string('status_by')->nullable();

@@ -55,7 +55,7 @@ const isTokenValid = () => {
 // Daftar route
 const routes = [
     // Public routes (tidak butuh token)
-    { path: "/", redirect: "/register", meta: { title: "Register" } },
+    { path: "/", redirect: "/login", meta: { title: "Register" } },
     { path: "/login", component: Login, meta: { title: "Login" } },
     { path: "/register", component: Register, meta: { title: "Register" } },
     { path: "/register-next", component: RegisterNext, meta: { title: "RegisterNext" } },
@@ -66,13 +66,13 @@ const routes = [
 
     // Protected routes (butuh token)
     { path: "/dashboard", component: Dashboard, meta: { requiresAuth: true, title: "Dashboard" } },
-    { path: "/manajemen-akun", component: ManajemenAkun, meta: { requiresAuth: true, title: "Manajemen Akun" } },
-    { path: "/manajemen-approval", component: ManajemenApproval, meta: { requiresAuth: true, title: "Manajemen Approval" } },
+    { path: "/manajemen-akun", component: ManajemenAkun, meta: { requiresAuth: true, allowedRoles: ["superadmin"],  title: "Manajemen Akun" } },
+    { path: "/manajemen-approval", component: ManajemenApproval, meta: { requiresAuth: true, allowedRoles: ["admin", "superadmin", "asman", "manajer", "anggaran"],  title: "Manajemen Approval" } },
     { path: "/profile", component: Profile, meta: { requiresAuth: true, title: "Profile" } },
 
     { path: "/manajemen-alat", component: AlatTulis, meta: { requiresAuth: true, title: "Alat Tulis" } },
     { path: "/:pathMatch(.*)*", redirect: "/login", meta: { title: "Not Found" } }, // Catch-all route
-    { path: "/alat-add", component: AlatAdd, meta: { requiresAuth: true, title: "Tambah Alat" } },
+    { path: "/alat-add", component: AlatAdd, meta: { requiresAuth: true, allowedRoles: ["admin", "superadmin"], title: "Tambah Alat" } },
     { path: "/alat-edit/:id", component: AlatEdit, meta: { requiresAuth: true, title: "Edit Alat" } },
     { path: "/alat-info/:id", component: AlatInfo, meta: { requiresAuth: true, title: "Info Alat" } },
     { path: "/alat-pemakaian", component: AlatPemakaian, meta: { requiresAuth: true, title: "Pemakaian Alat" } },
@@ -84,11 +84,11 @@ const routes = [
     { path: "/pengajuan-atk-add", component: PengajuanAtkAdd, meta: { requiresAuth: true, title: "Tambah Pengajuan Jenis ATK" } },
 
     { path: "/grafik", component: Grafik, meta: { requiresAuth: true, title: "Grafik RAB Temporary"} },
-    { path: "/laporan-pemakaian", component: LaporanPemakaian, meta: { requiresAuth: true, title: "Laporan Pemakaian Alat"} },
+    { path: "/laporan-pemakaian", component: LaporanPemakaian, meta: { requiresAuth: true, disallowedRoles: ["user"], title: "Laporan Pemakaian Alat"} },
     { path: "/laporan-ATK", component: LaporanATK, meta: { requiresAuth: true, title: "Laporan ATK" } },
-    { path: "/laporan-approval", component: LaporanApproval, meta: { requiresAuth: true, title: "Laporan Approval" } },
+    { path: "/laporan-approval", component: LaporanApproval, meta: { requiresAuth: true, disallowedRoles: ["user"], title: "Laporan Approval" } },
     { path: "/laporan-pengajuan", component: LaporanPengajuan, meta: { requiresAuth: true, title: "Laporan Pengajuan" } },
-    {path: "/laporan-history-atk", component: LaporanHistoryATK, meta: {requiresAuth: true, title: "Riwayat Manajemen ATK"}},
+    {path: "/laporan-history-atk", component: LaporanHistoryATK, meta: {requiresAuth: true, disallowedRoles: ["user"], title: "Riwayat Manajemen ATK"}},
 
     
 ];
@@ -107,10 +107,28 @@ router.beforeEach((to, from, next) => {
     localStorage.clear();
     sessionStorage.clear();
     next("/login");
-  } else {
-    next();
+    return;
   }
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (to.meta.disallowedRoles && user) {
+    const userRole = user.tingkatan_otoritas;
+    if (to.meta.disallowedRoles.includes(userRole)) {
+      alert("Akses ditolak. Anda tidak diizinkan membuka halaman ini.");
+      return next("/"); // bisa ganti dengan route lain
+    }
+  }
+  // ✅ Validasi role (hanya jika route mengatur allowedRoles)
+  if (to.meta.allowedRoles && user) {
+    const userRole = user.tingkatan_otoritas;
+    if (!to.meta.allowedRoles.includes(userRole)) {
+      alert("Akses ditolak. Anda tidak memiliki izin untuk halaman ini.");
+      return next("/");
+    }
+  }
+
+  next();
 });
+
 
 
 // Set judul halaman

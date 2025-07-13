@@ -78,7 +78,7 @@ class AlatSeeder extends Seeder
                 'satuan' => fake()->randomElement(['Rim', 'Pak', 'Buah', 'Set', 'Pcs']),
                 'harga_satuan' => rand(5000, 150000),
                 'harga_estimasi' => rand(6000, 160000),
-                'order' => $i,
+                // 'order' => $i,
                 'keterangan' => 'Keterangan untuk ' . $item,
             ]);
             $i++;

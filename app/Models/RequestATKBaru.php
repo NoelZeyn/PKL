@@ -19,7 +19,9 @@ class RequestATKBaru extends Model
         'satuan',
         'harga_estimasi',
         'keterangan',
+        'catatan',
         'status',
+        'status_by',
     ];
 
     // Relasi ke Kategori

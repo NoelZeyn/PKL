@@ -113,18 +113,30 @@ export default {
     };
   },
   computed: {
-    filteredList() {
-      return this.approvalList.filter(item => {
-        const matchesSearch = item.level_approval?.toLowerCase().includes(this.searchQuery.toLowerCase())
-          || item.request?.status_by?.toLowerCase().includes(this.searchQuery.toLowerCase())
-          || item.status?.toLowerCase().includes(this.searchQuery.toLowerCase());
+filteredList() {
+  const priority = {
+    done: 1,
+    on_the_way: 2,
+    purchasing: 3,
+    approved: 4,
+    pending: 5,
+    rejected: 6,
+  };
 
-        const matchesStatus = this.selectedStatus === '' || item.status === this.selectedStatus;
+  return this.approvalList
+    .filter(item => {
+      const matchesSearch = item.level_approval?.toLowerCase().includes(this.searchQuery.toLowerCase())
+        || item.request?.status_by?.toLowerCase().includes(this.searchQuery.toLowerCase())
+        || item.status?.toLowerCase().includes(this.searchQuery.toLowerCase());
 
-        return matchesSearch && matchesStatus;
-      });
-    },
+      const matchesStatus = this.selectedStatus === '' || item.status === this.selectedStatus;
 
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      return (priority[a.status] || 999) - (priority[b.status] || 999);
+    });
+},
     paginatedList() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       return this.filteredList.slice(start, start + this.itemsPerPage);
@@ -158,13 +170,16 @@ export default {
     onInputSearch() {
       this.currentPage = 1;
     },
-    statusColor(status) {
-      return {
-        approved: 'bg-green-200 text-green-800',
-        rejected: 'bg-red-200 text-red-800',
-        pending: 'bg-yellow-200 text-yellow-800',
-      }[status] || 'bg-gray-200 text-gray-800';
-    },
+statusColor(status) {
+  return {
+    approved: 'bg-green-200 text-green-800',
+    rejected: 'bg-red-200 text-red-800',
+    pending: 'bg-yellow-200 text-yellow-800',
+    purchasing: 'bg-blue-200 text-blue-800',
+    on_the_way: 'bg-indigo-200 text-indigo-800',
+    done: 'bg-lime-200 text-lime-800',
+  }[status] || 'bg-gray-200 text-gray-800';
+},
 async downloadExcel() {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Riwayat Approval');
@@ -185,7 +200,7 @@ async downloadExcel() {
     cell.fill = {
       type: "pattern",
       pattern: "solid",
-      fgColor: { argb: "FF4F46E5" },
+      fgColor: { argb: "FF4F46E5" }, // Indigo
     };
     cell.alignment = { vertical: "middle", horizontal: "center" };
     cell.border = {
@@ -207,13 +222,17 @@ async downloadExcel() {
       id_request: item.id_request_fk,
     });
 
-    // Row background color based on status
-    let bgColor = "FFFFFFFF"; // default white
-    switch (item.status) {
-      case "approved": bgColor = "FFDCFCE7"; break;   // light green
-      case "rejected": bgColor = "FFFEE2E2"; break;   // light red
-      case "pending": bgColor = "FFFEF9C3"; break;    // light yellow
-    }
+    // Dynamic row background color based on status
+    const statusColorMap = {
+      approved:   "FFDCFCE7", // light green
+      rejected:   "FFFEE2E2", // light red
+      pending:    "FFFEF9C3", // light yellow
+      purchasing: "FFE0F2FE", // light blue
+      on_the_way: "FFEDE9FE", // light indigo
+      done:       "FFF0FDF4", // very light green
+    };
+
+    const bgColor = statusColorMap[item.status] || "FFFFFFFF"; // default white
 
     row.eachCell(cell => {
       cell.fill = {
@@ -235,6 +254,7 @@ async downloadExcel() {
   const filename = `Riwayat-Approval-${new Date().toISOString().slice(0, 10)}.xlsx`;
   saveAs(new Blob([buffer]), filename);
 },
+
   }
 };
 </script>

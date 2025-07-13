@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_request_fk');
             $table->unsignedBigInteger('id_admin_fk');
             $table->string('level_approval'); 
-            $table->enum('status', ['approved', 'rejected', 'pending']);
+            $table->enum('status', ['approved', 'rejected', 'pending', 'purchasing', 'on_the_way','done']);
             $table->date('tanggal');
             $table->text('catatan')->nullable();
             $table->timestamps();

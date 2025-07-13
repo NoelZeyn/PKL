@@ -44,7 +44,7 @@
                                         Nama Bidang
                                     </th>
                                     <th v-if="tingkatanOtoritas !== 'anggaran'" class="p-3 border">
-                                        Jumlah
+                                        Jumlah Order
                                     </th>
                                     <th v-if="tingkatanOtoritas !== 'anggaran'" class="p-3 border">
                                         Harga Satuan
@@ -188,7 +188,7 @@
                                             {{ formatStatus(item.status).label }}
                                         </span>
                                     </td>
-                                            <td class="p-3">{{ item.catatan || "-" }}</td>
+                                    <td class="p-3">{{ item.catatan || "-" }}</td>
                                     <td class="p-3">{{ item.satuan }}</td>
                                     <td class="p-3">
                                         {{ item.kategori?.nama_kategori || "-" }}
@@ -213,22 +213,12 @@
 
                                             <!-- Tombol Approve & Reject -->
                                             <div class="flex space-x-2 pt-2">
-                                                <button @click="
-                                                    approvePengajuan(
-                                                        item.id_penempatan_fk,
-                                                        null
-                                                    )
-                                                    " title="Setujui"
+                                                <button @click="approvePengajuan(item.id, null)" title="Setujui"
                                                     class="cursor-pointer hover:bg-green-600 text-white rounded-md w-6 h-6 flex items-center justify-center shadow hover:shadow-lg transform hover:scale-105 transition duration-150">
                                                     <span class="text-sm font-bold">✔</span>
                                                 </button>
 
-                                                <button @click="
-                                                    rejectPengajuan(
-                                                        item.id_penempatan_fk,
-                                                        null
-                                                    )
-                                                    " title="Tolak"
+                                                <button @click="rejectPengajuan(item.id, null)" title="Tolak"
                                                     class="cursor-pointer hover:bg-red-600 text-white rounded-md w-6 h-6 flex items-center justify-center shadow hover:shadow-lg transform hover:scale-105 transition duration-150">
                                                     <span class="text-sm font-bold">✖</span>
                                                 </button>
@@ -269,11 +259,12 @@
                                 <tr>
                                     <th class="w-40 p-3 border">Bidang</th>
                                     <th class="w-40 p-3 border">Nama Barang</th>
-                                    <th class="w-20 p-3 border">Jumlah</th>
+                                    <th class="w-20 p-3 border">Jumlah Order</th>
                                     <th class="w-24 p-3 border">Harga Satuan</th>
                                     <th class="w-28 p-3 border">Total Harga</th>
                                     <th class="p-3 border">Keterangan Barang</th>
                                     <th class="w-24 p-3 border">Status Pengadaan</th>
+                                    <th class="p-3 border">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -294,18 +285,27 @@
                                             <td class="p-3 border">{{ formatRupiah(barang.harga_satuan) }}</td>
                                             <td class="p-3 border">{{ formatRupiah(barang.total_harga) }}</td>
                                             <td class="p-3 border">{{ barang.keterangan || '-' }}</td>
-                                            <td class="p-3 border"> {{ barang.status || '-' }}
-                                                <!-- <div class="flex space-x-2 justify-center">
-                                                    <button
-                                                        @click="approvePengajuan(group.id_bidang_fk, barang.id_alat)"
-                                                        class="cursor-pointer px-2 py-1 hover:bg-green-700 text-white text-xs rounded">
-                                                        ✔
-                                                    </button>
-                                                    <button @click="rejectPengajuan(group.id_bidang_fk, barang.id_alat)"
-                                                        class="cursor-pointer px-2 py-1 hover:bg-red-700 text-white text-xs rounded">
-                                                        ✖
-                                                    </button>
-                                                </div> -->
+                                            <td class="p-3 border">{{ barang.status || '-' }}</td>
+                                            <td class="p-3 border text-center">
+                                                <template
+                                                    v-if="['approved', 'purchasing', 'on_the_way'].includes(barang.status)">
+                                                    <select v-model="barang.selectedStatus"
+                                                        @change="updateStatus(group.id_bidang_fk, barang.id_alat, barang.selectedStatus)"
+                                                        class="border rounded text-sm px-2 py-1">
+                                                        <option disabled value="">Ubah status...</option>
+                                                        <option v-if="barang.status === 'approved'" value="purchasing">
+                                                            Purchasing</option>
+                                                        <option v-if="barang.status === 'purchasing'"
+                                                            value="on_the_way">On the Way</option>
+                                                        <option v-if="barang.status === 'on_the_way'" value="done">Done
+                                                        </option>
+                                                    </select>
+                                                </template>
+                                                <template v-else>
+                                                    <span>
+                                                        No More Action
+                                                    </span>
+                                                </template>
                                             </td>
                                         </tr>
                                     </template>
@@ -442,10 +442,38 @@ export default {
         await this.getUserInfo();
         this.fetchPengajuan();
         this.fetchPengajuanBaru();
-        this.fetchPengajuanAdminTable(); // <= untuk admin/superadmin
+        this.fetchPengajuanAdminTable();
     },
 
     methods: {
+        async updateStatus(id_bidang_fk, id_alat, newStatus) {
+            if (newStatus === 'batalkan') {
+                // reset pilihan (optional)
+                return;
+            }
+
+            try {
+                await axios.patch(`/api/update-status`, {
+                    id_bidang_fk,
+                    id_alat,
+                    status: newStatus,
+                });
+
+                // update status di frontend
+                const group = this.dataGroupedByBidang.find(g => g.id_bidang_fk === id_bidang_fk);
+                if (group) {
+                    const item = group.barang.find(b => b.id_alat === id_alat);
+                    if (item) {
+                        item.status = newStatus;
+                    }
+                }
+
+                this.$toast?.success?.('Status berhasil diubah.');
+            } catch (error) {
+                console.error(error);
+                this.$toast?.error?.('Gagal mengubah status.');
+            }
+        },
         async getUserInfo() {
             try {
                 const token = localStorage.getItem("token");
@@ -515,8 +543,8 @@ export default {
                 let payload = { id_alat };
 
                 if (this.isAdmin || this.isSuperAdmin) {
-                    url = "http://localhost:8000/api/pengajuan-baru/approve";
-                    payload = { id: id_fk };
+                    url = `http://localhost:8000/api/pengajuan-baru/approve/${id_fk}`;
+                    payload = {};
                 } else if (this.isAsman) {
                     url = "http://localhost:8000/api/asman/approve";
                     payload.id_penempatan_fk = id_fk;
@@ -563,8 +591,8 @@ export default {
             let payload = { id_alat, keterangan };
 
             if (this.isAdmin || this.isSuperAdmin) {
-                url = "http://localhost:8000/api/pengajuan-baru/reject";
-                payload = { id: id_fk, keterangan };
+                url = `http://localhost:8000/api/pengajuan-baru/reject/${id_fk}`;
+                payload = { keterangan };
             } else if (this.isAsman) {
                 url = "http://localhost:8000/api/asman/reject";
                 payload.id_penempatan_fk = id_fk;

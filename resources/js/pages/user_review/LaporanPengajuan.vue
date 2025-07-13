@@ -15,7 +15,139 @@
                             class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     </div>
                 </div>
+                <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
+                    <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
+                        <h3 class="text-sm font-semibold text-gray-900">
+                            Data List Pengajuan ATK Baru
+                        </h3>
+                        <button @click="downloadExcels"
+                            class="flex items-center gap-2 px-4 cursor-pointer py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                            </svg>
+                            Download Excel
+                        </button>
+                    </div>
 
+                    <table class="w-full table-fixed border-collapse border border-gray-300">
+                        <thead class="bg-gray-100 text-[#7d7f81]">
+                            <tr>
+                                <th class="w-20 p-3 border">Nama Barang</th>
+                                <th class="w-30 p-3 border">
+                                    Tanggal Pengajuan
+                                </th>
+                                <th class="w-25 p-3 border">Status</th>
+                                <th class="w-30 p-3 border">
+                                    Catatan Approval
+                                </th>
+                                <th class="w-20 p-3 border">Satuan</th>
+                                <th class="p-3 border">Kategori</th>
+                                <th class="p-3 border">Harga Estimasi</th>
+                                <!-- <th class="p-3 border">Aksi</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in paginatedPengajuanBaruList" :key="item.id"
+                                class="text-[#333436]">
+                                <td class="p-3">{{ item.nama_barang }}</td>
+                                <td class="p-3">
+                                    {{ formatTanggal(item.created_at) }}
+                                </td>
+                                <td class="p-3">
+                                    <span :class="[
+                                        'px-4 py-1 rounded-full text-xs font-semibold',
+                                        formatStatus(item.status).color,
+                                    ]">
+                                        {{ formatStatus(item.status).label }}
+                                    </span>
+                                </td>
+                                <td class="p-3">{{ item.catatan || "-" }}</td>
+                                <td class="p-3">{{ item.satuan }}</td>
+                                <td class="p-3">
+                                    {{ item.kategori?.nama_kategori || "-" }}
+                                </td>
+                                <td class="p-3">
+                                    {{ formatRupiah(item.harga_estimasi) }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination untuk PengajuanBaru -->
+                    <div
+                        class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
+                        <button @click="prevPagePengajuanBaru" :disabled="currentPagePengajuanBaru === 1"
+                            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+                            Prev
+                        </button>
+                        <span>Halaman {{ currentPagePengajuanBaru }} dari {{ totalPagesPengajuanBaru }}</span>
+                        <button @click="nextPagePengajuanBaru"
+                            :disabled="currentPagePengajuanBaru === totalPagesPengajuanBaru"
+                            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+                            Next
+                        </button>
+                    </div>
+
+                </div>
+                <div
+                    class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
+                    <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
+                        <h3 class="text-sm font-semibold text-gray-900">
+                            Data Rekapitulasi Pengajuan per Bidang
+                        </h3>
+                    </div>
+
+                    <table class="w-full table-auto border-collapse border border-gray-300">
+                        <thead class="bg-gray-100 text-[#7d7f81]">
+                            <tr>
+                                <th class="w-40 p-3 border">Bidang</th>
+                                <th class="w-40 p-3 border">Nama Barang</th>
+                                <th class="w-20 p-3 border">Jumlah Order</th>
+                                <th class="w-24 p-3 border">Harga Satuan</th>
+                                <th class="w-28 p-3 border">Total Harga</th>
+                                <th class="p-3 border">Keterangan Barang</th>
+                                <th class="w-24 p-3 border">Status Pengadaan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- bidang dlu baru di loop barang -->
+                            <template v-for="(group, groupIndex) in dataGroupedByBidang" :key="groupIndex">
+                                <template v-for="(barang, index) in group.barang" :key="index">
+                                    <tr class="text-[#333436]">
+                                        <!-- Tampilkan nama bidang hanya di baris pertama dari group -->
+                                        <td class="p-3 border text-center min-h-[4rem]" v-if="index === 0"
+                                            :rowspan="group.barang.length">
+                                            <div class="h-full flex items-center justify-center">
+                                                {{ group.nama_bidang }}
+                                            </div>
+                                        </td>
+
+                                        <td class="p-3 border">{{ barang.nama_barang }}</td>
+                                        <td class="p-3 border text-center">{{ barang.jumlah }}</td>
+                                        <td class="p-3 border">{{ formatRupiah(barang.harga_satuan) }}</td>
+                                        <td class="p-3 border">{{ formatRupiah(barang.total_harga) }}</td>
+                                        <td class="p-3 border">{{ barang.keterangan || '-' }}</td>
+                                        <td class="p-3 border"> {{ barang.status || '-' }}
+                                            <!-- <div class="flex space-x-2 justify-center">
+                                                    <button
+                                                        @click="approvePengajuan(group.id_bidang_fk, barang.id_alat)"
+                                                        class="cursor-pointer px-2 py-1 hover:bg-green-700 text-white text-xs rounded">
+                                                        ✔
+                                                    </button>
+                                                    <button @click="rejectPengajuan(group.id_bidang_fk, barang.id_alat)"
+                                                        class="cursor-pointer px-2 py-1 hover:bg-red-700 text-white text-xs rounded">
+                                                        ✖
+                                                    </button>
+                                                </div> -->
+                                        </td>
+                                    </tr>
+                                </template>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
                 <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
                     <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
                         <h3 class="text-sm font-semibold text-gray-900">
@@ -41,8 +173,8 @@
                                 <th class="p-3 border">Pemohon</th>
                                 <th class="p-3 border">Tgl Permintaan</th>
                                 <th class="w-33 border">Status</th>
-                                <th class="w-20 border">Ket. Status</th>
-                                <th class="border">Jumlah</th>
+                                <th class="w-30 border">Ket. Status</th>
+                                <th class="border">Jumlah Order</th>
                                 <!-- <th class="p-3 border">Harga Satuan</th> -->
                                 <th class="w-25 p-3 border">Total</th>
                                 <th class="p-3 border">Keterangan</th>
@@ -150,8 +282,12 @@ export default {
             tingkatanOtoritas: "",
             requestToDelete: null,
             requestList: [],
+            PengajuanBaruList: [],
+                        dataGroupedByBidang: [],
             currentPage: 1,
             itemsPerPage: 10,
+            currentPagePengajuanBaru: 1,
+            itemsPengajuanBaruPerPage: 5,
         };
     },
 
@@ -180,114 +316,258 @@ export default {
                 this.filteredRequestList.length / this.itemsPerPage
             );
         },
+
+        filteredPengajuanBaruList() {
+            if (!this.searchQuery) return this.PengajuanBaruList;
+
+            const query = this.searchQuery.toLowerCase();
+
+            return this.PengajuanBaruList.filter(item =>
+                item.nama_barang?.toLowerCase().includes(query) ||
+                item.catatan?.toLowerCase().includes(query) ||
+                item.status?.toLowerCase().includes(query) ||
+                item.kategori?.nama_kategori?.toLowerCase().includes(query)
+            );
+        },
+
+        paginatedPengajuanBaruList() {
+            const start = (this.currentPagePengajuanBaru - 1) * this.itemsPengajuanBaruPerPage;
+            return this.filteredPengajuanBaruList.slice(start, start + this.itemsPengajuanBaruPerPage);
+        },
+
+        totalPagesPengajuanBaru() {
+            return Math.ceil(this.filteredPengajuanBaruList.length / this.itemsPengajuanBaruPerPage);
+        },
     },
 
     created() {
         this.fetchRequest();
         this.getUserInfo();
+        this.fetchPengajuanBaru();
+        this.fetchPengajuanAdminTable();
     },
 
     methods: {
-async downloadExcel() {
-    try {
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet("Data Pengajuan");
-
-        // Header Kolom
-        worksheet.columns = [
-            { header: "No", key: "no", width: 5 },
-            { header: "ID Request", key: "id_request", width: 15 },
-            { header: "Nama Barang", key: "nama_barang", width: 25 },
-            { header: "Pemohon", key: "pemohon", width: 25 },
-            { header: "Tgl Permintaan", key: "tanggal", width: 15 },
-            { header: "Status", key: "status", width: 15 },
-            { header: "Status By", key: "status_by", width: 20 },
-            { header: "Catatan", key: "catatan", width: 25 },
-            { header: "Jumlah", key: "jumlah", width: 10 },
-            { header: "Total", key: "total", width: 15 },
-            { header: "Keterangan", key: "keterangan", width: 25 },
-        ];
-
-        // Header styling
-        worksheet.getRow(1).eachCell(cell => {
-            cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-            cell.fill = {
-                type: "pattern",
-                pattern: "solid",
-                fgColor: { argb: "FF4F46E5" },
-            };
-            cell.alignment = { vertical: "middle", horizontal: "center" };
-            cell.border = {
-                top: { style: "thin" },
-                left: { style: "thin" },
-                bottom: { style: "thin" },
-                right: { style: "thin" },
-            };
-        });
-
-        // Isi Data + Warna berdasarkan status
-        this.filteredRequestList.forEach((item, index) => {
-            const rowData = {
-                no: index + 1,
-                id_request: item.id_request || "-",
-                nama_barang: item.alat?.nama_barang || "-",
-                pemohon: item.user?.data_diri?.nama_lengkap || "-",
-                tanggal: this.formatTanggal(item.tanggal_permintaan),
-                status: this.formatStatus(item.status).label,
-                status_by: item.status_by || "-",
-                catatan: item.approvals[0]?.catatan || "-",
-                jumlah: item.jumlah,
-                total: item.total || 0,
-                keterangan: item.keterangan || "-",
-            };
-
-            const row = worksheet.addRow(rowData);
-
-            // Styling baris berdasarkan status
-            let bgColor = "FFFFFFFF"; // default putih
-            switch (item.status) {
-                case "approved":
-                    bgColor = "FFDCFCE7"; // hijau muda
-                    break;
-                case "rejected":
-                    bgColor = "FFFEE2E2"; // merah muda
-                    break;
-                case "waiting_approval_1":
-                case "waiting_approval_2":
-                case "waiting_approval_3":
-                    bgColor = "FFFEF9C3"; // kuning muda
-                    break;
-                default:
-                    bgColor = "FFF3F4F6"; // abu muda
-                    break;
+        async fetchPengajuanBaru() {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get(
+                    "http://localhost:8000/api/pengajuan-baru",
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                this.PengajuanBaruList = res.data.data || [];
+            } catch (error) {
+                console.error("Gagal mengambil data pengajuan baru:", error);
             }
+        },
+        async downloadExcels() {
+            try {
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet("Pengajuan ATK Baru");
 
-            row.eachCell(cell => {
-                cell.fill = {
-                    type: "pattern",
-                    pattern: "solid",
-                    fgColor: { argb: bgColor },
-                };
-                cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
-                cell.border = {
-                    top: { style: "thin" },
-                    left: { style: "thin" },
-                    bottom: { style: "thin" },
-                    right: { style: "thin" },
-                };
-            });
+                // Header Kolom
+                worksheet.columns = [
+                    { header: "No", key: "no", width: 5 },
+                    { header: "Nama Barang", key: "nama_barang", width: 25 },
+                    { header: "Tanggal Pengajuan", key: "tanggal", width: 20 },
+                    { header: "Status", key: "status", width: 15 },
+                    { header: "Catatan Approval", key: "catatan", width: 25 },
+                    { header: "Satuan", key: "satuan", width: 15 },
+                    { header: "Kategori", key: "kategori", width: 20 },
+                    { header: "Harga Estimasi", key: "harga_estimasi", width: 20 },
+                ];
 
-            // Format kolom total ke bentuk Rupiah
-            row.getCell("total").numFmt = '"Rp"#,##0';
-        });
+                // Styling Header
+                worksheet.getRow(1).eachCell(cell => {
+                    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+                    cell.fill = {
+                        type: "pattern",
+                        pattern: "solid",
+                        fgColor: { argb: "FF4F46E5" },
+                    };
+                    cell.alignment = { vertical: "middle", horizontal: "center" };
+                    cell.border = {
+                        top: { style: "thin" },
+                        left: { style: "thin" },
+                        bottom: { style: "thin" },
+                        right: { style: "thin" },
+                    };
+                });
 
-        const buffer = await workbook.xlsx.writeBuffer();
-        const filename = `Data-Pengajuan-${new Date().toISOString().slice(0, 10)}.xlsx`;
-        saveAs(new Blob([buffer]), filename);
-    } catch (error) {
-        console.error("Gagal export Excel:", error);
-    }
-},
+                // Data
+                this.filteredPengajuanBaruList.forEach((item, index) => {
+                    const rowData = {
+                        no: index + 1,
+                        nama_barang: item.nama_barang || "-",
+                        tanggal: this.formatTanggal(item.created_at),
+                        status: this.formatStatus(item.status).label,
+                        catatan: item.catatan || "-",
+                        satuan: item.satuan || "-",
+                        kategori: item.kategori?.nama_kategori || "-",
+                        harga_estimasi: item.harga_estimasi || 0,
+                    };
+
+                    const row = worksheet.addRow(rowData);
+
+                    // Warna baris berdasarkan status
+                    let bgColor = "FFFFFFFF";
+                    switch (item.status) {
+                        case "approved":
+                            bgColor = "FFDCFCE7"; // hijau muda
+                            break;
+                        case "rejected":
+                            bgColor = "FFFEE2E2"; // merah muda
+                            break;
+                        case "waiting_approval_1":
+                        case "waiting_approval_2":
+                        case "waiting_approval_3":
+                            bgColor = "FFFEF9C3"; // kuning muda
+                            break;
+                        default:
+                            bgColor = "FFF3F4F6"; // abu muda
+                            break;
+                    }
+
+                    row.eachCell(cell => {
+                        cell.fill = {
+                            type: "pattern",
+                            pattern: "solid",
+                            fgColor: { argb: bgColor },
+                        };
+                        cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+                        cell.border = {
+                            top: { style: "thin" },
+                            left: { style: "thin" },
+                            bottom: { style: "thin" },
+                            right: { style: "thin" },
+                        };
+                    });
+
+                    // Format harga estimasi ke format rupiah
+                    row.getCell("harga_estimasi").numFmt = '"Rp"#,##0';
+                });
+
+                const buffer = await workbook.xlsx.writeBuffer();
+                const filename = `Pengajuan-Baru-${new Date().toISOString().slice(0, 10)}.xlsx`;
+                saveAs(new Blob([buffer]), filename);
+            } catch (error) {
+                console.error("Gagal export Excel pengajuan baru:", error);
+            }
+        },
+        async downloadExcel() {
+            try {
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet("Data Pengajuan");
+
+                // Header Kolom
+                worksheet.columns = [
+                    { header: "No", key: "no", width: 5 },
+                    { header: "ID Request", key: "id_request", width: 15 },
+                    { header: "Nama Barang", key: "nama_barang", width: 25 },
+                    { header: "Pemohon", key: "pemohon", width: 25 },
+                    { header: "Tgl Permintaan", key: "tanggal", width: 15 },
+                    { header: "Status", key: "status", width: 15 },
+                    { header: "Status By", key: "status_by", width: 20 },
+                    { header: "Catatan", key: "catatan", width: 25 },
+                    { header: "Jumlah Order", key: "jumlah", width: 15 },
+                    { header: "Total", key: "total", width: 15 },
+                    { header: "Keterangan", key: "keterangan", width: 25 },
+                ];
+
+                // Header styling
+                worksheet.getRow(1).eachCell(cell => {
+                    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+                    cell.fill = {
+                        type: "pattern",
+                        pattern: "solid",
+                        fgColor: { argb: "FF4F46E5" },
+                    };
+                    cell.alignment = { vertical: "middle", horizontal: "center" };
+                    cell.border = {
+                        top: { style: "thin" },
+                        left: { style: "thin" },
+                        bottom: { style: "thin" },
+                        right: { style: "thin" },
+                    };
+                });
+
+                // Isi Data + Warna berdasarkan status
+                this.filteredRequestList.forEach((item, index) => {
+                    const rowData = {
+                        no: index + 1,
+                        id_request: item.id_request || "-",
+                        nama_barang: item.alat?.nama_barang || "-",
+                        pemohon: item.user?.data_diri?.nama_lengkap || "-",
+                        tanggal: this.formatTanggal(item.tanggal_permintaan),
+                        status: this.formatStatus(item.status).label,
+                        status_by: item.status_by || "-",
+                        catatan: item.approvals[0]?.catatan || "-",
+                        jumlah: item.jumlah,
+                        total: item.total || 0,
+                        keterangan: item.keterangan || "-",
+                    };
+
+                    const row = worksheet.addRow(rowData);
+
+                    // Styling baris berdasarkan status
+                    let bgColor = "FFFFFFFF"; // default putih
+                    switch (item.status) {
+                        case "approved":
+                            bgColor = "FFDCFCE7"; // hijau muda
+                            break;
+                        case "rejected":
+                            bgColor = "FFFEE2E2"; // merah muda
+                            break;
+                        case "waiting_approval_1":
+                        case "waiting_approval_2":
+                        case "waiting_approval_3":
+                            bgColor = "FFFEF9C3"; // kuning muda
+                            break;
+                        default:
+                            bgColor = "FFF3F4F6"; // abu muda
+                            break;
+                    }
+
+                    row.eachCell(cell => {
+                        cell.fill = {
+                            type: "pattern",
+                            pattern: "solid",
+                            fgColor: { argb: bgColor },
+                        };
+                        cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+                        cell.border = {
+                            top: { style: "thin" },
+                            left: { style: "thin" },
+                            bottom: { style: "thin" },
+                            right: { style: "thin" },
+                        };
+                    });
+
+                    // Format kolom total ke bentuk Rupiah
+                    row.getCell("total").numFmt = '"Rp"#,##0';
+                });
+
+                const buffer = await workbook.xlsx.writeBuffer();
+                const filename = `Data-Pengajuan-${new Date().toISOString().slice(0, 10)}.xlsx`;
+                saveAs(new Blob([buffer]), filename);
+            } catch (error) {
+                console.error("Gagal export Excel:", error);
+            }
+        },
+                async fetchPengajuanAdminTable() {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get(
+                    "http://localhost:8000/api/admin",
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                this.dataGroupedByBidang = res.data.data || [];
+            } catch (error) {
+                console.error("Gagal mengambil data rekap admin:", error);
+            }
+        },
         async getUserInfo() {
             try {
                 const token = localStorage.getItem("token");
@@ -384,12 +664,14 @@ async downloadExcel() {
 </script>
 
 <style scoped>
-th, td {
-    padding: 8px 10px;           /* diperkecil */
+th,
+td {
+    padding: 8px 10px;
+    /* diperkecil */
     text-align: center;
-    font-size: 12px;             /* perkecil font */
+    font-size: 12px;
+    /* perkecil font */
     border: 1px solid #ccc;
     word-wrap: break-word;
 }
-
 </style>

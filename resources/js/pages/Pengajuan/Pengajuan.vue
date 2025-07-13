@@ -16,16 +16,93 @@
                     </div>
                 </div>
 
+                <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
+                    <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
+                        <h3 class="text-sm font-semibold text-gray-900">
+                            Data List Pengajuan ATK Baru
+                        </h3>
+                        <router-link to="/pengajuan-atk-add"
+                            class="text-sm font-semibold text-[#074a5d] no-underline hover:text-[#0066cc] hover:no-underline">
+                            Tambah Pengajuan ATK Baru
+                        </router-link>
+                    </div>
+
+                    <table class="w-full table-fixed border-collapse border border-gray-300">
+                        <thead class="bg-gray-100 text-[#7d7f81]">
+                            <tr>
+                                <th class="w-20 p-3 border">Nama Barang</th>
+                                <th class="w-30 p-3 border">
+                                    Tanggal Pengajuan
+                                </th>
+                                <th class="w-25 p-3 border">Status</th>
+                                <th class="w-30 p-3 border">
+                                    Catatan Approval
+                                </th>
+                                <th class="w-20 p-3 border">Satuan</th>
+                                <th class="p-3 border">Kategori</th>
+                                <th class="p-3 border">Harga Estimasi</th>
+                                <!-- <th class="p-3 border">Aksi</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in paginatedPengajuanBaruList" :key="item.id"
+                                class="text-[#333436]">
+                                <td class="p-3">{{ item.nama_barang }}</td>
+                                <td class="p-3">
+                                    {{ formatTanggal(item.created_at) }}
+                                </td>
+                                <td class="p-3">
+                                    <span :class="[
+                                        'px-4 py-1 rounded-full text-xs font-semibold',
+                                        formatStatus(item.status).color,
+                                    ]">
+                                        {{ formatStatus(item.status).label }}
+                                    </span>
+                                </td>
+                                <td class="p-3">{{ item.catatan || "-" }}</td>
+                                <td class="p-3">{{ item.satuan }}</td>
+                                <td class="p-3">
+                                    {{ item.kategori?.nama_kategori || "-" }}
+                                </td>
+                                <td class="p-3">
+                                    {{ formatRupiah(item.harga_estimasi) }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination untuk PengajuanBaru -->
+                    <div
+                        class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
+                        <button @click="prevPagePengajuanBaru" :disabled="currentPagePengajuanBaru === 1"
+                            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+                            Prev
+                        </button>
+                        <span>Halaman {{ currentPagePengajuanBaru }} dari {{ totalPagesPengajuanBaru }}</span>
+                        <button @click="nextPagePengajuanBaru"
+                            :disabled="currentPagePengajuanBaru === totalPagesPengajuanBaru"
+                            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+                            Next
+                        </button>
+                    </div>
+
+                </div>
+
                 <!-- table untuk semua -->
                 <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
                     <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
                         <h3 class="text-sm font-semibold text-gray-900">
                             Data List Pengajuan
                         </h3>
-                        <router-link to="/pengajuan-add"
-                            class="text-sm font-semibold text-[#074a5d] no-underline hover:text-[#0066cc] hover:no-underline">
-                            Tambah Pengajuan
+                        <router-link v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
+                            to="/pengajuan-setting" class="text-sm font-semibold text-purple-700 hover:text-purple-900">
+                            ⚙️ Pengaturan Pengajuan
                         </router-link>
+                        <router-link v-if="showAddButton" to="/pengajuan-add"
+                            class="text-sm font-semibold text-[#074a5d] no-underline hover:text-[#0066cc] hover:no-underline">
+                            Tambah Pengajuan ATK Baru
+                        </router-link>
+
                     </div>
 
                     <table class="w-full table-fixed border-collapse border border-gray-300">
@@ -151,11 +228,13 @@ export default {
             activeMenu: "pengajuan",
             searchQuery: "",
             tingkatanOtoritas: "",
+                showAddButton: false,
             showModal: false,
             showSuccessAlert: false,
             successMessage: "",
             requestToDelete: null,
             requestList: [],
+            PengajuanBaruList: [],
             informasiIcon,
             updateIcon,
             deleteIcon,
@@ -166,6 +245,7 @@ export default {
             currentPagePengajuanBaru: 1,
 
             itemsPerPage: 10,
+            itemsPengajuanBaruPerPage: 5,
         };
     },
 
@@ -196,14 +276,60 @@ export default {
                 this.filteredRequestList.length / this.itemsPerPage
             );
         },
+        filteredPengajuanBaruList() {
+            if (!this.searchQuery) return this.PengajuanBaruList;
+
+            const query = this.searchQuery.toLowerCase();
+
+            return this.PengajuanBaruList.filter(item =>
+                item.nama_barang?.toLowerCase().includes(query) ||
+                item.catatan?.toLowerCase().includes(query) ||
+                item.status?.toLowerCase().includes(query) ||
+                item.kategori?.nama_kategori?.toLowerCase().includes(query)
+            );
+        },
+
+        paginatedPengajuanBaruList() {
+            const start = (this.currentPagePengajuanBaru - 1) * this.itemsPengajuanBaruPerPage;
+            return this.filteredPengajuanBaruList.slice(start, start + this.itemsPengajuanBaruPerPage);
+        },
+
+        totalPagesPengajuanBaru() {
+            return Math.ceil(this.filteredPengajuanBaruList.length / this.itemsPengajuanBaruPerPage);
+        },
     },
 
     async created() {
         await this.getUserInfo();
         this.fetchRequest();
+        this.fetchPengajuanBaru();
+          this.cekStatusPengajuan();
     },
 
     methods: {
+          async cekStatusPengajuan() {
+    try {
+      const res = await axios.get("http://localhost:8000/api/pengaturan-pengajuan");
+      this.showAddButton = res.data.is_open;
+    } catch (err) {
+      console.error("Gagal cek pengaturan pengajuan", err);
+      this.showAddButton = true; // fallback default
+    }
+  },
+        async fetchPengajuanBaru() {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get(
+                    "http://localhost:8000/api/pengajuan-baru",
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                this.PengajuanBaruList = res.data.data || [];
+            } catch (error) {
+                console.error("Gagal mengambil data pengajuan baru:", error);
+            }
+        },
         async getUserInfo() {
             try {
                 const token = localStorage.getItem("token");

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Inventoris;
 
 use App\Http\Controllers\Controller;
+use App\Models\Alat;
 use App\Models\RequestATKBaru;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -65,27 +66,73 @@ class RequestATKBaruController extends Controller
     // ✅ Approve oleh Admin
     public function approve($id)
     {
-        $pengajuan = RequestATKBaru::findOrFail($id);
-        $pengajuan->status = 'approved';
-        $pengajuan->save();
+        try {
+            $user = Auth::user();
+            $namaLengkap = optional($user->dataDiri)->nama_lengkap ?? $user->NID;
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Pengajuan telah disetujui.'
-        ]);
+            $pengajuan = RequestATKBaru::findOrFail($id);
+            $existingAlat = Alat::where('nama_barang', $pengajuan->nama_barang)->first();
+            if (!$existingAlat) {
+                // Buat alat baru jika belum ada
+                Alat::create([
+                    'id_kategori_fk' => $pengajuan->id_kategori_fk,
+                    'nama_barang'    => $pengajuan->nama_barang,
+                    'satuan'         => $pengajuan->satuan,
+                    'harga_estimasi' => $pengajuan->harga_estimasi,
+                    'stock_min'      => 1,
+                    'stock_max'      => 1,
+                    'stock'          => 0,
+                    'order'          => 0,
+                    'keterangan'     => $pengajuan->keterangan,
+                ]);
+            }
+            $pengajuan->update([
+                'status' => 'approved',
+                'status_by' => $namaLengkap
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pengajuan telah disetujui.',
+                'data' => $pengajuan
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal menyetujui pengajuan.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    // ✅ Reject oleh Admin
-    public function reject($id)
-    {
-        $pengajuan = RequestATKBaru::findOrFail($id);
-        $pengajuan->status = 'rejected';
-        $pengajuan->save();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Pengajuan telah ditolak.'
-        ]);
+    // ✅ Reject oleh Admin
+    public function reject(Request $request, $id)
+    {
+        try {
+            $user = Auth::user();
+
+            $pengajuan = RequestATKBaru::findOrFail($id);
+            $pengajuan->status = 'rejected';
+
+            $pengajuan->catatan = $request->keterangan;
+
+            $pengajuan->status_by = optional($user->dataDiri)->nama_lengkap ?? $user->NID;
+
+            $pengajuan->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pengajuan telah ditolak.',
+                'data' => $pengajuan
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal menolak pengajuan.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // ✅ Hapus Pengajuan

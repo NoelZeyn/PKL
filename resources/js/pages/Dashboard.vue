@@ -96,8 +96,8 @@ export default {
     const chartInstance = ref(null);
 
     const quickMenus = [
-      { icon: iconPosyandu, title: "Akun Manage", path: "/manajemen-akun" },
-      { icon: iconStetoskop, title: "Manage Approval", path: "/manajemen-approval-2" },
+      { icon: iconPosyandu, title: "Grafik", path: "/grafik" },
+      { icon: iconStetoskop, title: "Laporan Pengajuan", path: "/laporan-pengajuan" },
       { icon: iconPasien, title: "Manage Alat", path: "/manajemen-alat" },
       { icon: iconLaporan, title: "Pengajuan", path: "/pengajuan" },
     ];

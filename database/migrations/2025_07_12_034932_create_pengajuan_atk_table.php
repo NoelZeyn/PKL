@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('harga_estimasi')->nullable();
             $table->string('keterangan')->nullable();
             $table->string('catatan')->nullable();
+            $table->string('status_by')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamps();
 
