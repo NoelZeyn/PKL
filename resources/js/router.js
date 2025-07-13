@@ -28,6 +28,8 @@ import LaporanApproval from "./pages/user_review/LaporanApproval.vue";
 import LaporanPengajuan from "./pages/user_review/LaporanPengajuan.vue";
 import LaporanHistoryATK from "./pages/user_review/LaporanHistoryATK.vue";
 import PengajuanAtkAdd from "./pages/Pengajuan/Pengajuan-atk-add.vue";
+import PengaturanPengajuan from "./pages/Pengajuan/Pengaturan-pengajuan.vue";
+
 
 // Fungsi validasi token
 const isTokenValid = () => {
@@ -79,6 +81,7 @@ const routes = [
     { path: "/alat-stock", component: AlatStock, meta: { requiresAuth: true, title: "Stock Alat" } },
 
     { path: "/pengajuan", component: Pengajuan, meta: { requiresAuth: true, title: "Pengajuan" } },
+    { path: "/pengajuan-setting", component: PengaturanPengajuan, meta: { requiresAuth: true, allowedRoles: ["admin", "superadmin"], title: "Pengajuan Setting" } },
     { path: "/pengajuan-info/:id", component: PengajuanInfo, meta: { requiresAuth: true, title: "Info Pengajuan" } },
     { path: "/pengajuan-add", component: PengajuanAdd, meta: { requiresAuth: true, title: "Tambah Pengajuan" } },
     { path: "/pengajuan-atk-add", component: PengajuanAtkAdd, meta: { requiresAuth: true, title: "Tambah Pengajuan Jenis ATK" } },

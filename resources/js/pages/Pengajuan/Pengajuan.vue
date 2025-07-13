@@ -100,7 +100,7 @@
                         </router-link>
                         <router-link v-if="showAddButton" to="/pengajuan-add"
                             class="text-sm font-semibold text-[#074a5d] no-underline hover:text-[#0066cc] hover:no-underline">
-                            Tambah Pengajuan ATK Baru
+                            Tambah Pengajuan
                         </router-link>
 
                     </div>

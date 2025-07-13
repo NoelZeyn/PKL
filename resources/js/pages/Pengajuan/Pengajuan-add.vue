@@ -25,7 +25,7 @@
             <div class="flex items-center gap-5 mb-3">
               <label class="min-w-[150px] font-semibold text-sm text-black">NID</label>
               <input type="text" v-model="item.NID" placeholder="Masukkan NID"
-                     class="w-full p-2 border border-gray-300 rounded-lg text-sm" required />
+                     class="w-full p-2 border border-gray-300 rounded-lg text-sm" :disabled="pengajuanDitutup" />
             </div>
 
             <div class="flex items-center gap-5 mb-3">

@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('pengaturan_pengajuan', function (Blueprint $table) {
             $table->id();
-            $table->dateTime('mulai')->nullable();
-            $table->dateTime('berakhir')->nullable();
-            $table->boolean('is_active')->default(true); // bisa aktif/tidak
+            $table->dateTime('tanggal_mulai')->nullable();
+            $table->dateTime('tanggal_selesai')->nullable();
+            $table->boolean('is_open')->default(true); // bisa aktif/tidak
             $table->timestamps();
         });
     }
