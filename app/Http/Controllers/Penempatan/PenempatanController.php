@@ -27,6 +27,24 @@ class PenempatanController extends Controller
         }
     }
 
+    public function getByBidang($id_bidang)
+    {
+        try {
+            $penempatan = Penempatan::where('id_bidang_fk', $id_bidang)->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $penempatan,
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve penempatan by bidang',
+            ], 500);
+        }
+    }
+
+
     /**
      * Store a newly created resource in storage.
      */

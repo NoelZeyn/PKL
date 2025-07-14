@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Inventoris\AlatPenempatanController;
 use App\Http\Controllers\Authentication\AccountController;
 use App\Http\Controllers\Authentication\AdminController;
 use App\Http\Controllers\Authentication\ApprovalController;
@@ -31,9 +32,13 @@ Route::group(['middleware' => 'api'], function ($router) {
     Route::post('me', [AdminController::class, 'me']);
 });
 
+
+
 Route::group(['middleware' => 'api'], function () {
     Route::apiResource('penempatan', PenempatanController::class);
     Route::get('bidang', [BidangController::class, 'index']);
+    Route::get('/penempatan/by-bidang/{id}', [PenempatanController::class, 'getByBidang']);
+
     Route::get('/asman', [PengajuanIntiController::class, 'asman']);
     Route::patch('/asman/approve', [PengajuanIntiController::class, 'approveAsman']);
     Route::patch('/asman/reject', [PengajuanIntiController::class, 'rejectAsman']);
@@ -71,6 +76,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::delete('alat/{id}', [AlatController::class, 'destroy'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
     Route::apiResource('history_pemakaian', HistoryPemakaianController::class);
     Route::post('/history_pemakaian_multi', [HistoryPemakaianController::class, 'storeMultiple']);
+
+    Route::get('/alat-penempatan', [AlatPenempatanController::class, 'index']);
+    Route::get('/alat-penempatan/{id_penempatan}', [AlatPenempatanController::class, 'getAlatByPenempatan']);
+    Route::get('/alat-terdistribusi', [AlatPenempatanController::class, 'getDistribusiAlat']);
+    Route::post('/alat-penempatan', [AlatPenempatanController::class, 'store']);
+    Route::patch('/alat-penempatan/stok', [AlatPenempatanController::class, 'updateStok']);
 });
 
 Route::group(['middleware' => 'auth:api'], function () {

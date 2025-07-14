@@ -34,4 +34,10 @@ class Alat extends Model
     {
         return $this->hasMany(RequestPengadaan::class, 'id_inventoris_fk');
     }
+    public function penempatan()
+    {
+        return $this->belongsToMany(Penempatan::class, 'alat_penempatan', 'id_alat_fk', 'id_penempatan_fk')
+            ->withPivot(['stock', 'stock_min', 'stock_max'])
+            ->withTimestamps();
+    }
 }

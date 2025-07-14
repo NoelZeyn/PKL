@@ -12,16 +12,16 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
-public function run(): void
-{
-    $this->call(BidangSeeder::class);
-    $this->call(PenempatanSeeder::class);
-    $this->call(KategoriSeeder::class);
-    $this->call(AlatSeeder::class);
-    $this->call(AdminSeeder::class);
-    // $this->call(RequestSeeder::class);
-    // $this->call(ApprovalSeeder::class);
-    $this->call(DataDiriSeeder::class);
-}
-
+    public function run(): void
+    {
+        $this->call(BidangSeeder::class);
+        $this->call(PenempatanSeeder::class);
+        $this->call(KategoriSeeder::class);
+        $this->call(AlatSeeder::class);
+        $this->call(AdminSeeder::class);
+        $this->call(RequestSeeder::class);
+        // $this->call(ApprovalSeeder::class);
+        $this->call(DataDiriSeeder::class);
+        $this->call(AlatPenempatanSeeder::class);
+    }
 }

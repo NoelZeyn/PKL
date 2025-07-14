@@ -91,8 +91,7 @@
                     </div>
 
                 </div>
-                <div
-                    class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
+                <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
                     <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
                         <h3 class="text-sm font-semibold text-gray-900">
                             Data Rekapitulasi Pengajuan per Bidang
@@ -198,7 +197,7 @@
                                 <td class="p-3">
                                     {{
                                         request.user?.data_diri?.nama_lengkap ||
-                                        "-"
+                                        request.user?.NID || '-'
                                     }}
                                 </td>
                                 <td class="p-3">
@@ -219,20 +218,20 @@
                                     {{ request.status_by || "-" }}
                                 </td>
                                 <td class="p-3">
-                                    {{ request.approvals[0]?.catatan || '-' }}
+                                    {{ request.keterangan || "-" }}
                                 </td>
 
                                 <td class="p-3">{{ request.jumlah }}</td>
                                 <!-- <td class="p-3">
                                     {{
                                         formatRupiah(request.alat?.harga_satuan)
-                                    }}
+                                        }}
                                 </td> -->
                                 <td class="p-3">
                                     {{ formatRupiah(request.total) }}
                                 </td>
                                 <td class="p-3">
-                                    {{ request.keterangan || "-" }}
+                                    {{ request.alat?.keterangan || '-' }}
                                 </td>
                             </tr>
                         </tbody>
@@ -283,7 +282,7 @@ export default {
             requestToDelete: null,
             requestList: [],
             PengajuanBaruList: [],
-                        dataGroupedByBidang: [],
+            dataGroupedByBidang: [],
             currentPage: 1,
             itemsPerPage: 10,
             currentPagePengajuanBaru: 1,
@@ -469,8 +468,8 @@ export default {
                     { header: "Pemohon", key: "pemohon", width: 25 },
                     { header: "Tgl Permintaan", key: "tanggal", width: 15 },
                     { header: "Status", key: "status", width: 15 },
-                    { header: "Status By", key: "status_by", width: 20 },
                     { header: "Catatan", key: "catatan", width: 25 },
+                    { header: "Status By", key: "status_by", width: 20 },
                     { header: "Jumlah Order", key: "jumlah", width: 15 },
                     { header: "Total", key: "total", width: 15 },
                     { header: "Keterangan", key: "keterangan", width: 25 },
@@ -499,14 +498,14 @@ export default {
                         no: index + 1,
                         id_request: item.id_request || "-",
                         nama_barang: item.alat?.nama_barang || "-",
-                        pemohon: item.user?.data_diri?.nama_lengkap || "-",
+                        pemohon: item.user?.data_diri?.nama_lengkap || item.user?.NID || '-',
                         tanggal: this.formatTanggal(item.tanggal_permintaan),
                         status: this.formatStatus(item.status).label,
                         status_by: item.status_by || "-",
-                        catatan: item.approvals[0]?.catatan || "-",
+                        catatan: item.keterangan || "-",
                         jumlah: item.jumlah,
                         total: item.total || 0,
-                        keterangan: item.keterangan || "-",
+                        keterangan: item.alat?.keterangan || "-",
                     };
 
                     const row = worksheet.addRow(rowData);
@@ -556,7 +555,7 @@ export default {
                 console.error("Gagal export Excel:", error);
             }
         },
-                async fetchPengajuanAdminTable() {
+        async fetchPengajuanAdminTable() {
             try {
                 const token = localStorage.getItem("token");
                 const res = await axios.get(

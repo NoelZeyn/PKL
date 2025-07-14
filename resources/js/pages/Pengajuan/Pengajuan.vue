@@ -130,8 +130,8 @@
                                 </td>
                                 <td class="p-3">
                                     {{
-                                        request.user?.data_diri?.nama_lengkap ||
-                                        "-"
+                                        request.user?.data_diri?.nama_lengkap || 
+                                        request.user?.NID || '-'
                                     }}
                                 </td>
                                 <td class="p-3">
@@ -149,7 +149,10 @@
                                         {{ formatStatus(request.status).label }}
                                     </span>
                                     <br /><br />
-                                    {{ request.status_by || "-" }}
+                                    <div v-if="request.status_by !== null">
+                                        {{ request.status_by || "-" }}
+
+                                    </div>
                                 </td>
                                 <td class="p-3">{{ request.jumlah }}</td>
                                 <td class="p-3">
@@ -165,14 +168,14 @@
                                         <button title="Informasi" @click="navigateTo('info', request)" v-if="
                                             tingkatanOtoritas !==
                                             'user_review'
-                                        " class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
+                                        " class="cursor-pointer hover:opacity-70">
                                             <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
                                         </button>
                                         <button title="Hapus" @click="confirmDelete(request)" v-if="
                                             tingkatanOtoritas === 'admin' ||
                                             tingkatanOtoritas ===
                                             'superadmin'
-                                        ">
+                                        "class="cursor-pointer hover:opacity-70 border-l-1 pl-2">
                                             <img :src="deleteIcon" alt="Delete"
                                                 class="cursor-pointer hover:opacity-70" />
                                         </button>

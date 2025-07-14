@@ -22,4 +22,10 @@ class Penempatan extends Model
     {
         return $this->belongsTo(Bidang::class, 'id_bidang_fk');
     }
+        public function alat()
+    {
+        return $this->belongsToMany(Alat::class, 'alat_penempatan', 'id_penempatan_fk', 'id_alat_fk')
+            ->withPivot(['stock', 'stock_min', 'stock_max'])
+            ->withTimestamps();
+    }
 }

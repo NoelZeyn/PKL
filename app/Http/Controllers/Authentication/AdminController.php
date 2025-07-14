@@ -48,79 +48,63 @@ class AdminController extends Controller
         return $this->respondWithToken($token);
     }
 
-public function register(Request $request): JsonResponse
-{
-    $messages = [
-        'NID.required' => 'NID wajib diisi.',
-        'NID.unique' => 'NID sudah terdaftar.',
-        'NID.size' => 'NID harus terdiri dari 10 karakter.',
-        'password.required' => 'Password wajib diisi.',
-        'password.min' => 'Password minimal 8 karakter.',
-        'tingkatan_otoritas.required' => 'Tingkatan otoritas wajib dipilih.',
-        'tingkatan_otoritas.in' => 'Tingkatan otoritas tidak valid.',
-        'id_penempatan_fk.required_if' => 'Penempatan wajib diisi untuk Asman.',
-        'id_penempatan_fk.exists' => 'Penempatan tidak ditemukan.',
-        'id_bidang_fk.required_if' => 'Bidang wajib diisi untuk Manajer.',
-        'id_bidang_fk.exists' => 'Bidang tidak ditemukan.',
-    ];
+    public function register(Request $request): JsonResponse
+    {
+        $messages = [
+            'NID.required' => 'NID wajib diisi.',
+            'NID.unique' => 'NID sudah terdaftar.',
+            'NID.size' => 'NID harus terdiri dari 10 karakter.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'tingkatan_otoritas.required' => 'Tingkatan otoritas wajib dipilih.',
+            'tingkatan_otoritas.in' => 'Tingkatan otoritas tidak valid.',
+            'id_penempatan_fk.required_if' => 'Penempatan wajib diisi untuk Asman.',
+            'id_penempatan_fk.exists' => 'Penempatan tidak ditemukan.',
+            'id_bidang_fk.required_if' => 'Bidang wajib diisi untuk Manajer.',
+            'id_bidang_fk.exists' => 'Bidang tidak ditemukan.',
+        ];
 
-    $validator = Validator::make($request->all(), [
-        'NID' => 'required|size:10|unique:admin,NID',
-        'password' => 'required|min:8',
-        'tingkatan_otoritas' => 'required|in:superadmin,admin,user,user_review,anggaran,asman,manajer',
-        'id_penempatan_fk' => 'required_if:tingkatan_otoritas,asman|nullable|exists:penempatan,id',
-        'id_bidang_fk' => 'required_if:tingkatan_otoritas,manajer|nullable|exists:bidang,id',
-    ], $messages);
+        $validator = Validator::make($request->all(), [
+            'NID' => 'required|size:10|unique:admin,NID',
+            'password' => 'required|min:8',
+            'tingkatan_otoritas' => 'required|in:superadmin,admin,user,user_review,anggaran,asman,manajer',
+            'id_penempatan_fk' => 'required_if:tingkatan_otoritas,asman|nullable|exists:penempatan,id',
+            'id_bidang_fk' => 'required_if:tingkatan_otoritas,manajer|nullable|exists:bidang,id',
+        ], $messages);
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 422);
-    }
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
-    DB::beginTransaction();
-    try {
-        $id_penempatan_fk = null;
-        $id_bidang_fk = null;
-
-        // Jika Asman
-        if ($request->tingkatan_otoritas === 'asman') {
-            $id_penempatan_fk = $request->id_penempatan_fk;
-
+        DB::beginTransaction();
+        try {
+            $id_penempatan_fk = $request->id_penempatan_fk ?? null;
             $penempatan = Penempatan::find($id_penempatan_fk);
-            if (!$penempatan) {
-                return response()->json(['error' => 'Penempatan tidak ditemukan.'], 404);
-            }
-            $id_bidang_fk = $penempatan->id_bidang_fk; 
+            $id_bidang_fk = $penempatan->id_bidang_fk ?? null;
+
+            $user = Admin::create([
+                'NID' => $request->NID,
+                'password' => Hash::make($request->password),
+                'tingkatan_otoritas' => $request->tingkatan_otoritas,
+                'id_penempatan_fk' => $id_penempatan_fk,
+                'id_bidang_fk' => $id_bidang_fk,
+                'access' => 'pending',
+                'password_changed_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Registrasi berhasil! Silakan tunggu konfirmasi.',
+                'user' => $user
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Registration failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Registration failed: ' . $e->getMessage()], 500);
         }
-
-        // Jika Manajer
-        if ($request->tingkatan_otoritas === 'manajer') {
-            $id_bidang_fk = $request->id_bidang_fk;
-        }
-
-        $user = Admin::create([
-            'NID' => $request->NID,
-            'password' => Hash::make($request->password),
-            'tingkatan_otoritas' => $request->tingkatan_otoritas,
-            'id_penempatan_fk' => $id_penempatan_fk,
-            'id_bidang_fk' => $id_bidang_fk,
-            'access' => 'pending',
-            'password_changed_at' => now(),
-        ]);
-
-        DB::commit();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Registrasi berhasil! Silakan tunggu konfirmasi.',
-            'user' => $user
-        ], 200);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Registration failed: ' . $e->getMessage());
-        return response()->json(['error' => 'Registration failed: ' . $e->getMessage()], 500);
     }
-}
     public function logout()
     {
         Auth::logout();

@@ -6,7 +6,8 @@
       <div class="space-y-2 p-8 bg-black/50 h-full flex flex-col items-center justify-center text-center mb-5 w-[100%]">
         <h2 class="text-3xl font-bold">Selamat Datang</h2>
         <p class="text-base leading-relaxed text-white/90">
-          Sistem ATK PLN adalah platform yang dirancang untuk memudahkan pengelolaan dan pemantauan Manajemen ATK di PT. PLN Nusantara Power UP Gresik.
+          Sistem ATK PLN adalah platform yang dirancang untuk memudahkan pengelolaan dan pemantauan Manajemen ATK di PT.
+          PLN Nusantara Power UP Gresik.
         </p>
       </div>
     </div>
@@ -28,7 +29,8 @@
           <div class="mb-4">
             <label class="block text-left font-semibold mb-1">NID</label>
             <div class="relative">
-              <img src="@/assets/email.svg" class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
+              <img src="@/assets/email.svg"
+                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
               <input type="text" v-model="form.NID" placeholder="Enter your NID" required
                 class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none" />
               <p v-if="errors.NID" class="text-left text-sm text-red-500 mt-1">{{ errors.NID[0] }}</p>
@@ -39,7 +41,8 @@
           <div class="mb-4">
             <label class="block text-left font-semibold mb-1">Password</label>
             <div class="relative">
-              <img src="@/assets/password.svg" class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-60" />
+              <img src="@/assets/password.svg"
+                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-60" />
               <input :type="showPassword ? 'text' : 'password'" v-model="form.password"
                 placeholder="Masukkan password Anda" minlength="8" required
                 class="pl-12 pr-10 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none" />
@@ -55,7 +58,8 @@
           <div class="mb-4">
             <label class="block text-left font-semibold mb-1">Otoritas</label>
             <div class="relative">
-              <img src="@/assets/email.svg" class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
+              <img src="@/assets/email.svg"
+                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
               <select v-model="form.tingkatan_otoritas" @change="handleRoleChange" required
                 class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none">
                 <option disabled value="">-- Pilih Akses --</option>
@@ -67,32 +71,19 @@
                 <option value="asman">Asman</option>
                 <option value="manajer">Manajer</option>
               </select>
-              <p v-if="errors.tingkatan_otoritas" class="text-left text-sm text-red-500 mt-1">{{ errors.tingkatan_otoritas[0] }}</p>
+              <p v-if="errors.tingkatan_otoritas" class="text-left text-sm text-red-500 mt-1">{{
+                errors.tingkatan_otoritas[0] }}</p>
             </div>
           </div>
 
-          <!-- Penempatan untuk Asman -->
-          <div class="mb-4" v-if="isAsman">
-            <label class="block text-left font-semibold mb-1">Penempatan</label>
-            <div class="relative">
-              <img src="@/assets/email.svg" class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
-              <select v-model="form.id_penempatan_fk" required
-                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none">
-                <option disabled value="">Pilih Penempatan</option>
-                <option v-for="item in penempatanList" :key="item.id" :value="item.id">
-                  {{ item.nama_penempatan }}
-                </option>
-              </select>
-              <p v-if="errors.id_penempatan_fk" class="text-left text-sm text-red-500 mt-1">{{ errors.id_penempatan_fk[0] }}</p>
-            </div>
-          </div>
 
-          <!-- Bidang untuk Manajer -->
-          <div class="mb-4" v-if="isManajer">
+          <!-- Bidang -->
+          <div class="mb-4">
             <label class="block text-left font-semibold mb-1">Bidang</label>
             <div class="relative">
-              <img src="@/assets/email.svg" class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
-              <select v-model="form.id_bidang_fk" required
+              <img src="@/assets/email.svg"
+                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
+              <select v-model="form.id_bidang_fk" @change="handleBidangChange"
                 class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none">
                 <option disabled value="">Pilih Bidang</option>
                 <option v-for="item in bidangList" :key="item.id" :value="item.id">
@@ -102,6 +93,25 @@
               <p v-if="errors.id_bidang_fk" class="text-left text-sm text-red-500 mt-1">{{ errors.id_bidang_fk[0] }}</p>
             </div>
           </div>
+
+          <!-- Penempatan (muncul setelah bidang dipilih) -->
+          <div v-if="form.id_bidang_fk" class="mb-4">
+            <label class="block text-left font-semibold mb-1">Penempatan</label>
+            <div class="relative">
+              <img src="@/assets/email.svg"
+                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
+              <select v-model="form.id_penempatan_fk" required
+                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none">
+                <option disabled value="">Pilih Penempatan</option>
+                <option v-for="item in penempatanList" :key="item.id" :value="item.id">
+                  {{ item.nama_penempatan }}
+                </option>
+              </select>
+              <p v-if="errors.id_penempatan_fk" class="text-left text-sm text-red-500 mt-1">{{
+                errors.id_penempatan_fk[0] }}</p>
+            </div>
+          </div>
+
 
           <button type="submit"
             class="cursor-pointer w-full mt-2 py-3 bg-[#4f93af] text-white font-semibold rounded-3xl hover:bg-[#166357]">
@@ -154,52 +164,54 @@ export default {
       successMessage: "",
     };
   },
-  computed: {
-    isAsman() {
-      return this.form.tingkatan_otoritas === 'asman';
-    },
-    isManajer() {
-      return this.form.tingkatan_otoritas === 'manajer';
-    },
-  },
   mounted() {
-    this.fetchPenempatanList();
     this.fetchBidangList();
   },
   methods: {
-    fetchPenempatanList() {
-      const apiUrl = import.meta.env.VITE_APP_URL || "http://localhost:8000/api";
-      axios.get(`${apiUrl}/penempatan`)
-        .then(response => {
-          this.penempatanList = response.data.data;
-        }).catch(console.error);
-    },
     fetchBidangList() {
-      axios.get(`http://localhost:8000/api/bidang`)
-        .then(response => {
+      axios
+        .get("http://localhost:8000/api/bidang")
+        .then((response) => {
           this.bidangList = response.data.data;
-        }).catch(console.error);
+        })
+        .catch(console.error);
     },
-    handleRoleChange() {
-      if (!this.isAsman) this.form.id_penempatan_fk = "";
-      if (!this.isManajer) this.form.id_bidang_fk = "";
+
+    handleBidangChange() {
+      this.form.id_penempatan_fk = ""; // Reset penempatan
+      if (!this.form.id_bidang_fk) return;
+
+      const apiUrl = import.meta.env.VITE_APP_URL || "http://localhost:8000/api";
+      axios
+        .get(`${apiUrl}/penempatan/by-bidang/${this.form.id_bidang_fk}`)
+        .then((response) => {
+          this.penempatanList = response.data.data;
+        })
+        .catch(() => {
+          this.penempatanList = [];
+          this.message = "Gagal memuat data penempatan.";
+          this.messageClass = "text-red-500";
+        });
     },
+
     async register() {
       this.errors = {};
       this.message = "";
+
       try {
         const apiUrl = import.meta.env.VITE_APP_URL || "http://localhost:8000/api";
         const payload = {
           NID: this.form.NID,
           password: this.form.password,
           tingkatan_otoritas: this.form.tingkatan_otoritas,
+          id_bidang_fk: this.form.id_bidang_fk,
+          id_penempatan_fk: this.form.id_penempatan_fk,
         };
-        if (this.isAsman) payload.id_penempatan_fk = this.form.id_penempatan_fk;
-        if (this.isManajer) payload.id_bidang_fk = this.form.id_bidang_fk;
 
         const response = await axios.post(`${apiUrl}/register`, payload);
+
         if (response.status === 200) {
-          this.successMessage = "Registrasi berhasil! Silakan tunggu konfirmasi dari admin";
+          this.successMessage = "Registrasi berhasil! Silakan tunggu konfirmasi dari admin.";
           this.showSuccessAlert = true;
           setTimeout(() => {
             this.showSuccessAlert = false;
@@ -217,9 +229,11 @@ export default {
         this.messageClass = "text-red-500";
       }
     },
+
     togglePassword() {
       this.showPassword = !this.showPassword;
     },
   },
 };
 </script>
+

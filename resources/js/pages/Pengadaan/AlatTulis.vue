@@ -80,16 +80,16 @@
                 <td class="p-3">
                   <div class="flex items-center space-x-2 justify-center">
                     <button title="Informasi" @click="navigateTo('info', alat)"
-                      class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
+                      class="cursor-pointer hover:opacity-70">
                       <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
                     </button>
                     <button title="Edit" @click="navigateTo('edit', alat)"
-                      class="cursor-pointer hover:opacity-70 border-r-1 pr-2">
+                      class="cursor-pointer hover:opacity-70 border-l-1 pl-2">
                       <img :src="updateIcon" alt="Update" class="w-5 h-5 object-contain" />
                     </button>
                     <button title="Hapus" @click="confirmDelete(alat)"
                       v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
-                      class="cursor-pointer hover:opacity-70">
+                      class="cursor-pointer hover:opacity-70 border-l-1 pl-2">
                       <img :src="deleteIcon" alt="Delete" class="w-5 h-5 object-contain" />
                     </button>
                   </div>
