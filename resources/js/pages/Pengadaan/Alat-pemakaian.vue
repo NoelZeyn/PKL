@@ -51,7 +51,8 @@
             </div>
           </div>
 
-          <button @click="addForm" class="mt-4 w-fit bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer">
+          <button @click="addForm"
+            class="mt-4 w-fit bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer">
             + Tambah Pemakaian Alat
           </button>
 
@@ -93,13 +94,35 @@ export default {
       ],
       showSuccessAlert: false,
       successMessage: "",
+      tingkatanOtoritas: "",
+      userPenempatanId: ""
     };
   },
   mounted() {
-    this.fetchAlat();
+    this.getUserInfo();
   },
   methods: {
-    fetchAlat() {
+    async getUserInfo() {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.post("http://localhost:8000/api/me", {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        this.tingkatanOtoritas = res.data.tingkatan_otoritas;
+        this.userPenempatanId = res.data.id_penempatan_fk;
+
+        if (this.tingkatanOtoritas === 'admin' || this.tingkatanOtoritas === 'superadmin') {
+          this.fetchAlatAll();
+        } else {
+          this.fetchAlatByPenempatan(this.userPenempatanId);
+        }
+      } catch (err) {
+        console.error("Gagal mendapatkan info user:", err);
+      }
+    },
+
+    fetchAlatAll() {
       const token = localStorage.getItem("token");
       axios.get("http://localhost:8000/api/alat", {
         headers: { Authorization: `Bearer ${token}` },
@@ -107,28 +130,58 @@ export default {
         this.alatList = res.data.data;
       });
     },
+
+    fetchAlatByPenempatan(penempatanId) {
+      const token = localStorage.getItem("token");
+      axios.get(`http://localhost:8000/api/alat-penempatan/${penempatanId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(res => {
+        // Ambil array barang dari response
+        this.alatList = res.data.data[0]?.barang || [];
+      });
+    },
+
     addForm() {
       this.formData.push({ NID: "", id_alat: "", jumlah: "", keterangan: "", stock: "" });
     },
+
     removeForm(index) {
       this.formData.splice(index, 1);
     },
+
     updateStock(index) {
       const selectedAlatId = this.formData[index].id_alat;
       const selectedAlat = this.alatList.find(alat => alat.id_alat === selectedAlatId);
-      this.formData[index].stock = selectedAlat ? selectedAlat.stock : "";
+
+      if (!selectedAlat) {
+        this.formData[index].stock = "";
+        return;
+      }
+
+      if (this.tingkatanOtoritas === 'admin' || this.tingkatanOtoritas === 'superadmin') {
+        this.formData[index].stock = selectedAlat.stock ?? "";
+      } else {
+        const detailPenempatan = selectedAlat.terbagi_ke?.find(p => p.id_penempatan === this.userPenempatanId);
+        this.formData[index].stock = detailPenempatan?.stock ?? "";
+      }
     },
+
     async submitForm() {
       const token = localStorage.getItem("token");
 
       try {
-        await axios.post("http://localhost:8000/api/history_pemakaian_multi", 
-          { pemakaian: this.formData }, 
+        await axios.post("http://localhost:8000/api/history_pemakaian_multi",
+          {
+            pemakaian: this.formData,
+            tingkatan_otoritas: this.tingkatanOtoritas,
+            id_penempatan_fk: this.userPenempatanId
+          },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
         this.successMessage = "Semua pemakaian berhasil dicatat!";
         this.showSuccessAlert = true;
+
         setTimeout(() => {
           this.showSuccessAlert = false;
           this.$router.push("/manajemen-alat");

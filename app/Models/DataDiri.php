@@ -17,7 +17,9 @@ class DataDiri extends Model
         'id_admin_user_fk',
         'nama_lengkap',
         'jabatan',
-        'bpjs'
+        'bpjs',
+        'kontak',
+        'foto_profil',
     ];
 
     public function admin()

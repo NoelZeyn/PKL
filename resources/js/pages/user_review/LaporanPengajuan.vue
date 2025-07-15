@@ -96,6 +96,15 @@
                         <h3 class="text-sm font-semibold text-gray-900">
                             Data Rekapitulasi Pengajuan per Bidang
                         </h3>
+                        <button @click="downloadRekapBidangExcel"
+                            class="flex items-center gap-2 px-4 cursor-pointer py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                            </svg>
+                            Download Excel
+                        </button>
                     </div>
 
                     <table class="w-full table-auto border-collapse border border-gray-300">
@@ -251,6 +260,13 @@
                         </button>
                     </div>
                 </div>
+                <!-- Chart Section -->
+                <div class="mt-8 bg-white rounded-lg shadow border border-gray-300 p-5">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4">
+                        Grafik Pengajuan Berdasarkan Status
+                    </h3>
+                    <canvas id="chartPengajuan"></canvas>
+                </div>
             </div>
         </div>
 
@@ -267,6 +283,7 @@ import HeaderBar from "@/components/HeaderBar.vue";
 import ModalConfirm from "@/components/ModalConfirm.vue";
 import SuccessAlert from "@/components/SuccessAlert.vue";
 import ExcelJS from "exceljs";
+import Chart from "chart.js/auto";
 import { saveAs } from "file-saver";
 import axios from "axios";
 
@@ -315,7 +332,120 @@ export default {
                 this.filteredRequestList.length / this.itemsPerPage
             );
         },
+        async downloadRekapBidangExcel() {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get("http://localhost:8000/api/admin", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
 
+                const data = res.data.data || [];
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet("Rekap per Bidang");
+
+                worksheet.columns = [
+                    { header: "Bidang", key: "bidang", width: 15 },
+                    { header: "Nama Barang", key: "nama_barang", width: 30 },
+                    { header: "Jumlah", key: "jumlah", width: 10 },
+                    { header: "Harga Satuan", key: "harga_satuan", width: 18 },
+                    { header: "Total Harga", key: "total_harga", width: 18 },
+                    { header: "Keterangan", key: "keterangan", width: 40 },
+                    { header: "Status", key: "status", width: 15 },
+                ];
+
+                // Styling header
+                worksheet.getRow(1).eachCell(cell => {
+                    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+                    cell.fill = {
+                        type: "pattern",
+                        pattern: "solid",
+                        fgColor: { argb: "FF4F46E5" },
+                    };
+                    cell.alignment = { vertical: "middle", horizontal: "center" };
+                    cell.border = {
+                        top: { style: "thin" },
+                        left: { style: "thin" },
+                        bottom: { style: "thin" },
+                        right: { style: "thin" },
+                    };
+                });
+
+                let rowIndex = 2;
+                const formatIDR = (value) =>
+                    new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                        minimumFractionDigits: 0,
+                    }).format(value);
+
+                for (const group of data) {
+                    const bidang = group.nama_bidang || "-";
+                    const barangList = group.barang || [];
+                    let subtotal = 0;
+                    let subtotalJumlah = 0;
+
+                    // Merge cell judul bidang
+                    worksheet.mergeCells(`A${rowIndex}:G${rowIndex}`);
+                    const cell = worksheet.getCell(`A${rowIndex}`);
+                    cell.value = `Bidang: ${bidang}`;
+                    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+                    cell.fill = {
+                        type: "pattern",
+                        pattern: "solid",
+                        fgColor: { argb: "FF10B981" },
+                    };
+                    cell.alignment = { vertical: "middle", horizontal: "left" };
+                    rowIndex++;
+
+                    for (const item of barangList) {
+                        worksheet.addRow({
+                            bidang,
+                            nama_barang: item.nama_barang || "-",
+                            jumlah: item.jumlah || 0,
+                            harga_satuan: formatIDR(item.harga_satuan || 0),
+                            total_harga: formatIDR(item.total_harga || 0),
+                            keterangan: item.keterangan || "-",
+                            status: item.status || "-",
+                        });
+
+
+                        subtotal += item.total_harga || 0;
+                        subtotalJumlah += item.jumlah || 0;
+                        rowIndex++;
+                    }
+
+                    // Tambahkan baris subtotal
+                    const subtotalRow = worksheet.addRow({
+                        nama_barang: "Subtotal",
+                        jumlah: subtotalJumlah,
+                        total_harga: formatIDR(subtotal),
+                    });
+
+                    subtotalRow.eachCell(cell => {
+                        cell.font = { bold: true };
+                        cell.fill = {
+                            type: "pattern",
+                            pattern: "solid",
+                            fgColor: { argb: "FFE5E7EB" },
+                        };
+                        cell.alignment = { vertical: "middle", horizontal: "center" };
+                        cell.border = {
+                            top: { style: "thin" },
+                            left: { style: "thin" },
+                            bottom: { style: "thin" },
+                            right: { style: "thin" },
+                        };
+                    });
+                    rowIndex++;
+                }
+
+                const buffer = await workbook.xlsx.writeBuffer();
+                const filename = `Rekap-Pengajuan-PerBidang-${new Date().toISOString().slice(0, 10)}.xlsx`;
+                saveAs(new Blob([buffer]), filename);
+            } catch (error) {
+                console.error("Gagal export Excel rekap bidang:", error);
+            }
+        },
         filteredPengajuanBaruList() {
             if (!this.searchQuery) return this.PengajuanBaruList;
 
@@ -597,6 +727,118 @@ export default {
                 year: "numeric",
             });
         },
+        renderChartPerSemester() {
+            const semesterStatusData = {
+                "Semester 1": {
+                    approved: 0, rejected: 0, purchasing: 0, on_the_way: 0, done: 0,
+                    waiting_approval_1: 0, waiting_approval_2: 0, waiting_approval_3: 0
+                },
+                "Semester 2": {
+                    approved: 0, rejected: 0, purchasing: 0, on_the_way: 0, done: 0,
+                    waiting_approval_1: 0, waiting_approval_2: 0, waiting_approval_3: 0
+                },
+            };
+
+            this.requestList.forEach(req => {
+                const status = req.status;
+                const date = new Date(req.tanggal_permintaan);
+                const month = date.getMonth() + 1;
+                const semester = month <= 6 ? "Semester 1" : "Semester 2";
+
+                if (semesterStatusData[semester][status] !== undefined) {
+                    semesterStatusData[semester][status]++;
+                }
+            });
+
+            const labels = Object.keys(semesterStatusData);
+
+            const datasets = [
+                {
+                    label: "Approval 1",
+                    data: labels.map(label => semesterStatusData[label].waiting_approval_1),
+                    backgroundColor: "#c084fc",
+                },
+                {
+                    label: "Approval 2",
+                    data: labels.map(label => semesterStatusData[label].waiting_approval_2),
+                    backgroundColor: "#f472b6",
+                },
+                {
+                    label: "Approval 3",
+                    data: labels.map(label => semesterStatusData[label].waiting_approval_3),
+                    backgroundColor: "#fb923c",
+                },
+                {
+                    label: "Approved",
+                    data: labels.map(label => semesterStatusData[label].approved),
+                    backgroundColor: "#34d399",
+                },
+                {
+                    label: "Rejected",
+                    data: labels.map(label => semesterStatusData[label].rejected),
+                    backgroundColor: "#f87171",
+                },
+                {
+                    label: "Purchasing",
+                    data: labels.map(label => semesterStatusData[label].purchasing),
+                    backgroundColor: "#facc15",
+                },
+                {
+                    label: "On The Way",
+                    data: labels.map(label => semesterStatusData[label].on_the_way),
+                    backgroundColor: "#60a5fa",
+                },
+                {
+                    label: "Done",
+                    data: labels.map(label => semesterStatusData[label].done),
+                    backgroundColor: "#a3a3a3",
+                },
+            ];
+
+            const ctx = document.getElementById("chartPengajuan").getContext("2d");
+
+            if (this.chartInstance) {
+                this.chartInstance.destroy();
+            }
+
+            this.chartInstance = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets,
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: "bottom",
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `${ctx.dataset.label}: ${ctx.raw} pengajuan`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            stepSize: 1,
+                            title: {
+                                display: true,
+                                text: 'Jumlah Pengajuan'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Semester'
+                            }
+                        }
+                    },
+                },
+            });
+        },
+
         async fetchRequest() {
             try {
                 const token = localStorage.getItem("token");
@@ -607,10 +849,13 @@ export default {
                     }
                 );
                 this.requestList = res.data.data;
+                this.renderChartPerSemester();
+
             } catch (err) {
                 console.error("Gagal mengambil data request:", err);
             }
         },
+
         updateActiveMenu(menu) {
             this.activeMenu = menu;
         },
@@ -648,6 +893,18 @@ export default {
                 rejected: {
                     label: "Ditolak",
                     color: "bg-red-200 text-red-800",
+                },
+                purchasing: {
+                    label: "Progress",
+                    color: "bg-blue-200 text-blue-800",
+                },
+                on_the_way: {
+                    label: "Progress",
+                    color: "bg-blue-200 text-blue-800",
+                },
+                done: {
+                    label: "Selesai",
+                    color: "bg-gray-300 text-gray-900",
                 },
             };
 

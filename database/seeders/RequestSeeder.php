@@ -35,7 +35,7 @@ class RequestSeeder extends Seeder
             'Permintaan alat tulis untuk keperluan pelatihan.'
         ];
 
-        $statuses = ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'approved', 'rejected'];
+        $statuses = ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'approved', 'rejected', 'purchasing', 'on_the_way', 'done'];
 
         for ($i = 0; $i < 100; $i++) {
             $alat = $alatList->random();
@@ -46,7 +46,7 @@ class RequestSeeder extends Seeder
             DB::table('request')->insert([
                 'id_inventoris_fk'   => $alat->id_alat,
                 'id_users_fk'        => $faker->randomElement($adminList),
-                'tanggal_permintaan' => $faker->date(),
+                'tanggal_permintaan' => $faker->dateTimeBetween('-12 months', 'now')->format('Y-m-d'),
                 'status'             => $faker->randomElement($statuses),
                 'jumlah'             => $jumlah,
                 'total'              => $total,

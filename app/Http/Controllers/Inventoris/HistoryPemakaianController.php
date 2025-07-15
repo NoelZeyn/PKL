@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Inventoris;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Alat;
+use App\Models\AlatPenempatan;
 use App\Models\HistoryPemakaian;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +43,7 @@ class HistoryPemakaianController extends Controller
             'pemakaian.*.keterangan' => 'nullable|string',
         ]);
 
+        $user = Auth::user();
         $results = [];
 
         foreach ($request->pemakaian as $data) {
@@ -63,22 +65,49 @@ class HistoryPemakaianController extends Controller
                 continue;
             }
 
-            if ($alat->stock < $data['jumlah']) {
-                $results[] = [
-                    'status' => 'error',
-                    'message' => "Stok alat {$alat->nama_barang} tidak cukup."
-                ];
-                continue;
-            }
+            $jumlah = $data['jumlah'];
 
-            // Kurangi stok
-            $alat->stock -= $data['jumlah'];
-            $alat->save();
+            if (in_array($user->tingkatan_otoritas, ['admin', 'superadmin'])) {
+                if ($alat->stock < $jumlah) {
+                    $results[] = [
+                        'status' => 'error',
+                        'message' => "Stok alat {$alat->nama_barang} tidak cukup."
+                    ];
+                    continue;
+                }
+
+                $alat->stock -= $jumlah;
+                $alat->save();
+            } else {
+                $penempatanId = $user->id_penempatan_fk;
+                $alatPenempatan = AlatPenempatan::where('id_alat_fk', $alat->id_alat)
+                    ->where('id_penempatan_fk', $penempatanId)
+                    ->first();
+
+                if (!$alatPenempatan) {
+                    $results[] = [
+                        'status' => 'error',
+                        'message' => "Stok alat {$alat->nama_barang} untuk penempatan tidak ditemukan."
+                    ];
+                    continue;
+                }
+
+                if ($alatPenempatan->stock < $jumlah) {
+                    $results[] = [
+                        'status' => 'error',
+                        'message' => "Stok alat {$alat->nama_barang} di penempatan tidak cukup."
+                    ];
+                    continue;
+                }
+
+                $alatPenempatan->stock -= $jumlah;
+                $alatPenempatan->save();
+            }
 
             $history = HistoryPemakaian::create([
                 'id_alat' => $alat->id_alat,
                 'id_user' => $admin->id,
-                'jumlah' => $data['jumlah'],
+                'jumlah' => $jumlah,
                 'keterangan' => $data['keterangan'] ?? null,
             ]);
 
@@ -94,6 +123,7 @@ class HistoryPemakaianController extends Controller
             'results' => $results
         ]);
     }
+
 
     /**
      * Display the specified resource.

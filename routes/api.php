@@ -79,6 +79,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/alat-penempatan', [AlatPenempatanController::class, 'index']);
     Route::get('/alat-penempatan/{id_penempatan}', [AlatPenempatanController::class, 'getAlatByPenempatan']);
+    Route::put('/alat-penempatan/{id_alat}/{id_penempatan}', [AlatPenempatanController::class, 'updateAlatPenempatan']);
     Route::get('/alat-terdistribusi', [AlatPenempatanController::class, 'getDistribusiAlat']);
     Route::post('/alat-penempatan', [AlatPenempatanController::class, 'store']);
     Route::patch('/alat-penempatan/stok', [AlatPenempatanController::class, 'updateStok']);

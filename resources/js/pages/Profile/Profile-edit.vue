@@ -1,9 +1,6 @@
 <template>
     <div class="flex min-h-[50vh] bg-gray-100">
-        <Sidebar
-            :activeMenu="activeMenu"
-            @update:activeMenu="updateActiveMenu"
-        />
+        <Sidebar :activeMenu="activeMenu" @update:activeMenu="updateActiveMenu" />
         <div class="flex-1 p-8 pt-4 bg-white">
             <HeaderBar title="Edit Profile" class="mt-3" />
             <div class="my-4 border-b border-gray-300"></div>
@@ -14,92 +11,44 @@
                         Edit Profil Pengguna
                     </h3>
 
-                    <form
-                        @submit.prevent="submitProfile"
-                        class="mt-4 space-y-4"
-                    >
-                        <div
-                            class="flex flex-col sm:flex-row items-center gap-4"
-                        >
-                            <label
-                                class="w-full sm:w-40 text-sm font-semibold text-gray-700"
-                                >Nama Lengkap</label
-                            >
-                            <input
-                                v-model="form.nama_lengkap"
-                                type="text"
-                                required
-                                class="flex-1 p-2 border border-gray-300 rounded-md bg-gray-50"
-                            />
+                    <form @submit.prevent="submitProfile" class="mt-4 space-y-4">
+                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                            <label class="w-full sm:w-40 text-sm font-semibold text-gray-700">Nama Lengkap</label>
+                            <input v-model="form.nama_lengkap" type="text" required
+                                class="flex-1 p-2 border border-gray-300 rounded-md bg-gray-50" />
                         </div>
 
-                        <div
-                            class="flex flex-col sm:flex-row items-center gap-4"
-                        >
-                            <label
-                                class="w-full sm:w-40 text-sm font-semibold text-gray-700"
-                                >Email</label
-                            >
-                            <input
-                                v-model="form.email"
-                                type="email"
-                                disabled
-                                readonly
-                                class="flex-1 p-2 text-gray-500 border border-gray-300 rounded-md bg-gray-50"
-                            />
+                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                            <label class="w-full sm:w-40 text-sm font-semibold text-gray-700">Jabatan</label>
+                            <input v-model="form.jabatan" type="text" disabled readonly
+                                class="flex-1 p-2 text-gray-500 border border-gray-300 rounded-md bg-gray-50" />
                         </div>
 
-                        <div
-                            class="flex flex-col sm:flex-row items-center gap-4"
-                        >
-                            <label
-                                class="w-full sm:w-40 text-sm font-semibold text-gray-700"
-                                >Kontak</label
-                            >
-                            <input
-                                v-model="form.kontak"
-                                type="text"
-                                class="flex-1 p-2 border border-gray-300 rounded-md bg-gray-50"
-                            />
+                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                            <label class="w-full sm:w-40 text-sm font-semibold text-gray-700">Kontak</label>
+                            <input v-model="form.kontak" type="text"
+                                class="flex-1 p-2 border border-gray-300 rounded-md bg-gray-50" />
                         </div>
 
-                        <div
-                            class="flex flex-col sm:flex-row items-center gap-4"
-                        >
-                            <label
-                                class="w-full sm:w-40 text-sm font-semibold text-gray-700"
-                                >Foto Profil</label
-                            >
-                            <input
-                                type="file"
-                                @change="handleFileChange"
-                                accept="image/*"
-                                class="flex-1 p-2 flex-1 p-2 border border-gray-300 rounded-md bg-gray-50"
-                            />
+                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                            <label class="w-full sm:w-40 text-sm font-semibold text-gray-700">Foto Profil</label>
+                            <input type="file" @change="handleFileChange" accept="image/*"
+                                class="flex-1 p-2 flex-1 p-2 border border-gray-300 rounded-md bg-gray-50" />
                         </div>
 
-                        <div
-                            class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6"
-                        >
-                            <button
-                                type="submit"
-                                class="cursor-pointer px-8 py-2 text-white bg-[#074a5d] border border-[#074a5d] rounded-full font-medium hover:bg-gray-100 hover:text-black focus:outline-none focus:ring-2 focus:ring-[#074a5d]"
-                            >
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+                            <button type="submit"
+                                class="cursor-pointer px-8 py-2 text-white bg-[#074a5d] border border-[#074a5d] rounded-full font-medium hover:bg-gray-100 hover:text-black focus:outline-none focus:ring-2 focus:ring-[#074a5d]">
                                 Simpan Perubahan
                             </button>
-                            <router-link
-                                to="/profile"
-                                class="cursor-pointer px-8 py-2 text-white bg-[#074a5d] border border-[#074a5d] rounded-full font-medium hover:bg-gray-100 hover:text-black focus:outline-none focus:ring-2 focus:ring-[#074a5d]"
-                            >
+                            <router-link to="/profile"
+                                class="cursor-pointer px-8 py-2 text-white bg-[#074a5d] border border-[#074a5d] rounded-full font-medium hover:bg-gray-100 hover:text-black focus:outline-none focus:ring-2 focus:ring-[#074a5d]">
                                 Batal
                             </router-link>
                         </div>
                     </form>
 
-                    <SuccessAlert
-                        :visible="showSuccessAlert"
-                        :message="successMessage"
-                    />
+                    <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
 
                     <div class="my-4 border-t border-gray-300"></div>
                     <div v-if="message" class="text-green-600">
@@ -126,7 +75,7 @@ export default {
             activeMenu: "profile",
             form: {
                 nama_lengkap: "",
-                email: "",
+                jabatan: "",
                 posisi: "",
                 kontak: "",
             },
@@ -161,7 +110,7 @@ export default {
                     const user = res.data.data;
                     this.form = {
                         nama_lengkap: user.nama_lengkap,
-                        email: user.email,
+                        jabatan: user.jabatan,
                         posisi: user.posisi || "",
                         kontak: user.kontak || "",
                     };
@@ -177,7 +126,7 @@ export default {
                 const formData = new FormData();
                 formData.append("_method", "PUT");
                 formData.append("nama_lengkap", this.form.nama_lengkap);
-                formData.append("email", this.form.email);
+                formData.append("jabatan", this.form.jabatan);
                 formData.append("posisi", this.form.posisi);
                 formData.append("kontak", this.form.kontak);
                 if (this.file) {

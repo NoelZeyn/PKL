@@ -1,27 +1,41 @@
 <template>
     <div class="flex min-h-screen flex-col md:flex-row">
         <!-- Left Side (Hidden on Mobile) -->
-        <div class="hidden md:flex w-full md:w-2/5 text-white rounded-r-lg overflow-hidden bg-cover bg-center opacity-80"
-            :style="{ backgroundImage: `url(${mosqueBackground})` }">
+        <div
+            class="hidden md:flex w-full md:w-2/5 text-white rounded-r-lg overflow-hidden bg-cover bg-center opacity-80"
+            :style="{ backgroundImage: `url(${mosqueBackground})` }"
+        >
             <div
-                class="space-y-2 p-8 bg-black/50 h-full flex flex-col items-center justify-center text-center mb-5 w-[100%]">
+                class="space-y-2 p-8 bg-black/50 h-full flex flex-col items-center justify-center text-center mb-5 w-[100%]"
+            >
                 <h2 class="text-3xl font-bold">Selamat Datang</h2>
                 <p class="text-base leading-relaxed text-white/90">
-                    Sistem ATK PLN adalah platform yang dirancang untuk memudahkan pengelolaan dan pemantauan
-                    Manajemen ATK di PT. PLN Nusantara Power UP Gresik.
+                    Sistem ATK PLN adalah platform yang dirancang untuk
+                    memudahkan pengelolaan dan pemantauan Manajemen ATK di PT.
+                    PLN Nusantara Power UP Gresik.
                 </p>
             </div>
         </div>
 
         <!-- Right Side -->
-        <div class="w-full md:w-3/5 flex flex-col items-center pt-5 overflow-hidden">
+        <div
+            class="w-full md:w-3/5 flex flex-col items-center pt-5 overflow-hidden"
+        >
             <div class="flex items-center gap-3 self-start ml-12 mb-10">
-                <img :src="logoImage" alt="Logo Image" class="w-[75px] rounded-t-lg object-cover" />
-                <span class="logo-text text-[20px] font-bold text-[#08607a] font-['Protest_Strike']">System ATK
-                    PLN</span>
+                <img
+                    :src="logoImage"
+                    alt="Logo Image"
+                    class="w-[75px] rounded-t-lg object-cover"
+                />
+                <span
+                    class="logo-text text-[20px] font-bold text-[#08607a] font-['Protest_Strike']"
+                    >System ATK PLN</span
+                >
             </div>
 
-            <div class="flex flex-col items-center text-center mb-5 w-full max-w-md">
+            <div
+                class="flex flex-col items-center text-center mb-5 w-full max-w-md"
+            >
                 <h2 class="text-3xl font-semibold mb-2 w-full">
                     Masuk Akun System ATK PLN
                 </h2>
@@ -31,42 +45,71 @@
 
                 <form @submit.prevent="login" class="w-full">
                     <div class="mb-4">
-                        <label class="block text-left font-semibold mb-1">NID</label>
+                        <label class="block text-left font-semibold mb-1"
+                            >NID</label
+                        >
                         <div class="relative">
-                            <img src="@/assets/email.svg"
-                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
-                            <input type="text" v-model="form.NID" placeholder="Enter your NID" required
-                                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none" />
+                            <img
+                                src="@/assets/email.svg"
+                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50"
+                            />
+                            <input
+                                type="text"
+                                v-model="form.NID"
+                                placeholder="Enter your NID"
+                                required
+                                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none"
+                            />
                         </div>
                     </div>
 
                     <!-- Password Input -->
                     <div class="mb-2">
-                        <label class="block text-left font-semibold mb-1">Password</label>
+                        <label class="block text-left font-semibold mb-1"
+                            >Password</label
+                        >
                         <div class="relative">
-                            <img src="@/assets/password.svg"
-                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-60" />
-                            <input :type="showPassword ? 'text' : 'password'" v-model="form.password"
-                                placeholder="Masukkan password Anda" minlength="8" required
-                                class="pl-12 pr-10 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none" />
-                            <button type="button" @click="togglePassword"
-                                class="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer">
-                                <img :src="showPassword ? eyeOffIcon : eyeIcon" alt="Toggle Password" class="w-5 h-5" />
+                            <img
+                                src="@/assets/password.svg"
+                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-60"
+                            />
+                            <input
+                                :type="showPassword ? 'text' : 'password'"
+                                v-model="form.password"
+                                placeholder="Masukkan password Anda"
+                                minlength="8"
+                                required
+                                class="pl-12 pr-10 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none"
+                            />
+                            <button
+                                type="button"
+                                @click="togglePassword"
+                                class="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer"
+                            >
+                                <img
+                                    :src="showPassword ? eyeOffIcon : eyeIcon"
+                                    alt="Toggle Password"
+                                    class="w-5 h-5"
+                                />
                             </button>
                         </div>
                     </div>
 
                     <!-- Forgot Password -->
                     <div class="text-right mb-3">
-                        <router-link to="/forgot-password"
-                            class="cursor-pointer text-sm font-semibold text-[#ffad54] hover:underline">
+                        <router-link
+                            to="/forgot-password"
+                            class="cursor-pointer text-sm font-semibold text-[#ffad54] hover:underline"
+                        >
                             Forgot Password?
                         </router-link>
                     </div>
 
                     <!-- Sign In Button -->
-                    <button type="submit"
-                        class="w-full py-3 bg-[#4f93af] text-white font-semibold rounded-3xl hover:bg-[#166357] cursor-pointer">
+                    <button
+                        type="submit"
+                        class="w-full py-3 bg-[#4f93af] text-white font-semibold rounded-3xl hover:bg-[#166357] cursor-pointer"
+                    >
                         Sign In
                     </button>
                 </form>
@@ -79,11 +122,14 @@
                 <!-- Divider -->
                 <div class="w-full my-3 flex items-center justify-center"></div>
 
-
                 <!-- Sign Up Link -->
                 <p class="text-sm">
                     Don't have an account?
-                    <router-link to="/register" class="text-sm text-[#ffad54] hover:underline">Sign Up</router-link>
+                    <router-link
+                        to="/register"
+                        class="text-sm text-[#ffad54] hover:underline"
+                        >Sign Up</router-link
+                    >
                 </p>
             </div>
         </div>

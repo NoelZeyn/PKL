@@ -30,6 +30,7 @@ import LaporanHistoryATK from "./pages/user_review/LaporanHistoryATK.vue";
 import PengajuanAtkAdd from "./pages/Pengajuan/Pengajuan-atk-add.vue";
 import PengaturanPengajuan from "./pages/Pengajuan/Pengaturan-pengajuan.vue";
 import ProfileEdit from "./pages/Profile/Profile-edit.vue";
+import UbahPassword from "./pages/Profile/UbahPassword.vue";
 
 
 // Fungsi validasi token
@@ -73,6 +74,7 @@ const routes = [
     { path: "/manajemen-approval", component: ManajemenApproval, meta: { requiresAuth: true, allowedRoles: ["admin", "superadmin", "asman", "manajer", "anggaran"],  title: "Manajemen Approval" } },
     { path: "/profile", component: Profile, meta: { requiresAuth: true, title: "Profile" } },
     { path: "/profile-edit", component: ProfileEdit, meta: { requiresAuth: true, title: "Profile Edit"}},
+    { path: "/ubah-password", component: UbahPassword, meta: { requiresAuth: true, title: "Ubah Password"}},
 
     { path: "/manajemen-alat", component: AlatTulis, meta: { requiresAuth: true, title: "Alat Tulis" } },
     { path: "/:pathMatch(.*)*", redirect: "/login", meta: { title: "Not Found" } }, // Catch-all route

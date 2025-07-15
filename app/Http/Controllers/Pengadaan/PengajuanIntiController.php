@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Pengadaan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Alat;
+use App\Models\AlatPenempatan;
 use App\Models\Approval;
 use App\Models\DataDiri;
 use App\Models\Penempatan;
@@ -656,15 +658,23 @@ public function updateStatus(Request $request)
         if (!isset($allowedTransitions[$currentStatus]) || !in_array($newStatus, $allowedTransitions[$currentStatus])) {
             continue;
         }
+
         $req->status = $newStatus;
         $req->save();
 
-        // Tambah stok jika selesai
         if ($newStatus === 'done') {
+            // Tambah ke pusat stock
             $this->updateStokAlat($req->id_inventoris_fk, $req->jumlah);
+
+            // Tambah ke stok penempatan jika admin punya penempatan
+            $admin = Admin::with('penempatan')->find($req->id_users_fk);
+            $id_penempatan = optional($admin->penempatan)->id;
+
+            if ($id_penempatan) {
+                $this->tambahStokPenempatan($req->id_inventoris_fk, $id_penempatan, $req->jumlah);
+            }
         }
 
-        // Catatan approval
         $catatan = $newStatus === 'done'
             ? "Barang telah diterima dan stok diperbarui oleh " . ($user->dataDiri->nama_lengkap ?? 'Staff')
             : "Status diubah dari \"$currentStatus\" ke \"$newStatus\" oleh " . ($user->dataDiri->nama_lengkap ?? 'Staff');
@@ -682,19 +692,39 @@ public function updateStatus(Request $request)
     return response()->json(['message' => 'Status berhasil diupdate untuk semua pengajuan terkait.']);
 }
 
+private function updateStokAlat($idAlat, $jumlah)
+{
+    $alat = Alat::find($idAlat);
 
-    private function updateStokAlat($idAlat, $jumlah)
-    {
-        $alat = Alat::find($idAlat);
+    if (!$alat) return;
 
-        if (!$alat) return;
+    $alat->order = $alat->order ?? 0;
+    $alat->stock = $alat->stock ?? 0;
 
-        $alat->order = $alat->order ?? 0;
-        $alat->stock = $alat->stock ?? 0;
+    $alat->order = max(0, $alat->order - $jumlah); // Hindari minus
+    $alat->stock += $jumlah;
 
-        $alat->order = max(0, $alat->order - $jumlah); // Hindari minus
-        $alat->stock += $jumlah;
+    $alat->save();
+}
 
-        $alat->save();
+private function tambahStokPenempatan($idAlat, $idPenempatan, $jumlah)
+{
+    $alatPenempatan = AlatPenempatan::where('id_alat_fk', $idAlat)
+        ->where('id_penempatan_fk', $idPenempatan)
+        ->first();
+
+    if ($alatPenempatan) {
+        $alatPenempatan->stock += $jumlah;
+        $alatPenempatan->save();
+    } else {
+        AlatPenempatan::create([
+            'id_alat_fk' => $idAlat,
+            'id_penempatan_fk' => $idPenempatan,
+            'stock' => $jumlah,
+            'stock_min' => 0,
+            'stock_max' => 0,
+        ]);
     }
+}
+
 }

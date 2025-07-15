@@ -65,7 +65,9 @@ import axios from "axios";
 export default {
   name: "ManajemenStockAlat",
   components: {
-    Sidebar, HeaderBar, SuccessAlert
+    Sidebar,
+    HeaderBar,
+    SuccessAlert,
   },
   data() {
     return {
@@ -75,69 +77,147 @@ export default {
       formData: {
         stock_min: 0,
         stock_max: 0,
+        stock: 0,
       },
       showSuccessAlert: false,
       successMessage: "",
+      tingkatanOtoritas: "",
+      userPenempatanId: "",
     };
   },
   mounted() {
-    this.fetchAlat();
+    this.getUserInfo(); // hanya panggil ini, fetchAlat akan dipicu dari dalamnya
   },
   methods: {
-    fetchAlat() {
-      const token = localStorage.getItem("token");
-      axios.get("http://localhost:8000/api/alat", {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then((res) => {
-        this.alatList = res.data.data;
-      });
-    },
-    onAlatChange() {
-      const selectedAlat = this.alatList.find(item => item.id_alat === this.selectedAlatId);
-      if (selectedAlat) {
-        this.formData.stock_min = selectedAlat.stock_min;
-        this.formData.stock_max = selectedAlat.stock_max;
-        this.formData.stock = selectedAlat.stock;
-      } else {
-        this.formData.stock_min = 0;
-        this.formData.stock_max = 0;
-        this.formData.stock = 0;
+    async getUserInfo() {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.post(
+          "http://localhost:8000/api/me",
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        this.tingkatanOtoritas = res.data.tingkatan_otoritas;
+        this.userPenempatanId = res.data.id_penempatan_fk;
+
+        if (
+          this.tingkatanOtoritas === "admin" ||
+          this.tingkatanOtoritas === "superadmin"
+        ) {
+          this.fetchAlatAdmin();
+        } else {
+          this.fetchAlatUser();
+        }
+      } catch (err) {
+        console.error("Gagal mendapatkan info user:", err);
       }
     },
+
+    fetchAlatAdmin() {
+      const token = localStorage.getItem("token");
+      axios
+        .get("http://localhost:8000/api/alat", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          this.alatList = res.data.data;
+        });
+    },
+
+    fetchAlatUser() {
+      const token = localStorage.getItem("token");
+      axios
+        .get(
+          `http://localhost:8000/api/alat-penempatan/${this.userPenempatanId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
+        .then((res) => {
+          this.alatList = res.data.data[0]?.barang || [];
+        });
+    },
+
+    onAlatChange() {
+      const selectedAlat = this.alatList.find(
+        (item) => item.id_alat === this.selectedAlatId
+      );
+      if (selectedAlat) {
+        if (
+          this.tingkatanOtoritas === "admin" ||
+          this.tingkatanOtoritas === "superadmin"
+        ) {
+          this.formData.stock_min = selectedAlat.stock_min;
+          this.formData.stock_max = selectedAlat.stock_max;
+          this.formData.stock = selectedAlat.stock;
+        } else {
+          const penempatan = selectedAlat.terbagi_ke?.find(
+            (p) => p.id_penempatan === this.userPenempatanId
+          );
+          if (penempatan) {
+            this.formData.stock_min = penempatan.stock_min;
+            this.formData.stock_max = penempatan.stock_max;
+            this.formData.stock = penempatan.stock;
+          } else {
+            this.formData.stock_min = 0;
+            this.formData.stock_max = 0;
+            this.formData.stock = 0;
+          }
+        }
+      }
+    },
+
     async submitForm() {
       if (!this.selectedAlatId) {
         alert("Pilih barang terlebih dahulu.");
         return;
       }
 
-      const token = localStorage.getItem("token");
+      if (
+        this.tingkatanOtoritas === "admin" ||
+        this.tingkatanOtoritas === "superadmin"
+      ) {
+        this.submitFormAdmin();
+      } else {
+        this.submitFormUser();
+      }
+    },
 
-      // Ambil seluruh data alat yang dipilih
-      const selected = this.alatList.find(a => a.id_alat === this.selectedAlatId);
+    async submitFormAdmin() {
+      const token = localStorage.getItem("token");
+      const selected = this.alatList.find(
+        (a) => a.id_alat === this.selectedAlatId
+      );
       if (!selected) {
         alert("Data alat tidak ditemukan.");
         return;
       }
 
-      // Kirim ulang semua data, hanya ubah stock_min dan stock_max
       const payload = {
         id_kategori_fk: selected.id_kategori_fk,
         nama_barang: selected.nama_barang,
         harga_satuan: selected.harga_satuan,
-        stock: selected.stock,
         satuan: selected.satuan,
+        keterangan: selected.keterangan,
         stock_min: this.formData.stock_min,
         stock_max: this.formData.stock_max,
-        stock: this.formData.stock, // Gunakan stock yang ada di form
+        stock: this.formData.stock,
       };
 
       try {
-        await axios.put(`http://localhost:8000/api/alat/${this.selectedAlatId}`, payload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        });
+        await axios.put(
+          `http://localhost:8000/api/alat/${this.selectedAlatId}`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          }
+        );
 
         this.successMessage = "Stock berhasil diperbarui.";
         this.showSuccessAlert = true;
@@ -150,8 +230,58 @@ export default {
         console.error(error);
         alert("Gagal memperbarui stock.");
       }
-    }
+    },
 
+    async submitFormUser() {
+      const token = localStorage.getItem("token");
+      const selected = this.alatList.find(
+        (a) => a.id_alat === this.selectedAlatId
+      );
+      if (!selected) {
+        alert("Data alat tidak ditemukan.");
+        return;
+      }
+
+      const terbagiKe = selected.terbagi_ke || [];
+      const currentEntry = terbagiKe.find(
+        (p) => p.id_penempatan === this.userPenempatanId
+      );
+      if (!currentEntry) {
+        alert("Data penempatan tidak ditemukan di alat.");
+        return;
+      }
+
+      const payload = {
+        stock_min: this.formData.stock_min,
+        stock_max: this.formData.stock_max,
+        stock: this.formData.stock,
+      };
+
+      try {
+        await axios.put(
+          `http://localhost:8000/api/alat-penempatan/${this.selectedAlatId}/${this.userPenempatanId}`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          }
+        );
+
+        this.successMessage = "Stock berhasil diperbarui.";
+        this.showSuccessAlert = true;
+
+        setTimeout(() => {
+          this.showSuccessAlert = false;
+          this.$router.push("/manajemen-alat");
+        }, 2500);
+      } catch (error) {
+        console.error(error);
+        alert("Gagal memperbarui stock.");
+      }
+    },
   },
 };
 </script>
+

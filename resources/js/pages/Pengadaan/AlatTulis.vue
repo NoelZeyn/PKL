@@ -49,7 +49,9 @@
 
           </div>
 
-          <table class="w-full table-fixed border-collapse border border-gray-300">
+          <!-- Untuk Admin dan Superadmin -->
+          <table v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
+            class="w-full table-fixed border-collapse border border-gray-300">
             <thead class="bg-gray-100 text-[#7d7f81]">
               <tr>
                 <!-- <th class="w-14">No</th> -->
@@ -79,8 +81,7 @@
                 </td>
                 <td class="p-3">
                   <div class="flex items-center space-x-2 justify-center">
-                    <button title="Informasi" @click="navigateTo('info', alat)"
-                      class="cursor-pointer hover:opacity-70">
+                    <button title="Informasi" @click="navigateTo('info', alat)" class="cursor-pointer hover:opacity-70">
                       <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
                     </button>
                     <button title="Edit" @click="navigateTo('edit', alat)"
@@ -97,14 +98,56 @@
               </tr>
             </tbody>
           </table>
+          <!-- Tabel untuk User, Asman, Manajer, atau Anggaran -->
+          <table v-else class="w-full table-fixed border-collapse border border-gray-300">
+            <thead class="bg-gray-100 text-[#7d7f81]">
+              <tr>
+                <th class="p-3 border">Nama Barang</th>
+                <th class="p-3 border">Stock Min</th>
+                <th class="p-3 border">Stock Max</th>
+                <th class="p-3 border">Stock</th>
+                <th class="p-3 border">Pusat Stock</th>
+                <th class="p-3 border">Rekomendasi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(alat, index) in paginatedUserAlatList" :key="alat.id" class="text-[#333436]">
+                <td class="p-3">{{ alat.nama_barang }}</td>
+                <td class="p-3">{{ alat.stock_min }}</td>
+                <td class="p-3">{{ alat.stock_max }}</td>
+                <td class="p-3">{{ alat.stock }}</td>
+                <td class="p-3">{{ alat.pusat_stock }}</td>
+                <td class="p-3">
+                  <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
+                    class="text-gray-500 italic">ATK Tidak Digunakan</span>
+                  <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
+                    Pengajuan</span>
+                  <span v-else class="text-green-600">Aman</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
-            <button @click="prevPage" :disabled="currentPage === 1"
-              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
-            <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
-            <button @click="nextPage" :disabled="currentPage === totalPages"
-              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
-          </div>
+<!-- Admin/Superadmin Pagination -->
+<div v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
+  class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
+  <button @click="prevPage" :disabled="currentPage === 1"
+    class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
+  <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
+  <button @click="nextPage" :disabled="currentPage === totalPages"
+    class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
+</div>
+
+<!-- User/Asman/Manajer/Anggaran Pagination -->
+<div v-else
+  class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
+  <button @click="prevPage" :disabled="currentPage === 1"
+    class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
+  <span>Halaman {{ currentPage }} dari {{ totalPagesUser }}</span>
+  <button @click="nextPage" :disabled="currentPage === totalPagesUser"
+    class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
+</div>
+
         </div>
       </div>
     </div>
@@ -142,6 +185,8 @@ export default {
       alatToDelete: null,
       tingkatanOtoritas: "",
       alatList: [],
+      userAlatList: [],
+
       informasiIcon,
       updateIcon,
       deleteIcon,
@@ -174,18 +219,54 @@ export default {
         });
     },
 
+        filteredUserAlatList() {
+      return this.userAlatList
+        .filter(a => {
+          const searchMatch = !this.searchQuery ||
+            a.nama_barang.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+            (a.keterangan && a.keterangan.toLowerCase().includes(this.searchQuery.toLowerCase()));
+
+          const rekomendasi = this.getRekomendasiStatus(a);
+
+          const rekomendasiMatch = !this.rekomendasiFilter || this.rekomendasiFilter === rekomendasi;
+
+          return searchMatch && rekomendasiMatch;
+        })
+        .sort((a, b) => {
+          const statusOrder = { 'perlu': 1, 'aman': 2, 'ATK Tidak Digunakan': 3 };
+
+          const aStatus = this.getRekomendasiStatus(a);
+          const bStatus = this.getRekomendasiStatus(b);
+
+          return statusOrder[aStatus] - statusOrder[bStatus];
+        });
+    },
+
     paginatedAlatList() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       return this.filteredAlatList.slice(start, start + this.itemsPerPage);
     },
+    paginatedUserAlatList() {
+      // if (!Array.isArray(this.userAlatList)) return [];
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      return this.filteredUserAlatList.slice(start, start + this.itemsPerPage);
+    },
+
+
     totalPages() {
       return Math.ceil(this.filteredAlatList.length / this.itemsPerPage);
     },
+
+    totalPagesUser() {
+  return Math.ceil(this.userAlatList.length / this.itemsPerPage);
+}
+
   },
 
   created() {
     this.getUserInfo();
     this.fetchAlat();
+    this.fetchUserAlat();
   },
 
   methods: {
@@ -325,6 +406,22 @@ export default {
         console.error("Gagal mengambil data user:", err);
       }
     },
+    async fetchUserAlat() {
+      try {
+        const token = localStorage.getItem("token");
+        const userData = JSON.parse(localStorage.getItem("user"));
+        const idPenempatan = userData.id_penempatan_fk;
+
+        const res = await axios.get(`http://localhost:8000/api/alat-penempatan/${idPenempatan}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // Ambil barang dari elemen pertama dalam array
+        this.userAlatList = res.data.data?.[0]?.barang || [];
+      } catch (err) {
+        console.error("Gagal mengambil data alat berdasarkan penempatan:", err);
+      }
+    },
     async fetchAlat() {
       try {
         const token = localStorage.getItem("token");
@@ -351,34 +448,34 @@ export default {
       this.alatToDelete = null;
       this.showModal = false;
     },
-async deleteAlat() {
-  try {
-    const token = localStorage.getItem("token");
+    async deleteAlat() {
+      try {
+        const token = localStorage.getItem("token");
 
-    const res = await axios.delete(
-      `http://localhost:8000/api/alat/${this.alatToDelete.id_alat}`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
+        const res = await axios.delete(
+          `http://localhost:8000/api/alat/${this.alatToDelete.id_alat}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        // ✅ Tangani berbagai jenis status respon
+        if (res.data.status === "info") {
+          this.successMessage = res.data.message; // Sudah dinonaktifkan sebelumnya
+        } else if (res.data.status === "success") {
+          this.successMessage = res.data.message; // Berhasil hapus atau nonaktif
+        }
+
+        this.showSuccessAlert = true;
+        setTimeout(() => (this.showSuccessAlert = false), 2000);
+
+        this.fetchAlat();
+      } catch (err) {
+        console.error("Gagal menghapus alat:", err);
+      } finally {
+        this.cancelDelete();
       }
-    );
-
-    // ✅ Tangani berbagai jenis status respon
-    if (res.data.status === "info") {
-      this.successMessage = res.data.message; // Sudah dinonaktifkan sebelumnya
-    } else if (res.data.status === "success") {
-      this.successMessage = res.data.message; // Berhasil hapus atau nonaktif
-    }
-
-    this.showSuccessAlert = true;
-    setTimeout(() => (this.showSuccessAlert = false), 2000);
-
-    this.fetchAlat();
-  } catch (err) {
-    console.error("Gagal menghapus alat:", err);
-  } finally {
-    this.cancelDelete();
-  }
-},
+    },
     nextPage() {
       if (this.currentPage < this.totalPages) this.currentPage++;
     },
