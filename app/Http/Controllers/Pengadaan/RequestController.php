@@ -7,6 +7,7 @@ use App\Models\Admin;
 use App\Models\Alat;
 use App\Models\RequestPengadaan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
@@ -35,12 +36,80 @@ class RequestController extends Controller
             ], 500);
         }
     }
+    public function pengajuanPerByTahun(Request $request)
+{
+    try {
+        $tahun = $request->tahun; // Ambil dari query param (opsional)
+
+        $query = RequestPengadaan::with(['alat', 'user.dataDiri', 'approvals'])
+            ->where('status', '!=', 'draft');
+
+        if ($tahun) {
+            $query->whereYear('tanggal_permintaan', $tahun);
+        }
+
+        $pengajuan = $query->orderBy('tanggal_permintaan', 'desc')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data pengajuan berhasil diambil',
+            'data' => $pengajuan
+        ], 200);
+    } catch (\Throwable $th) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Data pengajuan gagal diambil',
+            'error' => $th->getMessage()
+        ], 500);
+    }
+}
+
+    public function pengajuanPerSemesterByTahun(Request $request)
+    {
+        try {
+            $tahun = $request->tahun ?? now()->year;
+
+            // Ambil semua request non-draft berdasarkan tahun
+            $requests = RequestPengadaan::where('status', '!=', 'draft')
+                ->whereYear('tanggal_permintaan', $tahun)
+                ->get();
+
+            // Inisialisasi struktur semester
+            $semesterStatusData = [
+                'Semester 1' => [],
+                'Semester 2' => [],
+            ];
+
+            foreach ($requests as $item) {
+                $month = Carbon::parse($item->tanggal_permintaan)->month;
+                $semester = $month <= 6 ? 'Semester 1' : 'Semester 2';
+
+                $status = $item->status ?? 'unknown';
+
+                if (!isset($semesterStatusData[$semester][$status])) {
+                    $semesterStatusData[$semester][$status] = 0;
+                }
+
+                $semesterStatusData[$semester][$status]++;
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'tahun' => $tahun,
+                'data' => $semesterStatusData
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
 
 public function getByPenempatan(Request $request)
 {
     try {
-        $user = Auth::user(); // Ambil user yang login
-
+        $user = Auth::user();
         if (!$user || !$user->id_penempatan_fk) {
             return response()->json([
                 'status' => 'error',
@@ -49,19 +118,32 @@ public function getByPenempatan(Request $request)
         }
 
         $idPenempatan = $user->id_penempatan_fk;
+        $tahun = $request->tahun ?? now()->year;
 
-        $pengajuan = RequestPengadaan::with(['alat', 'user.dataDiri', 'approvals'])
+        $pengajuan = RequestPengadaan::with(['alat'])
             ->where('status', '!=', 'draft')
+            ->whereYear('tanggal_permintaan', $tahun)
             ->whereHas('user', function ($query) use ($idPenempatan) {
                 $query->where('id_penempatan_fk', $idPenempatan);
             })
-            ->orderBy('created_at', 'desc')
             ->get();
+
+        // Inisialisasi struktur
+        $result = [
+            "Semester 1" => [],
+            "Semester 2" => [],
+        ];
+
+        foreach ($pengajuan as $item) {
+            $month = \Carbon\Carbon::parse($item->tanggal_permintaan)->month;
+            $semester = $month <= 6 ? "Semester 1" : "Semester 2";
+            $result[$semester][] = $item;
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Data pengajuan berdasarkan penempatan user login berhasil diambil',
-            'data' => $pengajuan
+            'tahun' => $tahun,
+            'data' => $result
         ]);
 
     } catch (\Throwable $th) {
@@ -72,6 +154,8 @@ public function getByPenempatan(Request $request)
         ], 500);
     }
 }
+
+
 
 
     /**
@@ -85,50 +169,50 @@ public function getByPenempatan(Request $request)
         return $alat->harga_satuan * $jumlah;
     }
 
-public function storeMultiple(Request $request)
-{
-    // Validasi request
-    $validator = Validator::make($request->all(), [
-        'items' => 'required|array|min:1',
-        'items.*.NID' => 'required|string|exists:admin,NID',
-        'items.*.id_inventoris_fk' => 'required|exists:alat,id_alat',
-        'items.*.jumlah' => 'required|integer|min:1',
-        'items.*.keterangan' => 'nullable|string',
-    ]);
+    public function storeMultiple(Request $request)
+    {
+        // Validasi request
+        $validator = Validator::make($request->all(), [
+            'items' => 'required|array|min:1',
+            'items.*.NID' => 'required|string|exists:admin,NID',
+            'items.*.id_inventoris_fk' => 'required|exists:alat,id_alat',
+            'items.*.jumlah' => 'required|integer|min:1',
+            'items.*.keterangan' => 'nullable|string',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'error',
-            'errors' => $validator->errors()
-        ], 422);
-    }
-
-    $validated = $validator->validated();
-
-    foreach ($validated['items'] as $item) {
-        $admin = Admin::where('NID', $item['NID'])->first();
-        if (!$admin) {
-            continue;
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        // Simpan data pengajuan
-        RequestPengadaan::create([
-            'NID' => $item['NID'],
-            'id_inventoris_fk' => $item['id_inventoris_fk'],
-            'id_users_fk' => $admin->id,
-            'jumlah' => $item['jumlah'],
-            'total' => $this->hitungTotal($item['id_inventoris_fk'], $item['jumlah']),
-            'status' => 'waiting_approval_1',
-            'tanggal_permintaan' => now()->format('Y-m-d'),
-            'keterangan' => $item['keterangan'] ?? '-',
-        ]);
-    }
+        $validated = $validator->validated();
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Pengajuan berhasil disimpan.'
-    ], 200);
-}
+        foreach ($validated['items'] as $item) {
+            $admin = Admin::where('NID', $item['NID'])->first();
+            if (!$admin) {
+                continue;
+            }
+
+            // Simpan data pengajuan
+            RequestPengadaan::create([
+                'NID' => $item['NID'],
+                'id_inventoris_fk' => $item['id_inventoris_fk'],
+                'id_users_fk' => $admin->id,
+                'jumlah' => $item['jumlah'],
+                'total' => $this->hitungTotal($item['id_inventoris_fk'], $item['jumlah']),
+                'status' => 'waiting_approval_1',
+                'tanggal_permintaan' => now()->format('Y-m-d'),
+                'keterangan' => $item['keterangan'] ?? '-',
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pengajuan berhasil disimpan.'
+        ], 200);
+    }
 
     public function store(Request $request)
     {

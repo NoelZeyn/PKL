@@ -14,6 +14,7 @@ use App\Models\Bidang;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class PengajuanIntiController extends Controller
@@ -61,102 +62,102 @@ class PengajuanIntiController extends Controller
             'data'   => $result
         ]);
     }
-public function approveManajer(Request $request)
-{
-    try {
-        $request->validate([
-            'id_bidang_fk' => 'required|integer',
-            'id_alat'      => 'required|integer',
-        ]);
+    public function approveManajer(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_bidang_fk' => 'required|integer',
+                'id_alat'      => 'required|integer',
+            ]);
 
-        $user = Auth::user();
-        $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
-        $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
+            $user = Auth::user();
+            $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
+            $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
 
-        // Ambil SEMUA pengajuan yang memenuhi syarat
-        $pengajuanList = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
+            // Ambil SEMUA pengajuan yang memenuhi syarat
+            $pengajuanList = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
                 $query->where('id_bidang_fk', $request->id_bidang_fk);
             })
-            ->where('id_inventoris_fk', $request->id_alat)
-            ->where('status', 'waiting_approval_2')
-            ->get();
+                ->where('id_inventoris_fk', $request->id_alat)
+                ->where('status', 'waiting_approval_2')
+                ->get();
 
-        if ($pengajuanList->isEmpty()) {
+            if ($pengajuanList->isEmpty()) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Tidak ada pengajuan yang bisa disetujui.',
+                    'data'    => null
+                ]);
+            }
+
+            foreach ($pengajuanList as $pengajuan) {
+                $pengajuan->status = 'waiting_approval_3';
+                $pengajuan->status_by = $namaLengkap;
+                $pengajuan->save();
+            }
+
             return response()->json([
                 'status'  => 'success',
-                'message' => 'Tidak ada pengajuan yang bisa disetujui.',
-                'data'    => null
-            ]);
+                'message' => 'Semua pengajuan berhasil disetujui.',
+                'data'    => $pengajuanList
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $th->getMessage(),
+            ], 500);
         }
-
-        foreach ($pengajuanList as $pengajuan) {
-            $pengajuan->status = 'waiting_approval_3';
-            $pengajuan->status_by = $namaLengkap;
-            $pengajuan->save();
-        }
-
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Semua pengajuan berhasil disetujui.',
-            'data'    => $pengajuanList
-        ], 200);
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => $th->getMessage(),
-        ], 500);
     }
-}
 
 
 
-public function rejectManajer(Request $request)
-{
-    try {
-        $request->validate([
-            'id_bidang_fk' => 'required|integer',
-            'id_alat'      => 'required|integer',
-            'keterangan'   => 'required|string|max:255',
-        ]);
+    public function rejectManajer(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_bidang_fk' => 'required|integer',
+                'id_alat'      => 'required|integer',
+                'keterangan'   => 'required|string|max:255',
+            ]);
 
-        $user = Auth::user();
-        $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
-        $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
+            $user = Auth::user();
+            $dataDiri = DataDiri::where('id_admin_user_fk', $user->id)->first();
+            $namaLengkap = $dataDiri ? $dataDiri->nama_lengkap : $user->NID ?? 'system';
 
-        $pengajuanList = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
+            $pengajuanList = RequestPengadaan::whereHas('user.penempatan', function ($query) use ($request) {
                 $query->where('id_bidang_fk', $request->id_bidang_fk);
             })
-            ->where('id_inventoris_fk', $request->id_alat)
-            ->where('status', 'waiting_approval_2')
-            ->get();
+                ->where('id_inventoris_fk', $request->id_alat)
+                ->where('status', 'waiting_approval_2')
+                ->get();
 
-        if ($pengajuanList->isEmpty()) {
+            if ($pengajuanList->isEmpty()) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Tidak ada pengajuan yang bisa ditolak.',
+                    'data'    => null
+                ]);
+            }
+
+            foreach ($pengajuanList as $pengajuan) {
+                $pengajuan->status = 'rejected';
+                $pengajuan->status_by = $namaLengkap;
+                $pengajuan->keterangan = $request->keterangan;
+                $pengajuan->save();
+            }
+
             return response()->json([
                 'status'  => 'success',
-                'message' => 'Tidak ada pengajuan yang bisa ditolak.',
-                'data'    => null
+                'message' => 'Semua pengajuan berhasil ditolak.',
+                'data'    => $pengajuanList
             ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $th->getMessage(),
+            ], 500);
         }
-
-        foreach ($pengajuanList as $pengajuan) {
-            $pengajuan->status = 'rejected';
-            $pengajuan->status_by = $namaLengkap;
-            $pengajuan->keterangan = $request->keterangan;
-            $pengajuan->save();
-        }
-
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Semua pengajuan berhasil ditolak.',
-            'data'    => $pengajuanList
-        ]);
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => $th->getMessage(),
-        ], 500);
     }
-}
 
 
 
@@ -558,242 +559,329 @@ public function rejectManajer(Request $request)
         return $result;
     }
 
-public function pengajuanAdminTable()
-{
-    try {
-        $requests = RequestPengadaan::with(['alat', 'user.penempatan.bidang'])
-            ->whereNotIn('status', ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'rejected'])
-            ->get();
+    public function pengajuanAdminTable()
+    {
+        try {
+            $requests = RequestPengadaan::with(['alat', 'user.penempatan.bidang'])
+                ->whereNotIn('status', ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'rejected'])
+                ->get();
 
-        $grouped = $requests->groupBy(function ($item) {
-            return optional(optional($item->user)->penempatan)->id_bidang_fk ?? 'unknown';
-        });
+            $grouped = $requests->groupBy(function ($item) {
+                return optional(optional($item->user)->penempatan)->id_bidang_fk ?? 'unknown';
+            });
 
-        $result = [];
+            $result = [];
 
-        foreach ($grouped as $bidangId => $items) {
-            $bidangNama = 'Tidak Diketahui';
-            if ($bidangId !== 'unknown') {
-                $bidang = Bidang::find($bidangId);
-                if ($bidang) {
-                    $bidangNama = $bidang->nama_bidang;
+            foreach ($grouped as $bidangId => $items) {
+                $bidangNama = 'Tidak Diketahui';
+                if ($bidangId !== 'unknown') {
+                    $bidang = Bidang::find($bidangId);
+                    if ($bidang) {
+                        $bidangNama = $bidang->nama_bidang;
+                    }
                 }
+
+                // Gabungkan barang berdasarkan ID alat
+                $barangMap = [];
+
+                foreach ($items as $item) {
+                    $barang = $item->alat;
+                    $idAlat = $item->id_inventoris_fk;
+                    $namaBarang = $barang->nama_barang ?? 'Tidak Diketahui';
+                    $hargaSatuan = $barang->harga_satuan ?? 0;
+                    $jumlah = $item->jumlah;
+
+                    if (!isset($barangMap[$idAlat])) {
+                        $barangMap[$idAlat] = [
+                            'id_alat'      => $idAlat,
+                            'nama_barang'  => $namaBarang,
+                            'jumlah'       => 0,
+                            'harga_satuan' => $hargaSatuan,
+                            'total_harga'  => 0,
+                            'status'       => $item->status ?? '-',
+                            'keterangan'   => $item->keterangan ?? '-',
+                        ];
+                    }
+
+                    $barangMap[$idAlat]['jumlah'] += $jumlah;
+                    $barangMap[$idAlat]['total_harga'] += $jumlah * $hargaSatuan;
+                }
+
+                $result[] = [
+                    'id_bidang_fk' => $bidangId,
+                    'nama_bidang'  => $bidangNama,
+                    'barang'       => array_values($barangMap), // Reset indeks
+                ];
             }
 
-            // Gabungkan barang berdasarkan ID alat
-            $barangMap = [];
+            return response()->json([
+                'status' => 'success',
+                'data'   => $result
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
+    public function pengajuanAdminTableTahun(Request $request)
+    {
 
-            foreach ($items as $item) {
-                $barang = $item->alat;
-                $idAlat = $item->id_inventoris_fk;
-                $namaBarang = $barang->nama_barang ?? 'Tidak Diketahui';
-                $hargaSatuan = $barang->harga_satuan ?? 0;
-                $jumlah = $item->jumlah;
+        try {
+            $tahun = $request->input('tahun', now()->year);
 
-                if (!isset($barangMap[$idAlat])) {
-                    $barangMap[$idAlat] = [
-                        'id_alat'      => $idAlat,
-                        'nama_barang'  => $namaBarang,
-                        'jumlah'       => 0,
-                        'harga_satuan' => $hargaSatuan,
-                        'total_harga'  => 0,
-                        'status'       => $item->status ?? '-',
-                        'keterangan'   => $item->keterangan ?? '-',
+            $requests = RequestPengadaan::with(['alat', 'user.penempatan.bidang'])
+                ->whereNotIn('status', ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'rejected'])
+                ->whereYear('tanggal_permintaan', $tahun)
+                ->get();
+
+            $grouped = $requests->groupBy(function ($item) {
+                return optional(optional($item->user)->penempatan)->id_bidang_fk ?? 'unknown';
+            });
+
+            $result = [];
+
+            foreach ($grouped as $bidangId => $items) {
+                $bidangNama = 'Tidak Diketahui';
+                if ($bidangId !== 'unknown') {
+                    $bidang = Bidang::find($bidangId);
+                    if ($bidang) {
+                        $bidangNama = $bidang->nama_bidang;
+                    }
+                }
+
+                $barangMap = [];
+
+                foreach ($items as $item) {
+                    $barang = $item->alat;
+                    $idAlat = $item->id_inventoris_fk;
+                    $namaBarang = $barang->nama_barang ?? 'Tidak Diketahui';
+                    $hargaSatuan = $barang->harga_satuan ?? 0;
+                    $jumlah = $item->jumlah;
+
+                    if (!isset($barangMap[$idAlat])) {
+                        $barangMap[$idAlat] = [
+                            'id_alat'      => $idAlat,
+                            'nama_barang'  => $namaBarang,
+                            'jumlah'       => 0,
+                            'harga_satuan' => $hargaSatuan,
+                            'total_harga'  => 0,
+                            'status'       => $item->status ?? '-',
+                            'keterangan'   => $item->keterangan ?? '-',
+                        ];
+                    }
+
+                    $barangMap[$idAlat]['jumlah'] += $jumlah;
+                    $barangMap[$idAlat]['total_harga'] += $jumlah * $hargaSatuan;
+                }
+
+                $result[] = [
+                    'id_bidang_fk' => $bidangId,
+                    'nama_bidang'  => $bidangNama,
+                    'barang'       => array_values($barangMap),
+                ];
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $result
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function pengajuanAdminTableBySemester(Request $request)
+    {
+        try {
+            $tahun = $request->tahun ?? now()->year;
+
+            $requests = RequestPengadaan::with(['alat', 'user.penempatan.bidang'])
+                ->whereYear('tanggal_permintaan', $tahun)
+
+                ->whereNotIn('status', ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'rejected'])
+                ->get();
+
+            $semesterGroups = [
+                'Semester 1' => [],
+                'Semester 2' => [],
+            ];
+
+            foreach ($requests as $item) {
+                $bulan = Carbon::parse($item->tanggal_permintaan)->month;
+
+                $semesterKey = $bulan <= 6 ? 'Semester 1' : 'Semester 2';
+                $semesterGroups[$semesterKey][] = $item;
+            }
+
+            $result = [];
+
+            foreach ($semesterGroups as $semester => $items) {
+                $grouped = collect($items)->groupBy(function ($item) {
+                    return optional(optional($item->user)->penempatan)->id_bidang_fk ?? 'unknown';
+                });
+
+                $semesterResult = [];
+
+                foreach ($grouped as $bidangId => $data) {
+                    $bidangNama = 'Tidak Diketahui';
+                    if ($bidangId !== 'unknown') {
+                        $bidang = Bidang::find($bidangId);
+                        if ($bidang) {
+                            $bidangNama = $bidang->nama_bidang;
+                        }
+                    }
+
+                    // Gabungkan barang berdasarkan alat
+                    $barangMap = [];
+
+                    foreach ($data as $item) {
+                        $barang = $item->alat;
+                        $idAlat = $item->id_inventoris_fk;
+                        $namaBarang = $barang->nama_barang ?? 'Tidak Diketahui';
+                        $hargaSatuan = $barang->harga_satuan ?? 0;
+                        $jumlah = $item->jumlah;
+
+                        if (!isset($barangMap[$idAlat])) {
+                            $barangMap[$idAlat] = [
+                                'id_alat'      => $idAlat,
+                                'nama_barang'  => $namaBarang,
+                                'jumlah'       => 0,
+                                'harga_satuan' => $hargaSatuan,
+                                'total_harga'  => 0,
+                                'status'       => $item->status ?? '-',
+                                'keterangan'   => $item->keterangan ?? '-',
+                            ];
+                        }
+
+                        $barangMap[$idAlat]['jumlah'] += $jumlah;
+                        $barangMap[$idAlat]['total_harga'] += $jumlah * $hargaSatuan;
+                    }
+
+                    $semesterResult[] = [
+                        'id_bidang_fk' => $bidangId,
+                        'nama_bidang'  => $bidangNama,
+                        'barang'       => array_values($barangMap),
                     ];
                 }
 
-                $barangMap[$idAlat]['jumlah'] += $jumlah;
-                $barangMap[$idAlat]['total_harga'] += $jumlah * $hargaSatuan;
+                $result[$semester] = $semesterResult;
             }
 
-            $result[] = [
-                'id_bidang_fk' => $bidangId,
-                'nama_bidang'  => $bidangNama,
-                'barang'       => array_values($barangMap), // Reset indeks
-            ];
+            return response()->json([
+                'status' => 'success',
+                'data'   => $result
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $th->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'data'   => $result
-        ]);
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $th->getMessage(),
-        ], 500);
     }
-}
-public function pengajuanAdminTableTahun(Request $request)
-{
-    
-    try {
-        $tahun = $request->input('tahun', now()->year);
 
-        $requests = RequestPengadaan::with(['alat', 'user.penempatan.bidang'])
+    public function updateStatus(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'id_alat' => 'required|integer',
+            'status'  => 'required|in:approved,purchasing,on_the_way,done',
+        ]);
+
+        $requests = RequestPengadaan::where('id_inventoris_fk', $request->id_alat)
             ->whereNotIn('status', ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'rejected'])
-            ->whereYear('tanggal_permintaan', $tahun)
             ->get();
 
-        $grouped = $requests->groupBy(function ($item) {
-            return optional(optional($item->user)->penempatan)->id_bidang_fk ?? 'unknown';
-        });
+        if ($requests->isEmpty()) {
+            return response()->json([
+                'message' => 'Data tidak ditemukan atau bukan status yang dapat diubah'
+            ], 404);
+        }
 
-        $result = [];
+        $allowedTransitions = [
+            'approved'    => ['purchasing'],
+            'purchasing'  => ['on_the_way'],
+            'on_the_way'  => ['done'],
+        ];
 
-        foreach ($grouped as $bidangId => $items) {
-            $bidangNama = 'Tidak Diketahui';
-            if ($bidangId !== 'unknown') {
-                $bidang = Bidang::find($bidangId);
-                if ($bidang) {
-                    $bidangNama = $bidang->nama_bidang;
+        foreach ($requests as $req) {
+            $currentStatus = $req->status;
+            $newStatus = $request->status;
+
+            if (!isset($allowedTransitions[$currentStatus]) || !in_array($newStatus, $allowedTransitions[$currentStatus])) {
+                continue;
+            }
+
+            $req->status = $newStatus;
+            $req->save();
+
+            if ($newStatus === 'done') {
+                // Tambah ke pusat stock
+                $this->updateStokAlat($req->id_inventoris_fk, $req->jumlah);
+
+                // Tambah ke stok penempatan jika admin punya penempatan
+                $admin = Admin::with('penempatan')->find($req->id_users_fk);
+                $id_penempatan = optional($admin->penempatan)->id;
+
+                if ($id_penempatan) {
+                    $this->tambahStokPenempatan($req->id_inventoris_fk, $id_penempatan, $req->jumlah);
                 }
             }
 
-            $barangMap = [];
+            $catatan = $newStatus === 'done'
+                ? "Barang telah diterima dan stok diperbarui oleh " . ($user->dataDiri->nama_lengkap ?? 'Staff')
+                : "Status diubah dari \"$currentStatus\" ke \"$newStatus\" oleh " . ($user->dataDiri->nama_lengkap ?? 'Staff');
 
-            foreach ($items as $item) {
-                $barang = $item->alat;
-                $idAlat = $item->id_inventoris_fk;
-                $namaBarang = $barang->nama_barang ?? 'Tidak Diketahui';
-                $hargaSatuan = $barang->harga_satuan ?? 0;
-                $jumlah = $item->jumlah;
-
-                if (!isset($barangMap[$idAlat])) {
-                    $barangMap[$idAlat] = [
-                        'id_alat'      => $idAlat,
-                        'nama_barang'  => $namaBarang,
-                        'jumlah'       => 0,
-                        'harga_satuan' => $hargaSatuan,
-                        'total_harga'  => 0,
-                        'status'       => $item->status ?? '-',
-                        'keterangan'   => $item->keterangan ?? '-',
-                    ];
-                }
-
-                $barangMap[$idAlat]['jumlah'] += $jumlah;
-                $barangMap[$idAlat]['total_harga'] += $jumlah * $hargaSatuan;
-            }
-
-            $result[] = [
-                'id_bidang_fk' => $bidangId,
-                'nama_bidang'  => $bidangNama,
-                'barang'       => array_values($barangMap),
-            ];
+            Approval::create([
+                'id_request_fk'  => $req->id_request,
+                'id_admin_fk'    => $user->id,
+                'level_approval' => 'Staff System',
+                'status'         => $newStatus,
+                'tanggal'        => now()->toDateString(),
+                'catatan'        => $catatan,
+            ]);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'data'   => $result
-        ]);
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $th->getMessage(),
-        ], 500);
-    }
-}
-
-
-public function updateStatus(Request $request)
-{
-    $user = Auth::user();
-
-    $request->validate([
-        'id_alat' => 'required|integer',
-        'status'  => 'required|in:approved,purchasing,on_the_way,done',
-    ]);
-
-    $requests = RequestPengadaan::where('id_inventoris_fk', $request->id_alat)
-        ->whereNotIn('status', ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'rejected'])
-        ->get();
-
-    if ($requests->isEmpty()) {
-        return response()->json([
-            'message' => 'Data tidak ditemukan atau bukan status yang dapat diubah'
-        ], 404);
+        return response()->json(['message' => 'Status berhasil diupdate untuk semua pengajuan terkait.']);
     }
 
-    $allowedTransitions = [
-        'approved'    => ['purchasing'],
-        'purchasing'  => ['on_the_way'],
-        'on_the_way'  => ['done'],
-    ];
+    private function updateStokAlat($idAlat, $jumlah)
+    {
+        $alat = Alat::find($idAlat);
 
-    foreach ($requests as $req) {
-        $currentStatus = $req->status;
-        $newStatus = $request->status;
+        if (!$alat) return;
 
-        if (!isset($allowedTransitions[$currentStatus]) || !in_array($newStatus, $allowedTransitions[$currentStatus])) {
-            continue;
+        $alat->order = $alat->order ?? 0;
+        $alat->stock = $alat->stock ?? 0;
+
+        $alat->order = max(0, $alat->order - $jumlah); // Hindari minus
+        $alat->stock += $jumlah;
+
+        $alat->save();
+    }
+
+    private function tambahStokPenempatan($idAlat, $idPenempatan, $jumlah)
+    {
+        $alatPenempatan = AlatPenempatan::where('id_alat_fk', $idAlat)
+            ->where('id_penempatan_fk', $idPenempatan)
+            ->first();
+
+        if ($alatPenempatan) {
+            $alatPenempatan->stock += $jumlah;
+            $alatPenempatan->save();
+        } else {
+            AlatPenempatan::create([
+                'id_alat_fk' => $idAlat,
+                'id_penempatan_fk' => $idPenempatan,
+                'stock' => $jumlah,
+                'stock_min' => 0,
+                'stock_max' => 0,
+            ]);
         }
-
-        $req->status = $newStatus;
-        $req->save();
-
-        if ($newStatus === 'done') {
-            // Tambah ke pusat stock
-            $this->updateStokAlat($req->id_inventoris_fk, $req->jumlah);
-
-            // Tambah ke stok penempatan jika admin punya penempatan
-            $admin = Admin::with('penempatan')->find($req->id_users_fk);
-            $id_penempatan = optional($admin->penempatan)->id;
-
-            if ($id_penempatan) {
-                $this->tambahStokPenempatan($req->id_inventoris_fk, $id_penempatan, $req->jumlah);
-            }
-        }
-
-        $catatan = $newStatus === 'done'
-            ? "Barang telah diterima dan stok diperbarui oleh " . ($user->dataDiri->nama_lengkap ?? 'Staff')
-            : "Status diubah dari \"$currentStatus\" ke \"$newStatus\" oleh " . ($user->dataDiri->nama_lengkap ?? 'Staff');
-
-        Approval::create([
-            'id_request_fk'  => $req->id_request,
-            'id_admin_fk'    => $user->id,
-            'level_approval' => 'Staff System',
-            'status'         => $newStatus,
-            'tanggal'        => now()->toDateString(),
-            'catatan'        => $catatan,
-        ]);
     }
-
-    return response()->json(['message' => 'Status berhasil diupdate untuk semua pengajuan terkait.']);
-}
-
-private function updateStokAlat($idAlat, $jumlah)
-{
-    $alat = Alat::find($idAlat);
-
-    if (!$alat) return;
-
-    $alat->order = $alat->order ?? 0;
-    $alat->stock = $alat->stock ?? 0;
-
-    $alat->order = max(0, $alat->order - $jumlah); // Hindari minus
-    $alat->stock += $jumlah;
-
-    $alat->save();
-}
-
-private function tambahStokPenempatan($idAlat, $idPenempatan, $jumlah)
-{
-    $alatPenempatan = AlatPenempatan::where('id_alat_fk', $idAlat)
-        ->where('id_penempatan_fk', $idPenempatan)
-        ->first();
-
-    if ($alatPenempatan) {
-        $alatPenempatan->stock += $jumlah;
-        $alatPenempatan->save();
-    } else {
-        AlatPenempatan::create([
-            'id_alat_fk' => $idAlat,
-            'id_penempatan_fk' => $idPenempatan,
-            'stock' => $jumlah,
-            'stock_min' => 0,
-            'stock_max' => 0,
-        ]);
-    }
-}
-
 }

@@ -168,6 +168,13 @@
                         <h3 class="text-sm font-semibold text-gray-900">
                             Data List Pengajuan
                         </h3>
+                        <div class="flex items-center gap-2 px-5 py-3">
+                            <label for="tahun" class="text-sm font-semibold text-gray-700">Tahun:</label>
+                            <select v-model="selectedYear" @change="fetchRequest">
+                                <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
+                            </select>
+                        </div>
+
                         <button @click="downloadExcel"
                             class="flex items-center gap-2 px-4 cursor-pointer py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -177,6 +184,7 @@
                             </svg>
                             Download Excel
                         </button>
+
                     </div>
 
                     <table class="w-full table-fixed border-collapse border border-gray-300">
@@ -267,13 +275,6 @@
                         </button>
                     </div>
                 </div>
-                <!-- Chart Section -->
-                <div class="mt-8 bg-white rounded-lg shadow border border-gray-300 p-5">
-                    <h3 class="text-sm font-semibold text-gray-900 mb-4">
-                        Grafik Pengajuan Berdasarkan Status
-                    </h3>
-                    <canvas id="chartPengajuan"></canvas>
-                </div>
             </div>
         </div>
 
@@ -306,8 +307,8 @@ export default {
             requestToDelete: null,
             requestList: [],
             PengajuanBaruList: [],
-            availableYears: [],
             selectedYear: new Date().getFullYear(),
+            availableYears: Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i),
             dataGroupedByBidang: [],
             currentPage: 1,
             itemsPerPage: 10,
@@ -734,6 +735,7 @@ export default {
             );
         },
         formatTanggal(dateString) {
+            // format date DD/MM/YYYY
             if (!dateString) return "-";
             const date = new Date(dateString);
             return date.toLocaleDateString("id-ID", {
@@ -742,129 +744,18 @@ export default {
                 year: "numeric",
             });
         },
-        renderChartPerSemester() {
-            const semesterStatusData = {
-                "Semester 1": {
-                    approved: 0, rejected: 0, purchasing: 0, on_the_way: 0, done: 0,
-                    waiting_approval_1: 0, waiting_approval_2: 0, waiting_approval_3: 0
-                },
-                "Semester 2": {
-                    approved: 0, rejected: 0, purchasing: 0, on_the_way: 0, done: 0,
-                    waiting_approval_1: 0, waiting_approval_2: 0, waiting_approval_3: 0
-                },
-            };
-
-            this.requestList.forEach(req => {
-                const status = req.status;
-                const date = new Date(req.tanggal_permintaan);
-                const month = date.getMonth() + 1;
-                const semester = month <= 6 ? "Semester 1" : "Semester 2";
-
-                if (semesterStatusData[semester][status] !== undefined) {
-                    semesterStatusData[semester][status]++;
-                }
-            });
-
-            const labels = Object.keys(semesterStatusData);
-
-            const datasets = [
-                {
-                    label: "Approval 1",
-                    data: labels.map(label => semesterStatusData[label].waiting_approval_1),
-                    backgroundColor: "#c084fc",
-                },
-                {
-                    label: "Approval 2",
-                    data: labels.map(label => semesterStatusData[label].waiting_approval_2),
-                    backgroundColor: "#f472b6",
-                },
-                {
-                    label: "Approval 3",
-                    data: labels.map(label => semesterStatusData[label].waiting_approval_3),
-                    backgroundColor: "#fb923c",
-                },
-                {
-                    label: "Approved",
-                    data: labels.map(label => semesterStatusData[label].approved),
-                    backgroundColor: "#34d399",
-                },
-                {
-                    label: "Rejected",
-                    data: labels.map(label => semesterStatusData[label].rejected),
-                    backgroundColor: "#f87171",
-                },
-                {
-                    label: "Purchasing",
-                    data: labels.map(label => semesterStatusData[label].purchasing),
-                    backgroundColor: "#facc15",
-                },
-                {
-                    label: "On The Way",
-                    data: labels.map(label => semesterStatusData[label].on_the_way),
-                    backgroundColor: "#60a5fa",
-                },
-                {
-                    label: "Done",
-                    data: labels.map(label => semesterStatusData[label].done),
-                    backgroundColor: "#a3a3a3",
-                },
-            ];
-
-            const ctx = document.getElementById("chartPengajuan").getContext("2d");
-
-            if (this.chartInstance) {
-                this.chartInstance.destroy();
-            }
-
-            this.chartInstance = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels,
-                    datasets,
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: "bottom",
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: ctx => `${ctx.dataset.label}: ${ctx.raw} pengajuan`
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            stepSize: 1,
-                            title: {
-                                display: true,
-                                text: 'Jumlah Pengajuan'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Semester'
-                            }
-                        }
-                    },
-                },
-            });
-        },
 
         async fetchRequest() {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get(
-                    "http://localhost:8000/api/request",
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
+
+                const res = await axios.get("http://localhost:8000/api/requestTahun", {
+                    // kalau gk jadi tahun, pakai /api/request saja, hapus params dan template select tahun
+                    headers: { Authorization: `Bearer ${token}` },
+                    params: { tahun: this.selectedYear }
+                });
+
                 this.requestList = res.data.data;
-                this.renderChartPerSemester();
 
             } catch (err) {
                 console.error("Gagal mengambil data request:", err);
