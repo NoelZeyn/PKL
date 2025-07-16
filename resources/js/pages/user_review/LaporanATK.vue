@@ -28,33 +28,29 @@
         <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
           <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
             <h3 class="text-sm font-semibold text-gray-900">Data ATK</h3>
-
             <button @click="downloadExcel"
-              class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200 cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
-              </svg>
+              class="cursor-pointer px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
               Download Excel
             </button>
           </div>
 
-          <table class="w-full table-fixed border-collapse border border-gray-300">
+          <!-- Untuk Admin dan Superadmin -->
+          <table v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
+            class="w-full table-fixed border-collapse border border-gray-300">
             <thead class="bg-gray-100 text-[#7d7f81]">
               <tr>
-                <th class="w-14">No</th>
+                <!-- <th class="w-14">No</th> -->
                 <th class="p-3 border">Nama Barang</th>
                 <th class="p-3 border">Stock Min</th>
                 <th class="p-3 border">Stock Max</th>
                 <th class="p-3 w-25 border">Stock Sekarang</th>
                 <th class="p-3 border">Harga Satuan</th>
-                <th class="p-3 border">Rekomendasi Pembelian</th>
+                <th class="w-35 p-3 border">Rekomendasi Pembelian</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(alat, index) in paginatedAlatList" :key="alat.id" class="text-[#333436]">
-                <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
+                <!-- <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td> -->
                 <td class="p-3">{{ alat.nama_barang }}</td>
                 <td class="p-3">{{ alat.stock_min }}</td>
                 <td class="p-3">{{ alat.stock_max }}</td>
@@ -70,19 +66,63 @@
               </tr>
             </tbody>
           </table>
+          <!-- Tabel untuk User, Asman, Manajer, atau Anggaran -->
+          <table v-else class="w-full table-fixed border-collapse border border-gray-300">
+            <thead class="bg-gray-100 text-[#7d7f81]">
+              <tr>
+                <th class="p-3 border">Nama Barang</th>
+                <th class="p-3 border">Stock Min</th>
+                <th class="p-3 border">Stock Max</th>
+                <th class="p-3 border">Stock</th>
+                <th class="p-3 border">Pusat Stock</th>
+                <th class="p-3 border">Rekomendasi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(alat, index) in paginatedUserAlatList" :key="alat.id" class="text-[#333436]">
+                <td class="p-3">{{ alat.nama_barang }}</td>
+                <td class="p-3">{{ alat.stock_min }}</td>
+                <td class="p-3">{{ alat.stock_max }}</td>
+                <td class="p-3">{{ alat.stock }}</td>
+                <td class="p-3">{{ alat.pusat_stock }}</td>
+                <td class="p-3">
+                  <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
+                    class="text-gray-500 italic">ATK Tidak Digunakan</span>
+                  <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
+                    Pengajuan</span>
+                  <span v-else class="text-green-600">Aman</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
+          <!-- Admin/Superadmin Pagination -->
+          <div v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
+            class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
             <button @click="prevPage" :disabled="currentPage === 1"
               class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
             <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
             <button @click="nextPage" :disabled="currentPage === totalPages"
               class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
           </div>
+
+          <!-- User/Asman/Manajer/Anggaran Pagination -->
+          <div v-else
+            class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
+            <button @click="prevPage" :disabled="currentPage === 1"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
+            <span>Halaman {{ currentPage }} dari {{ totalPagesUser }}</span>
+            <button @click="nextPage" :disabled="currentPage === totalPagesUser"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
+          </div>
+
         </div>
       </div>
-
     </div>
 
+    <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
+    <ModalConfirm :visible="showModal" title="Konfirmasi Hapus Data"
+      message="Apakah Anda yakin ingin menghapus data ini?" @cancel="cancelDelete" @confirm="deleteAlat" />
   </div>
 </template>
 
@@ -97,6 +137,7 @@ import deleteIcon from "@/assets/Delete.svg";
 import axios from "axios";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+// This component manages the inventory of tools (ATK) in the application.
 export default {
   name: "ManajemenAlat",
   components: { Sidebar, HeaderBar, ModalConfirm, SuccessAlert },
@@ -105,10 +146,15 @@ export default {
     return {
       activeMenu: "laporanATK",
       searchQuery: "",
+      showModal: false,
+      showSuccessAlert: false,
       rekomendasiFilter: "",
       successMessage: "",
+      alatToDelete: null,
       tingkatanOtoritas: "",
       alatList: [],
+      userAlatList: [],
+
       informasiIcon,
       updateIcon,
       deleteIcon,
@@ -140,18 +186,55 @@ export default {
           return statusOrder[aStatus] - statusOrder[bStatus];
         });
     },
+
+    filteredUserAlatList() {
+      return this.userAlatList
+        .filter(a => {
+          const searchMatch = !this.searchQuery ||
+            a.nama_barang.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+            (a.keterangan && a.keterangan.toLowerCase().includes(this.searchQuery.toLowerCase()));
+
+          const rekomendasi = this.getRekomendasiStatus(a);
+
+          const rekomendasiMatch = !this.rekomendasiFilter || this.rekomendasiFilter === rekomendasi;
+
+          return searchMatch && rekomendasiMatch;
+        })
+        .sort((a, b) => {
+          const statusOrder = { 'perlu': 1, 'aman': 2, 'ATK Tidak Digunakan': 3 };
+
+          const aStatus = this.getRekomendasiStatus(a);
+          const bStatus = this.getRekomendasiStatus(b);
+
+          return statusOrder[aStatus] - statusOrder[bStatus];
+        });
+    },
+
     paginatedAlatList() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       return this.filteredAlatList.slice(start, start + this.itemsPerPage);
     },
+    paginatedUserAlatList() {
+      // if (!Array.isArray(this.userAlatList)) return [];
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      return this.filteredUserAlatList.slice(start, start + this.itemsPerPage);
+    },
+
+
     totalPages() {
       return Math.ceil(this.filteredAlatList.length / this.itemsPerPage);
     },
+
+    totalPagesUser() {
+      return Math.ceil(this.userAlatList.length / this.itemsPerPage);
+    }
+
   },
 
   created() {
     this.getUserInfo();
     this.fetchAlat();
+    this.fetchUserAlat();
   },
 
   methods: {
@@ -164,11 +247,11 @@ export default {
         return 'aman';
       }
     },
+
     async downloadExcel() {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Data ATK');
 
-      // Definisikan Kolom
       worksheet.columns = [
         { header: 'No', key: 'no', width: 5 },
         { header: 'Nama Barang', key: 'nama_barang', width: 25 },
@@ -179,7 +262,6 @@ export default {
         { header: 'Rekomendasi Pembelian', key: 'rekomendasi', width: 22 },
       ];
 
-      // Style Header
       worksheet.getRow(1).eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
@@ -187,14 +269,17 @@ export default {
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       });
 
-      // Kelompokkan Data berdasarkan Status (Perlu, Aman, Tidak Digunakan)
+      // GUNAKAN DATA BERDASARKAN OTORITAS
+      const isAdmin = this.tingkatanOtoritas !== 'user';
+      const sourceData = isAdmin ? this.filteredAlatList : this.filteredUserAlatList;
+
       const groupedData = {
         'Perlu Pengajuan': [],
         'Aman': [],
         'ATK Tidak Digunakan': [],
       };
 
-      this.filteredAlatList.forEach(alat => {
+      sourceData.forEach(alat => {
         const status = this.getRekomendasiStatus(alat);
         const statusText =
           status === 'perlu' ? 'Perlu Pengajuan' :
@@ -205,23 +290,20 @@ export default {
       let rowIndex = 2;
       let globalNo = 1;
 
-      // Loop berdasarkan urutan prioritas: Perlu → Aman → Tidak Digunakan
       const statusOrder = ['Perlu Pengajuan', 'Aman', 'ATK Tidak Digunakan'];
 
       statusOrder.forEach(statusName => {
         const items = groupedData[statusName];
         if (items.length === 0) return;
 
-        // Baris Judul Status
         worksheet.mergeCells(`A${rowIndex}:G${rowIndex}`);
         const statusCell = worksheet.getCell(`A${rowIndex}`);
         statusCell.value = `Status: ${statusName}`;
         statusCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
-        // Warna berbeda untuk tiap status
-        let bgColor = 'FF10B981'; // Default hijau (Aman)
-        if (statusName === 'Perlu Pengajuan') bgColor = 'FFDC3545'; // Merah
-        if (statusName === 'ATK Tidak Digunakan') bgColor = 'FF6C757D'; // Abu-abu
+        let bgColor = 'FF10B981';
+        if (statusName === 'Perlu Pengajuan') bgColor = 'FFDC3545';
+        if (statusName === 'ATK Tidak Digunakan') bgColor = 'FF6C757D';
 
         statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
         statusCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -248,11 +330,10 @@ export default {
             cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
 
             if (colNumber === 6) {
-              cell.numFmt = '"Rp"#,##0'; // Format rupiah
+              cell.numFmt = '"Rp"#,##0';
             }
           });
 
-          // Warnai Cell Rekomendasi
           const rekomCell = row.getCell('rekomendasi');
           if (rekomendasiText === 'Perlu Pengajuan') {
             rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC3545' } };
@@ -261,7 +342,7 @@ export default {
             rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28A745' } };
             rekomCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
           } else {
-            rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6C757D' } }; // Abu
+            rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6C757D' } };
             rekomCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
           }
 
@@ -290,6 +371,20 @@ export default {
         console.error("Gagal mengambil data user:", err);
       }
     },
+    async fetchUserAlat() {
+      try {
+        const token = localStorage.getItem("token");
+        const userData = JSON.parse(localStorage.getItem("user"));
+        const idPenempatan = userData.id_penempatan_fk;
+
+        const res = await axios.get(`http://localhost:8000/api/alat-penempatan/${idPenempatan}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        this.userAlatList = res.data.data?.[0]?.barang || [];
+      } catch (err) {
+        console.error("Gagal mengambil data alat berdasarkan penempatan:", err);
+      }
+    },
     async fetchAlat() {
       try {
         const token = localStorage.getItem("token");
@@ -304,7 +399,46 @@ export default {
     updateActiveMenu(menu) {
       this.activeMenu = menu;
     },
+    navigateTo(action, alat) {
+      localStorage.setItem(`dataAlat${action}`, JSON.stringify(alat));
+      this.$router.push(`/alat-${action}/${alat.id_alat}`);
+    },
+    confirmDelete(alat) {
+      this.alatToDelete = alat;
+      this.showModal = true;
+    },
+    cancelDelete() {
+      this.alatToDelete = null;
+      this.showModal = false;
+    },
+    async deleteAlat() {
+      try {
+        const token = localStorage.getItem("token");
 
+        const res = await axios.delete(
+          `http://localhost:8000/api/alat/${this.alatToDelete.id_alat}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        // ✅ Tangani berbagai jenis status respon
+        if (res.data.status === "info") {
+          this.successMessage = res.data.message; // Sudah dinonaktifkan sebelumnya
+        } else if (res.data.status === "success") {
+          this.successMessage = res.data.message; // Berhasil hapus atau nonaktif
+        }
+
+        this.showSuccessAlert = true;
+        setTimeout(() => (this.showSuccessAlert = false), 2000);
+
+        this.fetchAlat();
+      } catch (err) {
+        console.error("Gagal menghapus alat:", err);
+      } finally {
+        this.cancelDelete();
+      }
+    },
     nextPage() {
       if (this.currentPage < this.totalPages) this.currentPage++;
     },

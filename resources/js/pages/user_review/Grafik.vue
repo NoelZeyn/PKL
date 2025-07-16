@@ -59,6 +59,30 @@
             <canvas id="chartBarangStatusPerSemester" class="w-full h-96 my-4"></canvas>
           </div>
         </div>
+        <div>
+          <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+            <h3 class="text-sm font-semibold text-gray-900">Grafik Pengajuan Status Barang Per Semester</h3>
+            <div class="flex gap-2">
+              <button @click="downloadBarangStatusChart2"
+                class="cursor-pointer px-3 py-2 bg-[#08607a] hover:bg-[#065666] text-white rounded-md text-sm">
+                Download Gambar Grafik
+              </button>
+              <button @click="downloadBarangStatusExcel2"
+                class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                </svg>
+                Download Excel
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow border border-gray-300 p-5">
+            <canvas id="chartBarangStatusPerSemester2" class="w-full h-96 my-4"></canvas>
+          </div>
+        </div>
 
 
         <!-- Grafik Total per Bidang -->
@@ -140,12 +164,16 @@ export default {
       bidangChartCanvas: null,
 
       requestList: [],
+      requestListAll: [],
+      requestListByPenempatan: [],
     };
   },
 
   mounted() {
     this.fetchDataAndRenderChart();
-    this.fetchRequest();
+    this.fetchAllRequest();
+    this.fetchAllRequest2();
+    this.fetchRequestByPenempatan();
     this.fetchPengajuanAdminChart();
   },
 
@@ -606,7 +634,7 @@ export default {
     async renderChartBarangStatusPerSemester() {
       const semesterData = {};
 
-      this.requestList.forEach(req => {
+      this.requestListByPenempatan.forEach(req => {
         const tanggal = new Date(req.tanggal_permintaan);
         const semester = tanggal.getMonth() + 1 <= 6 ? "Semester 1" : "Semester 2";
         const barang = req.alat?.nama_barang || "Tanpa Nama";
@@ -685,11 +713,128 @@ export default {
 
       const ctx = document.getElementById("chartBarangStatusPerSemester").getContext("2d");
 
-      if (this.chartBarangStatusSemesterInstance) {
-        this.chartBarangStatusSemesterInstance.destroy();
+      if (this.chartBarangStatusSemesterByPenempatanInstance) {
+        this.chartBarangStatusSemesterByPenempatanInstance.destroy();
       }
 
-      this.chartBarangStatusSemesterInstance = new Chart(ctx, {
+      this.chartBarangStatusSemesterByPenempatanInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets,
+        },
+        options: {
+          plugins: {
+            legend: { position: "top" },
+          },
+          responsive: true,
+          scales: {
+            x: {
+              stacked: true,
+              title: {
+                display: true,
+                text: 'Nama Barang',
+              }
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Jumlah Pengajuan',
+              }
+            }
+          }
+        }
+      });
+    },
+    async renderChartBarangStatusPerSemester2() {
+      const semesterData = {};
+
+      this.requestList.forEach(req => {
+        const tanggal = new Date(req.tanggal_permintaan);
+        const semester = tanggal.getMonth() + 1 <= 6 ? "Semester 1" : "Semester 2";
+        const barang = req.alat?.nama_barang || "Tanpa Nama";
+        const status = req.status;
+
+        const validStatuses = [
+          "approved", "rejected", "purchasing", "on_the_way", "done",
+          "waiting_approval_1", "waiting_approval_2", "waiting_approval_3"
+        ];
+
+        if (!validStatuses.includes(status)) return;
+
+        const key = semester === "Semester 2" ? `${barang} (S2)` : barang;
+
+
+        if (!semesterData[key]) {
+          // Inisialisasi semua status ke 0
+          semesterData[key] = {};
+          validStatuses.forEach(s => {
+            semesterData[key][s] = 0;
+          });
+        }
+
+        semesterData[key][status]++;
+      });
+
+      const labels = Object.keys(semesterData).sort((a, b) => {
+        const [semA, namaA] = a.split(" - ");
+        const [semB, namaB] = b.split(" - ");
+
+        if (semA === semB) return namaA.localeCompare(namaB);
+        return semA === "Semester 1" ? -1 : 1;
+      });
+
+      const statusList = [
+        "waiting_approval_1",
+        "waiting_approval_2",
+        "waiting_approval_3",
+        "approved",
+        "rejected",
+        "purchasing",
+        "on_the_way",
+        "done"
+      ];
+
+      const statusLabelMap = {
+        waiting_approval_1: "Approval 1",
+        waiting_approval_2: "Approval 2",
+        waiting_approval_3: "Approval 3",
+        approved: "Approved",
+        rejected: "Rejected",
+        purchasing: "Purchasing",
+        on_the_way: "On The Way",
+        done: "Done"
+      };
+
+      const statusColorMap = {
+        waiting_approval_1: "#c084fc", // ungu
+        waiting_approval_2: "#f472b6", // pink
+        waiting_approval_3: "#fb923c", // oranye
+        approved: "#34d399",           // hijau
+        rejected: "#f87171",           // merah
+        purchasing: "#facc15",         // kuning
+        on_the_way: "#60a5fa",         // biru
+        done: "#a3a3a3",               // abu
+      };
+
+
+      const datasets = statusList.map(status => ({
+        label: statusLabelMap[status],
+        backgroundColor: statusColorMap[status] + "CC", // transparan
+        borderColor: statusColorMap[status],
+        borderWidth: 1,
+        data: labels.map(label => semesterData[label][status] || 0),
+      }));
+
+      const ctx = document.getElementById("chartBarangStatusPerSemester2").getContext("2d");
+
+      if (this.chartBarangStatusSemesterAllInstance) {
+        this.chartBarangStatusSemesterAllInstance.destroy();
+      }
+
+      this.chartBarangStatusSemesterAllInstance = new Chart(ctx, {
         type: "bar",
         data: {
           labels,
@@ -721,6 +866,143 @@ export default {
       });
     },
     async downloadBarangStatusExcel() {
+      const ExcelJS = (await import('exceljs')).default;
+      const { saveAs } = await import('file-saver');
+
+      try {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Pengajuan Status Barang");
+
+        // Warna status
+        const statusLabelMap = {
+          waiting_approval_1: "Approval 1",
+          waiting_approval_2: "Approval 2",
+          waiting_approval_3: "Approval 3",
+          approved: "Approved",
+          rejected: "Rejected",
+          purchasing: "Purchasing",
+          on_the_way: "On The Way",
+          done: "Done"
+        };
+
+        const statusColorMap = {
+          waiting_approval_1: "c084fc",
+          waiting_approval_2: "f472b6",
+          waiting_approval_3: "fb923c",
+          approved: "34d399",
+          rejected: "f87171",
+          purchasing: "facc15",
+          on_the_way: "60a5fa",
+          done: "a3a3a3"
+        };
+
+        worksheet.columns = [
+          { header: "Nama Barang", key: "barang", width: 30 },
+          { header: "Semester", key: "semester", width: 15 },
+          { header: "Status", key: "status", width: 25 },
+          { header: "Jumlah", key: "jumlah", width: 10 },
+        ];
+
+        // Header style
+        worksheet.getRow(1).eachCell(cell => {
+          cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4F46E5" } };
+          cell.alignment = { vertical: "middle", horizontal: "center" };
+          cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" }
+          };
+        });
+
+        const dataPerSemester = {
+          "Semester 1": {},
+          "Semester 2": {}
+        };
+
+        const validStatuses = Object.keys(statusLabelMap);
+
+        // Grup data
+        this.requestListByPenempatan.forEach(req => {
+          const tanggal = new Date(req.tanggal_permintaan);
+          const semester = tanggal.getMonth() + 1 <= 6 ? "Semester 1" : "Semester 2";
+          const barang = req.alat?.nama_barang || "Tanpa Nama";
+          const status = req.status;
+
+          if (!validStatuses.includes(status)) return;
+
+          const key = `${barang}|||${status}`;
+          if (!dataPerSemester[semester][key]) {
+            dataPerSemester[semester][key] = 0;
+          }
+
+          dataPerSemester[semester][key]++;
+        });
+
+        // Tulis ke Excel per semester
+        Object.entries(dataPerSemester).forEach(([semester, records]) => {
+          const startRow = worksheet.lastRow.number + 2;
+          worksheet.mergeCells(`A${startRow}:D${startRow}`);
+          const titleCell = worksheet.getCell(`A${startRow}`);
+          titleCell.value = semester;
+          titleCell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+          titleCell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: semester === "Semester 1" ? "FF10B981" : "FFF59E0B" }
+          };
+          titleCell.alignment = { vertical: "middle", horizontal: "left" };
+
+          Object.entries(records).forEach(([key, jumlah]) => {
+            const [barang, status] = key.split("|||");
+            const row = worksheet.addRow({
+              barang,
+              semester,
+              status: statusLabelMap[status],
+              jumlah,
+            });
+
+            row.eachCell((cell, colNumber) => {
+              cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" }
+              };
+
+              if (colNumber === 3) {
+                // Warnai kolom status
+                const hex = statusColorMap[status];
+                if (hex) {
+                  cell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: "FF" + hex }
+                  };
+                  cell.font = { bold: true };
+                  cell.alignment = { horizontal: "center" };
+                }
+              }
+            });
+          });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer]), `Rekap-Pengajuan-Barang-Semester-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      } catch (error) {
+        console.error("Gagal export Excel status barang per semester:", error);
+      }
+    },
+    downloadBarangStatusChart() {
+      if (this.chartBarangStatusSemesterByPenempatanInstance) {
+        const link = document.createElement('a');
+        link.href = this.chartBarangStatusSemesterByPenempatanInstance.toBase64Image();
+        link.download = `Grafik-Barang-Semester-${new Date().toISOString().slice(0, 10)}.png`;
+        link.click();
+      }
+    },
+    async downloadBarangStatusExcel2() {
       const ExcelJS = (await import('exceljs')).default;
       const { saveAs } = await import('file-saver');
 
@@ -849,10 +1131,10 @@ export default {
         console.error("Gagal export Excel status barang per semester:", error);
       }
     },
-    downloadBarangStatusChart() {
-      if (this.chartBarangStatusSemesterInstance) {
+    downloadBarangStatusChart2() {
+      if (this.chartBarangStatusSemesterAllInstance) {
         const link = document.createElement('a');
-        link.href = this.chartBarangStatusSemesterInstance.toBase64Image();
+        link.href = this.chartBarangStatusSemesterAllInstance.toBase64Image();
         link.download = `Grafik-Barang-Semester-${new Date().toISOString().slice(0, 10)}.png`;
         link.click();
       }
@@ -869,7 +1151,7 @@ export default {
         },
       };
 
-      this.requestList.forEach(req => {
+      this.requestListAll.forEach(req => {
         const status = req.status;
         const date = new Date(req.tanggal_permintaan);
         const month = date.getMonth() + 1;
@@ -1019,7 +1301,7 @@ export default {
         "Semester 2": {}
       };
 
-      this.requestList.forEach(req => {
+      this.requestListAll.forEach(req => {
         const status = req.status;
         const date = new Date(req.tanggal_permintaan);
         const month = date.getMonth() + 1;
@@ -1054,23 +1336,54 @@ export default {
       const filename = `Pengajuan-PerSemester-${new Date().toISOString().slice(0, 10)}.xlsx`;
       saveAs(new Blob([buffer]), filename);
     },
-    async fetchRequest() {
+    async fetchAllRequest() {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(
-          "http://localhost:8000/api/request",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+
+        const res = await axios.get("http://localhost:8000/api/request", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        this.requestListAll = res.data.data;
+        this.renderChartPerSemester(); // pakai semua data
+
+      } catch (err) {
+        console.error("Gagal mengambil SEMUA data request:", err);
+      }
+    },
+    async fetchAllRequest2() {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get("http://localhost:8000/api/request", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
         this.requestList = res.data.data;
-        this.renderChartPerSemester();
+        this.$nextTick(() => this.renderChartBarangStatusPerSemester2());
+
+      } catch (err) {
+        console.error("Gagal mengambil SEMUA data request:", err);
+      }
+    },
+
+    async fetchRequestByPenempatan() {
+      try {
+        const token = localStorage.getItem("token");
+        const userData = JSON.parse(localStorage.getItem("user"));
+        const idPenempatan = userData.id_penempatan_fk;
+
+        const res = await axios.get('http://localhost:8000/api/request/filter', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        this.requestListByPenempatan = res.data.data;
         this.renderChartBarangStatusPerSemester();
 
       } catch (err) {
-        console.error("Gagal mengambil data request:", err);
+        console.error("Gagal mengambil data request by penempatan:", err);
       }
     },
+
 
     downloadChart() {
       if (this.chartInstance) {

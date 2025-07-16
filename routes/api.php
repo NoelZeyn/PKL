@@ -55,6 +55,7 @@ Route::group(['middleware' => 'api'], function () {
     Route::patch('/anggaran/reject', [PengajuanIntiController::class, 'rejectAnggaran']);
 
     Route::get('admin', [PengajuanIntiController::class, 'pengajuanAdminTable']);
+    Route::get('adminTahun', [PengajuanIntiController::class, 'pengajuanAdminTableTahun']);
     Route::patch('update-status', [PengajuanIntiController::class, 'updateStatus']);
     Route::apiResource('account', AccountController::class)->middleware(['api', RoleMiddleware::class . ':superadmin']);
 
@@ -87,6 +88,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::get('request', [RequestController::class, 'index']);
+    Route::get('request/filter', [RequestController::class, 'getByPenempatan']);
     Route::get('showProfile', [ProfileController::class, 'showProfile']);
     Route::get('request/{id}', [RequestController::class, 'show']);
     Route::post('request', [RequestController::class, 'store'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin,user,anggaran']);

@@ -284,7 +284,6 @@ export default {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Data ATK');
 
-      // Definisikan Kolom
       worksheet.columns = [
         { header: 'No', key: 'no', width: 5 },
         { header: 'Nama Barang', key: 'nama_barang', width: 25 },
@@ -295,7 +294,6 @@ export default {
         { header: 'Rekomendasi Pembelian', key: 'rekomendasi', width: 22 },
       ];
 
-      // Style Header
       worksheet.getRow(1).eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
@@ -303,14 +301,17 @@ export default {
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       });
 
-      // Kelompokkan Data berdasarkan Status (Perlu, Aman, Tidak Digunakan)
+      // GUNAKAN DATA BERDASARKAN OTORITAS
+      const isAdmin = this.tingkatanOtoritas !== 'user';
+      const sourceData = isAdmin ? this.filteredAlatList : this.filteredUserAlatList;
+
       const groupedData = {
         'Perlu Pengajuan': [],
         'Aman': [],
         'ATK Tidak Digunakan': [],
       };
 
-      this.filteredAlatList.forEach(alat => {
+      sourceData.forEach(alat => {
         const status = this.getRekomendasiStatus(alat);
         const statusText =
           status === 'perlu' ? 'Perlu Pengajuan' :
@@ -321,23 +322,20 @@ export default {
       let rowIndex = 2;
       let globalNo = 1;
 
-      // Loop berdasarkan urutan prioritas: Perlu → Aman → Tidak Digunakan
       const statusOrder = ['Perlu Pengajuan', 'Aman', 'ATK Tidak Digunakan'];
 
       statusOrder.forEach(statusName => {
         const items = groupedData[statusName];
         if (items.length === 0) return;
 
-        // Baris Judul Status
         worksheet.mergeCells(`A${rowIndex}:G${rowIndex}`);
         const statusCell = worksheet.getCell(`A${rowIndex}`);
         statusCell.value = `Status: ${statusName}`;
         statusCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
-        // Warna berbeda untuk tiap status
-        let bgColor = 'FF10B981'; // Default hijau (Aman)
-        if (statusName === 'Perlu Pengajuan') bgColor = 'FFDC3545'; // Merah
-        if (statusName === 'ATK Tidak Digunakan') bgColor = 'FF6C757D'; // Abu-abu
+        let bgColor = 'FF10B981';
+        if (statusName === 'Perlu Pengajuan') bgColor = 'FFDC3545';
+        if (statusName === 'ATK Tidak Digunakan') bgColor = 'FF6C757D';
 
         statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
         statusCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -364,11 +362,10 @@ export default {
             cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
 
             if (colNumber === 6) {
-              cell.numFmt = '"Rp"#,##0'; // Format rupiah
+              cell.numFmt = '"Rp"#,##0';
             }
           });
 
-          // Warnai Cell Rekomendasi
           const rekomCell = row.getCell('rekomendasi');
           if (rekomendasiText === 'Perlu Pengajuan') {
             rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC3545' } };
@@ -377,7 +374,7 @@ export default {
             rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28A745' } };
             rekomCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
           } else {
-            rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6C757D' } }; // Abu
+            rekomCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6C757D' } };
             rekomCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
           }
 
@@ -390,6 +387,7 @@ export default {
       const buffer = await workbook.xlsx.writeBuffer();
       saveAs(new Blob([buffer]), `Data-ATK-${new Date().toISOString().slice(0, 10)}.xlsx`);
     },
+
 
     formatRupiah(angka) {
       if (!angka) return "-";
@@ -415,8 +413,6 @@ export default {
         const res = await axios.get(`http://localhost:8000/api/alat-penempatan/${idPenempatan}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-
-        // Ambil barang dari elemen pertama dalam array
         this.userAlatList = res.data.data?.[0]?.barang || [];
       } catch (err) {
         console.error("Gagal mengambil data alat berdasarkan penempatan:", err);

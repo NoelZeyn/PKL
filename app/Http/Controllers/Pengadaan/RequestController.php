@@ -7,6 +7,7 @@ use App\Models\Admin;
 use App\Models\Alat;
 use App\Models\RequestPengadaan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class RequestController extends Controller
@@ -34,6 +35,44 @@ class RequestController extends Controller
             ], 500);
         }
     }
+
+public function getByPenempatan(Request $request)
+{
+    try {
+        $user = Auth::user(); // Ambil user yang login
+
+        if (!$user || !$user->id_penempatan_fk) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User tidak memiliki penempatan atau belum login',
+            ], 403);
+        }
+
+        $idPenempatan = $user->id_penempatan_fk;
+
+        $pengajuan = RequestPengadaan::with(['alat', 'user.dataDiri', 'approvals'])
+            ->where('status', '!=', 'draft')
+            ->whereHas('user', function ($query) use ($idPenempatan) {
+                $query->where('id_penempatan_fk', $idPenempatan);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data pengajuan berdasarkan penempatan user login berhasil diambil',
+            'data' => $pengajuan
+        ]);
+
+    } catch (\Throwable $th) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Gagal mengambil data',
+            'error' => $th->getMessage()
+        ], 500);
+    }
+}
+
 
     /**
      * Store a newly created resource in storage.

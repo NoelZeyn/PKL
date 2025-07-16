@@ -624,6 +624,75 @@ public function pengajuanAdminTable()
         ], 500);
     }
 }
+public function pengajuanAdminTableTahun(Request $request)
+{
+    
+    try {
+        $tahun = $request->input('tahun', now()->year);
+
+        $requests = RequestPengadaan::with(['alat', 'user.penempatan.bidang'])
+            ->whereNotIn('status', ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'rejected'])
+            ->whereYear('tanggal_permintaan', $tahun)
+            ->get();
+
+        $grouped = $requests->groupBy(function ($item) {
+            return optional(optional($item->user)->penempatan)->id_bidang_fk ?? 'unknown';
+        });
+
+        $result = [];
+
+        foreach ($grouped as $bidangId => $items) {
+            $bidangNama = 'Tidak Diketahui';
+            if ($bidangId !== 'unknown') {
+                $bidang = Bidang::find($bidangId);
+                if ($bidang) {
+                    $bidangNama = $bidang->nama_bidang;
+                }
+            }
+
+            $barangMap = [];
+
+            foreach ($items as $item) {
+                $barang = $item->alat;
+                $idAlat = $item->id_inventoris_fk;
+                $namaBarang = $barang->nama_barang ?? 'Tidak Diketahui';
+                $hargaSatuan = $barang->harga_satuan ?? 0;
+                $jumlah = $item->jumlah;
+
+                if (!isset($barangMap[$idAlat])) {
+                    $barangMap[$idAlat] = [
+                        'id_alat'      => $idAlat,
+                        'nama_barang'  => $namaBarang,
+                        'jumlah'       => 0,
+                        'harga_satuan' => $hargaSatuan,
+                        'total_harga'  => 0,
+                        'status'       => $item->status ?? '-',
+                        'keterangan'   => $item->keterangan ?? '-',
+                    ];
+                }
+
+                $barangMap[$idAlat]['jumlah'] += $jumlah;
+                $barangMap[$idAlat]['total_harga'] += $jumlah * $hargaSatuan;
+            }
+
+            $result[] = [
+                'id_bidang_fk' => $bidangId,
+                'nama_bidang'  => $bidangNama,
+                'barang'       => array_values($barangMap),
+            ];
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => $result
+        ]);
+    } catch (\Throwable $th) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $th->getMessage(),
+        ], 500);
+    }
+}
 
 
 public function updateStatus(Request $request)

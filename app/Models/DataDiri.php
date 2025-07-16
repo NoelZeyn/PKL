@@ -19,7 +19,7 @@ class DataDiri extends Model
         'jabatan',
         'bpjs',
         'kontak',
-        'foto_profil',
+        'foto_profil',  
     ];
 
     public function admin()

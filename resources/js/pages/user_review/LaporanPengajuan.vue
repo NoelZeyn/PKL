@@ -96,6 +96,13 @@
                         <h3 class="text-sm font-semibold text-gray-900">
                             Data Rekapitulasi Pengajuan per Bidang
                         </h3>
+                        <div class="flex items-center gap-2 px-5 py-3">
+                            <label for="tahun" class="text-sm font-semibold text-gray-700">Tahun:</label>
+                            <select v-model="selectedYear" @change="fetchPengajuanAdminTable"
+                                class="border rounded px-3 py-1 text-sm">
+                                <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
+                            </select>
+                        </div>
                         <button @click="downloadRekapBidangExcel"
                             class="flex items-center gap-2 px-4 cursor-pointer py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -139,16 +146,16 @@
                                         <td class="p-3 border">{{ barang.keterangan || '-' }}</td>
                                         <td class="p-3 border"> {{ barang.status || '-' }}
                                             <!-- <div class="flex space-x-2 justify-center">
-                                                    <button
-                                                        @click="approvePengajuan(group.id_bidang_fk, barang.id_alat)"
-                                                        class="cursor-pointer px-2 py-1 hover:bg-green-700 text-white text-xs rounded">
-                                                        ✔
-                                                    </button>
-                                                    <button @click="rejectPengajuan(group.id_bidang_fk, barang.id_alat)"
-                                                        class="cursor-pointer px-2 py-1 hover:bg-red-700 text-white text-xs rounded">
-                                                        ✖
-                                                    </button>
-                                                </div> -->
+                                                        <button
+                                                            @click="approvePengajuan(group.id_bidang_fk, barang.id_alat)"
+                                                            class="cursor-pointer px-2 py-1 hover:bg-green-700 text-white text-xs rounded">
+                                                            ✔
+                                                        </button>
+                                                        <button @click="rejectPengajuan(group.id_bidang_fk, barang.id_alat)"
+                                                            class="cursor-pointer px-2 py-1 hover:bg-red-700 text-white text-xs rounded">
+                                                            ✖
+                                                        </button>
+                                                    </div> -->
                                         </td>
                                     </tr>
                                 </template>
@@ -299,6 +306,8 @@ export default {
             requestToDelete: null,
             requestList: [],
             PengajuanBaruList: [],
+            availableYears: [],
+            selectedYear: new Date().getFullYear(),
             dataGroupedByBidang: [],
             currentPage: 1,
             itemsPerPage: 10,
@@ -332,11 +341,47 @@ export default {
                 this.filteredRequestList.length / this.itemsPerPage
             );
         },
+
+        filteredPengajuanBaruList() {
+            if (!this.searchQuery) return this.PengajuanBaruList;
+
+            const query = this.searchQuery.toLowerCase();
+
+            return this.PengajuanBaruList.filter(item =>
+                item.nama_barang?.toLowerCase().includes(query) ||
+                item.catatan?.toLowerCase().includes(query) ||
+                item.status?.toLowerCase().includes(query) ||
+                item.kategori?.nama_kategori?.toLowerCase().includes(query)
+            );
+        },
+
+        paginatedPengajuanBaruList() {
+            const start = (this.currentPagePengajuanBaru - 1) * this.itemsPengajuanBaruPerPage;
+            return this.filteredPengajuanBaruList.slice(start, start + this.itemsPengajuanBaruPerPage);
+        },
+
+        totalPagesPengajuanBaru() {
+            return Math.ceil(this.filteredPengajuanBaruList.length / this.itemsPengajuanBaruPerPage);
+        },
+    },
+
+    created() {
+        const currentYear = new Date().getFullYear();
+        this.availableYears = Array.from({ length: 20 }, (_, i) => currentYear - i);
+        this.selectedYear = currentYear;
+        this.fetchRequest();
+        this.getUserInfo();
+        this.fetchPengajuanBaru();
+        this.fetchPengajuanAdminTable();
+    },
+
+    methods: {
         async downloadRekapBidangExcel() {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get("http://localhost:8000/api/admin", {
+                const res = await axios.get("http://localhost:8000/api/adminTahun", {
                     headers: { Authorization: `Bearer ${token}` },
+                    params: { tahun: this.selectedYear },
                 });
 
                 const data = res.data.data || [];
@@ -446,37 +491,6 @@ export default {
                 console.error("Gagal export Excel rekap bidang:", error);
             }
         },
-        filteredPengajuanBaruList() {
-            if (!this.searchQuery) return this.PengajuanBaruList;
-
-            const query = this.searchQuery.toLowerCase();
-
-            return this.PengajuanBaruList.filter(item =>
-                item.nama_barang?.toLowerCase().includes(query) ||
-                item.catatan?.toLowerCase().includes(query) ||
-                item.status?.toLowerCase().includes(query) ||
-                item.kategori?.nama_kategori?.toLowerCase().includes(query)
-            );
-        },
-
-        paginatedPengajuanBaruList() {
-            const start = (this.currentPagePengajuanBaru - 1) * this.itemsPengajuanBaruPerPage;
-            return this.filteredPengajuanBaruList.slice(start, start + this.itemsPengajuanBaruPerPage);
-        },
-
-        totalPagesPengajuanBaru() {
-            return Math.ceil(this.filteredPengajuanBaruList.length / this.itemsPengajuanBaruPerPage);
-        },
-    },
-
-    created() {
-        this.fetchRequest();
-        this.getUserInfo();
-        this.fetchPengajuanBaru();
-        this.fetchPengajuanAdminTable();
-    },
-
-    methods: {
         async fetchPengajuanBaru() {
             try {
                 const token = localStorage.getItem("token");
@@ -688,15 +702,16 @@ export default {
         async fetchPengajuanAdminTable() {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get(
-                    "http://localhost:8000/api/admin",
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
+                const res = await axios.get("http://localhost:8000/api/adminTahun", {
+                    headers: { Authorization: `Bearer ${token}` },
+                    params: { tahun: this.selectedYear }
+                });
                 this.dataGroupedByBidang = res.data.data || [];
             } catch (error) {
                 console.error("Gagal mengambil data rekap admin:", error);
             }
         },
+
         async getUserInfo() {
             try {
                 const token = localStorage.getItem("token");
