@@ -38,8 +38,8 @@ class RequestPengadaan extends Model
         return $this->hasMany(Approval::class, 'id_request_fk');
     }
 
-    public function pengadaan()
-    {
-        return $this->hasOne(Pengadaan::class, 'id_request_fk');
-    }
+    // public function pengadaan()
+    // {
+    //     return $this->hasOne(Pengadaan::class, 'id_request_fk');
+    // }
 }

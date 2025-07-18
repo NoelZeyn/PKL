@@ -20,8 +20,8 @@
 
                         <div class="flex flex-col sm:flex-row items-center gap-4">
                             <label class="w-full sm:w-40 text-sm font-semibold text-gray-700">Jabatan</label>
-                            <input v-model="form.jabatan" type="text" disabled readonly
-                                class="flex-1 p-2 text-gray-500 border border-gray-300 rounded-md bg-gray-50" />
+                            <input v-model="form.jabatan" type="text"
+                                class="flex-1 p-2 border border-gray-300 rounded-md bg-gray-50" />
                         </div>
 
                         <div class="flex flex-col sm:flex-row items-center gap-4">

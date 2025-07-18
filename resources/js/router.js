@@ -31,6 +31,7 @@ import PengajuanAtkAdd from "./pages/Pengajuan/Pengajuan-atk-add.vue";
 import PengaturanPengajuan from "./pages/Pengajuan/Pengaturan-pengajuan.vue";
 import ProfileEdit from "./pages/Profile/Profile-edit.vue";
 import UbahPassword from "./pages/Profile/UbahPassword.vue";
+import SuratBeritaAcara from "./pages/SuratBeritaAcara.vue";
 
 
 // Fungsi validasi token
@@ -76,28 +77,28 @@ const routes = [
     { path: "/profile-edit", component: ProfileEdit, meta: { requiresAuth: true, title: "Profile Edit"}},
     { path: "/ubah-password", component: UbahPassword, meta: { requiresAuth: true, title: "Ubah Password"}},
 
-    { path: "/manajemen-alat", component: AlatTulis, meta: { requiresAuth: true, title: "Alat Tulis" } },
+    { path: "/manajemen-alat", component: AlatTulis, meta: { requiresAuth: true,  disallowedRoles: ["user_review"], title: "Alat Tulis" } },
     { path: "/:pathMatch(.*)*", redirect: "/login", meta: { title: "Not Found" } }, // Catch-all route
     { path: "/alat-add", component: AlatAdd, meta: { requiresAuth: true, allowedRoles: ["admin", "superadmin"], title: "Tambah Alat" } },
-    { path: "/alat-edit/:id", component: AlatEdit, meta: { requiresAuth: true, title: "Edit Alat" } },
-    { path: "/alat-info/:id", component: AlatInfo, meta: { requiresAuth: true, title: "Info Alat" } },
-    { path: "/alat-pemakaian", component: AlatPemakaian, meta: { requiresAuth: true, title: "Pemakaian Alat" } },
-    { path: "/alat-stock", component: AlatStock, meta: { requiresAuth: true, title: "Stock Alat" } },
+    { path: "/alat-edit/:id", component: AlatEdit, meta: { requiresAuth: true, allowedRoles: ["superadmin", "admin"], title: "Edit Alat" } },
+    { path: "/alat-info/:id", component: AlatInfo, meta: { requiresAuth: true, disallowedRoles: ["user_review"], title: "Info Alat" } },
+    { path: "/alat-pemakaian", component: AlatPemakaian, meta: { requiresAuth: true, disallowedRoles: ["user_review"], title: "Pemakaian Alat" } },
+    { path: "/alat-stock", component: AlatStock, meta: { requiresAuth: true, disallowedRoles: ["user_review"], title: "Stock Alat" } },
 
-    { path: "/pengajuan", component: Pengajuan, meta: { requiresAuth: true, title: "Pengajuan" } },
+    { path: "/pengajuan", component: Pengajuan, meta: { requiresAuth: true, disallowedRoles: ["user_review"], title: "Pengajuan" } },
     { path: "/pengajuan-setting", component: PengaturanPengajuan, meta: { requiresAuth: true, allowedRoles: ["admin", "superadmin"], title: "Pengajuan Setting" } },
-    { path: "/pengajuan-info/:id", component: PengajuanInfo, meta: { requiresAuth: true, title: "Info Pengajuan" } },
-    { path: "/pengajuan-add", component: PengajuanAdd, meta: { requiresAuth: true, title: "Tambah Pengajuan" } },
-    { path: "/pengajuan-atk-add", component: PengajuanAtkAdd, meta: { requiresAuth: true, title: "Tambah Pengajuan Jenis ATK" } },
+    { path: "/pengajuan-info/:id", component: PengajuanInfo, meta: { requiresAuth: true,  disallowedRoles: ["user_review"], title: "Info Pengajuan" } },
+    { path: "/pengajuan-add", component: PengajuanAdd, meta: { requiresAuth: true,  disallowedRoles: ["user_review"], title: "Tambah Pengajuan" } },
+    { path: "/pengajuan-atk-add", component: PengajuanAtkAdd, meta: { requiresAuth: true, disallowedRoles: ["user_review"], title: "Tambah Pengajuan Jenis ATK" } },
 
     { path: "/grafik", component: Grafik, meta: { requiresAuth: true, title: "Grafik RAB Temporary"} },
     { path: "/laporan-pemakaian", component: LaporanPemakaian, meta: { requiresAuth: true, disallowedRoles: ["user"], title: "Laporan Pemakaian Alat"} },
-    { path: "/laporan-ATK", component: LaporanATK, meta: { requiresAuth: true, title: "Laporan ATK" } },
+    { path: "/laporan-ATK", component: LaporanATK, meta: { requiresAuth: true,  disallowedRoles: ["user"], title: "Laporan ATK" } },
     { path: "/laporan-approval", component: LaporanApproval, meta: { requiresAuth: true, disallowedRoles: ["user"], title: "Laporan Approval" } },
-    { path: "/laporan-pengajuan", component: LaporanPengajuan, meta: { requiresAuth: true, title: "Laporan Pengajuan" } },
-    {path: "/laporan-history-atk", component: LaporanHistoryATK, meta: {requiresAuth: true, disallowedRoles: ["user"], title: "Riwayat Manajemen ATK"}},
+    { path: "/laporan-pengajuan", component: LaporanPengajuan, meta: { requiresAuth: true, disallowedRoles: ["user"], title: "Laporan Pengajuan" } },
+    { path: "/laporan-history-atk", component: LaporanHistoryATK, meta: { requiresAuth: true, disallowedRoles: ["user"], title: "Riwayat Manajemen ATK" } },
 
-    
+    { path: "/surat-ba", component: SuratBeritaAcara, meta: { requiresAuth: true, title: "Surat Berita Acara" } },
 ];
 
 // Membuat router
@@ -113,7 +114,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !tokenValid) {
     localStorage.clear();
     sessionStorage.clear();
-    next("/login");
+    next("/dashboard");
     return;
   }
   const user = JSON.parse(localStorage.getItem("user"));
@@ -129,7 +130,7 @@ router.beforeEach((to, from, next) => {
     const userRole = user.tingkatan_otoritas;
     if (!to.meta.allowedRoles.includes(userRole)) {
       alert("Akses ditolak. Anda tidak memiliki izin untuk halaman ini.");
-      return next("/");
+      return next("/dashboard");
     }
   }
 

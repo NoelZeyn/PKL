@@ -5,7 +5,7 @@
     <div class="flex-1 p-8 bg-white">
       <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl p-8 space-y-12">
         <!-- Grafik Status Barang per Semester -->
-        <div>
+        <div v-if="tingkatanOtoritas === 'user' || tingkatanOtoritas === 'asman'">
           <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
             <h3 class="text-sm font-semibold text-gray-900">Grafik Pengajuan Status Barang Per Semester</h3>
             <div class="flex gap-2">
@@ -37,7 +37,7 @@
 
 
         <!-- Grafik Total per Bidang -->
-        <div>
+        <div v-if="tingkatanOtoritas !== 'user' && tingkatanOtoritas !== 'asman'">
           <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
             <h1 class="text-3xl font-bold text-[#08607a]">Total Pengajuan per Bidang</h1>
 
@@ -73,7 +73,7 @@
           <canvas ref="chartPengajuans"></canvas>
 
         </div>
-        <div class="mt-8 bg-white rounded-lg shadow border border-gray-300 p-5">
+        <div v-if="tingkatanOtoritas !== 'user' && tingkatanOtoritas !== 'asman'" class="mt-8 bg-white rounded-lg shadow border border-gray-300 p-5">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-sm font-semibold text-gray-900">
               Grafik Pengajuan Berdasarkan Status per Semester
@@ -123,6 +123,7 @@ export default {
   data() {
     return {
       activeMenu: 'grafik',
+      tingkatanOtoritas: "",
       bidangChartInstance: null,
       bidangChartCanvas: null,
       chartPengajuansInstance: null,
@@ -143,12 +144,30 @@ export default {
     for (let i = 0; i < 20; i++) {
       this.yearOptions.push(currentYear - i);
     }
-    this.fetchAllRequest(); //penting ke-3
-    this.fetchRequestByPenempatan(); //penting ke-1
-    this.fetchPengajuanAdminChart(); //penting ke-2
+    this.getUserInfo();
   },
 
   methods: {
+    async getUserInfo() {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.post("http://localhost:8000/api/me", {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        this.tingkatanOtoritas = res.data.tingkatan_otoritas;
+        this.userPenempatanId = res.data.id_penempatan_fk;
+
+        if (this.tingkatanOtoritas === 'user' || this.tingkatanOtoritas === 'asman') {
+          this.fetchRequestByPenempatan();
+        } else {
+          this.fetchAllRequest();
+          this.fetchPengajuanAdminChart();
+        }
+      } catch (err) {
+        console.error("Gagal mendapatkan info user:", err);
+      }
+    },
     downloadBidangChart() {
       if (this.chartPengajuansInstance) {
         const link = document.createElement("a");
@@ -374,233 +393,233 @@ export default {
       }
     },
 
-async renderChartBarangStatusPerSemester() {
-  const semesterData = {
-    "Semester 1": {},
-    "Semester 2": {}
-  };
+    async renderChartBarangStatusPerSemester() {
+      const semesterData = {
+        "Semester 1": {},
+        "Semester 2": {}
+      };
 
-  const validStatuses = [
-    "approved", "rejected", "purchasing", "on_the_way", "done",
-    "waiting_approval_1", "waiting_approval_2", "waiting_approval_3"
-  ];
+      const validStatuses = [
+        "approved", "rejected", "purchasing", "on_the_way", "done",
+        "waiting_approval_1", "waiting_approval_2", "waiting_approval_3"
+      ];
 
-  for (const semester of ["Semester 1", "Semester 2"]) {
-    const dataList = this.requestListByPenempatan[semester] || [];
-
-    dataList.forEach(req => {
-      const barang = req.alat?.nama_barang || "Tanpa Nama";
-      const status = req.status;
-      if (!validStatuses.includes(status)) return;
-
-      if (!semesterData[semester][barang]) {
-        semesterData[semester][barang] = {};
-        validStatuses.forEach(s => semesterData[semester][barang][s] = 0);
-      }
-
-      semesterData[semester][barang][status]++;
-    });
-  }
-
-  const allBarang = new Set();
-  Object.values(semesterData).forEach(barangs => {
-    Object.keys(barangs).forEach(nama => allBarang.add(nama));
-  });
-
-  const labels = Array.from(allBarang);
-
-  const statusColorMap = {
-    waiting_approval_1: "#c084fc",
-    waiting_approval_2: "#f472b6",
-    waiting_approval_3: "#fb923c",
-    approved: "#34d399",
-    rejected: "#f87171",
-    purchasing: "#facc15",
-    on_the_way: "#60a5fa",
-    done: "#a3a3a3",
-  };
-
-  const statusLabelMap = {
-    waiting_approval_1: "Approval 1",
-    waiting_approval_2: "Approval 2",
-    waiting_approval_3: "Approval 3",
-    approved: "Approved",
-    rejected: "Rejected",
-    purchasing: "Purchasing",
-    on_the_way: "On The Way",
-    done: "Done",
-  };
-
-  const datasets = [];
-
-  for (const status of validStatuses) {
-    const dataset = {
-      label: statusLabelMap[status],
-      backgroundColor: statusColorMap[status] + "CC",
-      borderColor: statusColorMap[status],
-      borderWidth: 1,
-      data: [],
-    };
-
-    labels.forEach(barang => {
-      let total = 0;
       for (const semester of ["Semester 1", "Semester 2"]) {
-        total += semesterData[semester][barang]?.[status] || 0;
+        const dataList = this.requestListByPenempatan[semester] || [];
+
+        dataList.forEach(req => {
+          const barang = req.alat?.nama_barang || "Tanpa Nama";
+          const status = req.status;
+          if (!validStatuses.includes(status)) return;
+
+          if (!semesterData[semester][barang]) {
+            semesterData[semester][barang] = {};
+            validStatuses.forEach(s => semesterData[semester][barang][s] = 0);
+          }
+
+          semesterData[semester][barang][status]++;
+        });
       }
-      dataset.data.push(total);
-    });
 
-    datasets.push(dataset);
-  }
-
-  const ctx = document.getElementById("chartBarangStatusPerSemester").getContext("2d");
-
-  if (this.chartBarangStatusSemesterByPenempatanInstance) {
-    this.chartBarangStatusSemesterByPenempatanInstance.destroy();
-  }
-
-  this.chartBarangStatusSemesterByPenempatanInstance = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets,
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: "top" },
-      },
-      scales: {
-        x: { stacked: true, title: { display: true, text: 'Nama Barang' }},
-        y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Jumlah Pengajuan' }}
-      }
-    }
-  });
-},
-async downloadBarangStatusExcel() {
-  const ExcelJS = (await import('exceljs')).default;
-  const { saveAs } = await import('file-saver');
-
-  try {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Pengajuan Status Barang");
-
-    const statusLabelMap = {
-      waiting_approval_1: "Approval 1",
-      waiting_approval_2: "Approval 2",
-      waiting_approval_3: "Approval 3",
-      approved: "Approved",
-      rejected: "Rejected",
-      purchasing: "Purchasing",
-      on_the_way: "On The Way",
-      done: "Done"
-    };
-
-    const statusColorMap = {
-      waiting_approval_1: "c084fc",
-      waiting_approval_2: "f472b6",
-      waiting_approval_3: "fb923c",
-      approved: "34d399",
-      rejected: "f87171",
-      purchasing: "facc15",
-      on_the_way: "60a5fa",
-      done: "a3a3a3"
-    };
-
-    worksheet.columns = [
-      { header: "Nama Barang", key: "barang", width: 30 },
-      { header: "Semester", key: "semester", width: 15 },
-      { header: "Status", key: "status", width: 25 },
-      { header: "Jumlah", key: "jumlah", width: 10 },
-    ];
-
-    worksheet.getRow(1).eachCell(cell => {
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4F46E5" } };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-      cell.border = {
-        top: { style: "thin" },
-        left: { style: "thin" },
-        bottom: { style: "thin" },
-        right: { style: "thin" }
-      };
-    });
-
-    const dataPerSemester = {
-      "Semester 1": {},
-      "Semester 2": {}
-    };
-
-    const validStatuses = Object.keys(statusLabelMap);
-
-    Object.entries(this.requestListByPenempatan).forEach(([semester, reqList]) => {
-      reqList.forEach(req => {
-        const barang = req.alat?.nama_barang || "Tanpa Nama";
-        const status = req.status;
-
-        if (!validStatuses.includes(status)) return;
-
-        const key = `${barang}|||${status}`;
-        if (!dataPerSemester[semester][key]) {
-          dataPerSemester[semester][key] = 0;
-        }
-
-        dataPerSemester[semester][key]++;
+      const allBarang = new Set();
+      Object.values(semesterData).forEach(barangs => {
+        Object.keys(barangs).forEach(nama => allBarang.add(nama));
       });
-    });
 
-    Object.entries(dataPerSemester).forEach(([semester, records]) => {
-      const startRow = worksheet.lastRow.number + 2;
-      worksheet.mergeCells(`A${startRow}:D${startRow}`);
-      const titleCell = worksheet.getCell(`A${startRow}`);
-      titleCell.value = semester;
-      titleCell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-      titleCell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: semester === "Semester 1" ? "FF10B981" : "FFF59E0B" }
+      const labels = Array.from(allBarang);
+
+      const statusColorMap = {
+        waiting_approval_1: "#c084fc",
+        waiting_approval_2: "#f472b6",
+        waiting_approval_3: "#fb923c",
+        approved: "#34d399",
+        rejected: "#f87171",
+        purchasing: "#facc15",
+        on_the_way: "#60a5fa",
+        done: "#a3a3a3",
       };
-      titleCell.alignment = { vertical: "middle", horizontal: "left" };
 
-      Object.entries(records).forEach(([key, jumlah]) => {
-        const [barang, status] = key.split("|||");
-        const row = worksheet.addRow({
-          barang,
-          semester,
-          status: statusLabelMap[status],
-          jumlah,
+      const statusLabelMap = {
+        waiting_approval_1: "Approval 1",
+        waiting_approval_2: "Approval 2",
+        waiting_approval_3: "Approval 3",
+        approved: "Approved",
+        rejected: "Rejected",
+        purchasing: "Purchasing",
+        on_the_way: "On The Way",
+        done: "Done",
+      };
+
+      const datasets = [];
+
+      for (const status of validStatuses) {
+        const dataset = {
+          label: statusLabelMap[status],
+          backgroundColor: statusColorMap[status] + "CC",
+          borderColor: statusColorMap[status],
+          borderWidth: 1,
+          data: [],
+        };
+
+        labels.forEach(barang => {
+          let total = 0;
+          for (const semester of ["Semester 1", "Semester 2"]) {
+            total += semesterData[semester][barang]?.[status] || 0;
+          }
+          dataset.data.push(total);
         });
 
-        row.eachCell((cell, colNumber) => {
+        datasets.push(dataset);
+      }
+
+      const ctx = document.getElementById("chartBarangStatusPerSemester").getContext("2d");
+
+      if (this.chartBarangStatusSemesterByPenempatanInstance) {
+        this.chartBarangStatusSemesterByPenempatanInstance.destroy();
+      }
+
+      this.chartBarangStatusSemesterByPenempatanInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets,
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: "top" },
+          },
+          scales: {
+            x: { stacked: true, title: { display: true, text: 'Nama Barang' } },
+            y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Jumlah Pengajuan' } }
+          }
+        }
+      });
+    },
+    async downloadBarangStatusExcel() {
+      const ExcelJS = (await import('exceljs')).default;
+      const { saveAs } = await import('file-saver');
+
+      try {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Pengajuan Status Barang");
+
+        const statusLabelMap = {
+          waiting_approval_1: "Approval 1",
+          waiting_approval_2: "Approval 2",
+          waiting_approval_3: "Approval 3",
+          approved: "Approved",
+          rejected: "Rejected",
+          purchasing: "Purchasing",
+          on_the_way: "On The Way",
+          done: "Done"
+        };
+
+        const statusColorMap = {
+          waiting_approval_1: "c084fc",
+          waiting_approval_2: "f472b6",
+          waiting_approval_3: "fb923c",
+          approved: "34d399",
+          rejected: "f87171",
+          purchasing: "facc15",
+          on_the_way: "60a5fa",
+          done: "a3a3a3"
+        };
+
+        worksheet.columns = [
+          { header: "Nama Barang", key: "barang", width: 30 },
+          { header: "Semester", key: "semester", width: 15 },
+          { header: "Status", key: "status", width: 25 },
+          { header: "Jumlah", key: "jumlah", width: 10 },
+        ];
+
+        worksheet.getRow(1).eachCell(cell => {
+          cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4F46E5" } };
+          cell.alignment = { vertical: "middle", horizontal: "center" };
           cell.border = {
             top: { style: "thin" },
             left: { style: "thin" },
             bottom: { style: "thin" },
             right: { style: "thin" }
           };
-
-          if (colNumber === 3) {
-            const hex = statusColorMap[status];
-            if (hex) {
-              cell.fill = {
-                type: "pattern",
-                pattern: "solid",
-                fgColor: { argb: "FF" + hex }
-              };
-              cell.font = { bold: true };
-              cell.alignment = { horizontal: "center" };
-            }
-          }
         });
-      });
-    });
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), `Rekap-Pengajuan-Barang-Semester-${new Date().toISOString().slice(0, 10)}.xlsx`);
-  } catch (error) {
-    console.error("Gagal export Excel status barang per semester:", error);
-  }
-},
+        const dataPerSemester = {
+          "Semester 1": {},
+          "Semester 2": {}
+        };
+
+        const validStatuses = Object.keys(statusLabelMap);
+
+        Object.entries(this.requestListByPenempatan).forEach(([semester, reqList]) => {
+          reqList.forEach(req => {
+            const barang = req.alat?.nama_barang || "Tanpa Nama";
+            const status = req.status;
+
+            if (!validStatuses.includes(status)) return;
+
+            const key = `${barang}|||${status}`;
+            if (!dataPerSemester[semester][key]) {
+              dataPerSemester[semester][key] = 0;
+            }
+
+            dataPerSemester[semester][key]++;
+          });
+        });
+
+        Object.entries(dataPerSemester).forEach(([semester, records]) => {
+          const startRow = worksheet.lastRow.number + 2;
+          worksheet.mergeCells(`A${startRow}:D${startRow}`);
+          const titleCell = worksheet.getCell(`A${startRow}`);
+          titleCell.value = semester;
+          titleCell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+          titleCell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: semester === "Semester 1" ? "FF10B981" : "FFF59E0B" }
+          };
+          titleCell.alignment = { vertical: "middle", horizontal: "left" };
+
+          Object.entries(records).forEach(([key, jumlah]) => {
+            const [barang, status] = key.split("|||");
+            const row = worksheet.addRow({
+              barang,
+              semester,
+              status: statusLabelMap[status],
+              jumlah,
+            });
+
+            row.eachCell((cell, colNumber) => {
+              cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" }
+              };
+
+              if (colNumber === 3) {
+                const hex = statusColorMap[status];
+                if (hex) {
+                  cell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: "FF" + hex }
+                  };
+                  cell.font = { bold: true };
+                  cell.alignment = { horizontal: "center" };
+                }
+              }
+            });
+          });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer]), `Rekap-Pengajuan-Barang-Semester-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      } catch (error) {
+        console.error("Gagal export Excel status barang per semester:", error);
+      }
+    },
 
     downloadBarangStatusChart() {
       if (this.chartBarangStatusSemesterByPenempatanInstance) {
@@ -806,25 +825,25 @@ async downloadBarangStatusExcel() {
         console.error("Gagal mengambil SEMUA data request:", err);
       }
     },
-async fetchRequestByPenempatan() {
-  try {
-    const token = localStorage.getItem("token");
+    async fetchRequestByPenempatan() {
+      try {
+        const token = localStorage.getItem("token");
 
-    const res = await axios.get('http://localhost:8000/api/request/filter', {
-      headers: { Authorization: `Bearer ${token}` },
-      params: {
-        tahun: this.selectedYear,
+        const res = await axios.get('http://localhost:8000/api/request/filter', {
+          headers: { Authorization: `Bearer ${token}` },
+          params: {
+            tahun: this.selectedYear,
+          }
+        });
+
+        this.requestListByPenempatan = res.data.data; // format: { Semester 1: [...], Semester 2: [...] }
+
+        this.renderChartBarangStatusPerSemester();
+
+      } catch (err) {
+        console.error("Gagal mengambil data request by penempatan:", err);
       }
-    });
-
-    this.requestListByPenempatan = res.data.data; // format: { Semester 1: [...], Semester 2: [...] }
-
-    this.renderChartBarangStatusPerSemester();
-
-  } catch (err) {
-    console.error("Gagal mengambil data request by penempatan:", err);
-  }
-}
+    }
 
   },
 };

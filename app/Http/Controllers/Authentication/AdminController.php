@@ -53,7 +53,6 @@ class AdminController extends Controller
         $messages = [
             'NID.required' => 'NID wajib diisi.',
             'NID.unique' => 'NID sudah terdaftar.',
-            'NID.size' => 'NID harus terdiri dari 10 karakter.',
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 8 karakter.',
             'tingkatan_otoritas.required' => 'Tingkatan otoritas wajib dipilih.',
@@ -65,7 +64,7 @@ class AdminController extends Controller
         ];
 
         $validator = Validator::make($request->all(), [
-            'NID' => 'required|size:10|unique:admin,NID',
+            'NID' => 'required|min:8|max:10|unique:admin,NID',
             'password' => 'required|min:8',
             'tingkatan_otoritas' => 'required|in:superadmin,admin,user,user_review,anggaran,asman,manajer',
             'id_penempatan_fk' => 'required_if:tingkatan_otoritas,asman|nullable|exists:penempatan,id',

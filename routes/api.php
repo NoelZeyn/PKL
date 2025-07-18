@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BA\BeritaAcaraController;
 use App\Http\Controllers\Inventoris\AlatPenempatanController;
 use App\Http\Controllers\Authentication\AccountController;
 use App\Http\Controllers\Authentication\AdminController;
@@ -39,29 +40,30 @@ Route::group(['middleware' => 'api'], function () {
     Route::get('bidang', [BidangController::class, 'index']);
     Route::get('/penempatan/by-bidang/{id}', [PenempatanController::class, 'getByBidang']);
 
-    Route::get('/asman', [PengajuanIntiController::class, 'asman']);
-    Route::patch('/asman/approve', [PengajuanIntiController::class, 'approveAsman']);
-    Route::patch('/asman/reject', [PengajuanIntiController::class, 'rejectAsman']);
-    Route::get('asman-all', [PengajuanIntiController::class, 'asmanAll']);
+    Route::get('asman', [PengajuanIntiController::class, 'asman'])->middleware(['api', RoleMiddleware::class . ':superadmin,asman']);
+    Route::patch('asman/approve', [PengajuanIntiController::class, 'approveAsman'])->middleware(['api', RoleMiddleware::class . ':superadmin,asman']);
+    Route::patch('asman/reject', [PengajuanIntiController::class, 'rejectAsman'])->middleware(['api', RoleMiddleware::class . ':superadmin,asman']);
+    Route::get('asman-all', [PengajuanIntiController::class, 'asmanAll'])->middleware(['api', RoleMiddleware::class . ':superadmin,asman']);
 
-    Route::get('manajer', [PengajuanIntiController::class, 'manajer']);
-    Route::patch('/manajer/approve', [PengajuanIntiController::class, 'approveManajer']);
-    Route::patch('/manajer/reject', [PengajuanIntiController::class, 'rejectManajer']);
-    Route::get('manajer-all', [PengajuanIntiController::class, 'manajerAll']);
+    Route::get('manajer', [PengajuanIntiController::class, 'manajer'])->middleware(['api', RoleMiddleware::class . ':superadmin,manajer']);
+    Route::patch('manajer/approve', [PengajuanIntiController::class, 'approveManajer'])->middleware(['api', RoleMiddleware::class . ':superadmin,manajer']);
+    Route::patch('manajer/reject', [PengajuanIntiController::class, 'rejectManajer'])->middleware(['api', RoleMiddleware::class . ':superadmin,manajer']);
+    Route::get('manajer-all', [PengajuanIntiController::class, 'manajerAll'])->middleware(['api', RoleMiddleware::class . ':superadmin,manajer']);
 
     // Route::get('anggaran-all', [PengajuanIntiController::class, 'anggaranAll']);
-    Route::get('anggaran', [PengajuanIntiController::class, 'anggaranAll']);
-    Route::patch('/anggaran/approve', [PengajuanIntiController::class, 'approveAnggaran']);
-    Route::patch('/anggaran/reject', [PengajuanIntiController::class, 'rejectAnggaran']);
+    Route::get('anggaran', [PengajuanIntiController::class, 'anggaranAll'])->middleware(['api', RoleMiddleware::class . ':superadmin,anggaran']);
+    Route::patch('anggaran/approve', [PengajuanIntiController::class, 'approveAnggaran'])->middleware(['api', RoleMiddleware::class . ':superadmin,anggaran']);
+    Route::patch('anggaran/reject', [PengajuanIntiController::class, 'rejectAnggaran'])->middleware(['api', RoleMiddleware::class . ':superadmin,anggaran']);
 
+    // atur nanti
     Route::get('admin', [PengajuanIntiController::class, 'pengajuanAdminTable']);
     Route::get('adminTahun', [PengajuanIntiController::class, 'pengajuanAdminTableTahun']);
     Route::get('adminSemester', [PengajuanIntiController::class, 'pengajuanAdminTableBySemester']);
     Route::patch('update-status', [PengajuanIntiController::class, 'updateStatus']);
     Route::apiResource('account', AccountController::class)->middleware(['api', RoleMiddleware::class . ':superadmin']);
 
-    Route::get('/pengaturan-pengajuan', [PengaturanPengajuanController::class, 'status'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
-    Route::post('/pengaturan-pengajuan', [PengaturanPengajuanController::class, 'update'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
+    Route::get('pengaturan-pengajuan', [PengaturanPengajuanController::class, 'status'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
+    Route::post('pengaturan-pengajuan', [PengaturanPengajuanController::class, 'update'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
 });
 
 Route::group(['middleware' => 'api'], function ($router) {
@@ -74,7 +76,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('alat', [AlatController::class, 'index']);
     Route::get('alat/{id}', [AlatController::class, 'show']);
     Route::post('alat', [AlatController::class, 'store'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,user,asman,manajer']);
-    Route::put('alat/{id}', [AlatController::class, 'update']);
+    Route::put('alat/{id}', [AlatController::class, 'update'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
     Route::delete('alat/{id}', [AlatController::class, 'destroy'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
     Route::apiResource('history_pemakaian', HistoryPemakaianController::class);
     Route::post('/history_pemakaian_multi', [HistoryPemakaianController::class, 'storeMultiple']);
@@ -108,13 +110,16 @@ Route::group(['middleware' => 'api'], function () {
     Route::patch('pengajuan-baru/reject/{id}', [RequestATKBaruController::class, 'reject'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin']);
 
     Route::apiResource('kategori_pengadaan', KategoriPengadaanController::class);
+    Route::apiResource('berita-acara', BeritaAcaraController::class);
+    Route::get('/export-pdf', [BeritaAcaraController::class, 'exportPDF']);
+
+
     Route::apiResource('history_pemakaian', HistoryPemakaianController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);
     Route::apiResource('history_approval', HistoryApprovalController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);
     // Route::apiResource('request', RequestController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,user,anggaran']);
 });
 
 Route::group(['middleware' => 'api'], function () {
-
     Route::get('history-atk', [HistoryAtkController::class, 'index'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);
     Route::get('history-atk-alat/{id}', [HistoryAtkController::class, 'historyByAlat'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);
     Route::get('history-atk-admin/{id}', [HistoryAtkController::class, 'historyByAdmin'])->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);

@@ -85,6 +85,7 @@
                       <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
                     </button>
                     <button title="Edit" @click="navigateTo('edit', alat)"
+                      v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
                       class="cursor-pointer hover:opacity-70 border-l-1 pl-2">
                       <img :src="updateIcon" alt="Update" class="w-5 h-5 object-contain" />
                     </button>
@@ -128,26 +129,25 @@
             </tbody>
           </table>
 
-<!-- Admin/Superadmin Pagination -->
-<div v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
-  class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
-  <button @click="prevPage" :disabled="currentPage === 1"
-    class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
-  <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
-  <button @click="nextPage" :disabled="currentPage === totalPages"
-    class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
-</div>
+          <!-- Admin/Superadmin Pagination -->
+          <div v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
+            class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
+            <button @click="prevPage" :disabled="currentPage === 1"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
+            <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
+            <button @click="nextPage" :disabled="currentPage === totalPages"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
+          </div>
 
-<!-- User/Asman/Manajer/Anggaran Pagination -->
-<div v-else
-  class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
-  <button @click="prevPage" :disabled="currentPage === 1"
-    class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
-  <span>Halaman {{ currentPage }} dari {{ totalPagesUser }}</span>
-  <button @click="nextPage" :disabled="currentPage === totalPagesUser"
-    class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
-</div>
-
+          <!-- User/Asman/Manajer/Anggaran Pagination -->
+          <div v-else
+            class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
+            <button @click="prevPage" :disabled="currentPage === 1"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
+            <span>Halaman {{ currentPage }} dari {{ totalPagesUser }}</span>
+            <button @click="nextPage" :disabled="currentPage === totalPagesUser"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
+          </div>
         </div>
       </div>
     </div>
@@ -219,7 +219,7 @@ export default {
         });
     },
 
-        filteredUserAlatList() {
+    filteredUserAlatList() {
       return this.userAlatList
         .filter(a => {
           const searchMatch = !this.searchQuery ||
@@ -258,8 +258,8 @@ export default {
     },
 
     totalPagesUser() {
-  return Math.ceil(this.userAlatList.length / this.itemsPerPage);
-}
+      return Math.ceil(this.userAlatList.length / this.itemsPerPage);
+    }
 
   },
 

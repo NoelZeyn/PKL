@@ -19,13 +19,14 @@
                 <p><strong>Kontak:</strong></p>
                 <p>Ibu Linda Aqnes</p>
                 <p>
-                    WhatsApp:
+                    Kunjungi di Lt.2 Building Service 
+                    <!-- WhatsApp:
                     <a
                         href="https://wa.me/6281234567890"
                         target="_blank"
                         class="text-[#08607a] underline"
                         >+62 812-3456-7890</a
-                    >
+                    > -->
                 </p>
                 <p>
                     Email:
