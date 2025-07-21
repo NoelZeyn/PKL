@@ -14,7 +14,7 @@ class AccountController extends Controller
     public function index()
     {
         try {
-            $accounts = Admin::with('dataDiri')->get(  );
+            $accounts = Admin::with('dataDiri')->get();
             return response()->json([
                 'status' => 'success',
                 'data' => $accounts

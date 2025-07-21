@@ -18,7 +18,7 @@ class DataDiriSeeder extends Seeder
                 'nama_lengkap' => 'Admin User ' . $i,
                 'foto_profil' => null,
                 'jabatan' => 'Jabatan ' . $i,
-                'bpjs' => rand(0,1), // true or false randomly
+                'bpjs' => rand(0,1),
                 'kontak' => '0812345678' . str_pad($i, 2, '0', STR_PAD_LEFT),
                 'created_at' => now(),
                 'updated_at' => now(),

@@ -21,8 +21,12 @@ class AdminController extends Controller
     }
     public function me()
     {
-        return response()->json(Auth::user());
+        $user = Auth::user();
+        $data = Admin::with('dataDiri')->find($user->id);
+        return response()->json($data);
     }
+
+
     public function login()
     {
         $credentials = request(['NID', 'password']);

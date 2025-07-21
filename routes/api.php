@@ -112,6 +112,9 @@ Route::group(['middleware' => 'api'], function () {
     Route::apiResource('kategori_pengadaan', KategoriPengadaanController::class);
     Route::apiResource('berita-acara', BeritaAcaraController::class);
     Route::get('/export-pdf', [BeritaAcaraController::class, 'exportPDF']);
+    Route::get('/list-user', [BeritaAcaraController::class, 'listActiveUsers']);
+    Route::get('/berita-acara/user/{id}', [BeritaAcaraController::class, 'indexByUser']);
+    Route::get('/export-pdf/{id}', [BeritaAcaraController::class, 'exportPDFByUser']);
 
 
     Route::apiResource('history_pemakaian', HistoryPemakaianController::class)->middleware(['api', RoleMiddleware::class . ':superadmin,admin,anggaran,asman,manajer,user_review']);

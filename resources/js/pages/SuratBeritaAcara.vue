@@ -18,11 +18,27 @@
                 </div>
 
                 <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
-                    <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
-                        <h3 class="text-sm font-semibold text-gray-900">Riwayat Pengajuan Barang</h3>
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-4 px-5 py-3 border-b border-gray-300 bg-white">
+                        <!-- Judul -->
+                        <h3 class="text-sm font-semibold text-gray-900 w-full sm:w-auto">Riwayat Pengajuan Barang</h3>
 
-                        <button @click="extractPDF"
-                            class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200 cursor-pointer">
+                        <!-- Dropdown Pilih User -->
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+                            <label for="user" class="text-sm font-medium text-gray-700 whitespace-nowrap">Pilih
+                                User:</label>
+                            <select v-model="selectedUserId"
+                                class="cursor-pointer w-full sm:w-64 border border-gray-300 px-3 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#08607a]">
+                                <option disabled value="">-- Pilih User --</option>
+                                <option v-for="user in userList" :key="user.id" :value="user.id">
+                                    {{ user.data_diri?.nama_lengkap || user.NID }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Tombol Download PDF -->
+                        <button @click="extractPDFByUser"
+                            class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow transition duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -30,6 +46,7 @@
                             Download PDF
                         </button>
                     </div>
+
 
                     <table class="w-full table-fixed border-collapse border border-gray-300">
                         <thead class="bg-gray-100 text-[#7d7f81]">
@@ -50,7 +67,7 @@
                                 <td class="p-3">{{ formatTanggal(item.tanggal_permintaan) }}</td>
                             </tr>
                             <tr v-if="paginatedData.length === 0">
-                                <td colspan="5" class="text-center p-4 text-gray-500">Data tidak ditemukan</td>
+                                <td colspan="5" class="text-center p-4 text-gray-500">Pilih User untuk melihat data</td>
                             </tr>
                         </tbody>
                     </table>
@@ -68,7 +85,6 @@
         </div>
     </div>
 </template>
-
 <script>
 import Sidebar from "@/components/Sidebar.vue";
 import HeaderBar from "@/components/HeaderBar.vue";
@@ -81,6 +97,8 @@ export default {
         return {
             activeMenu: "suratBeritaAcara",
             requestList: [],
+            selectedUserId: "",
+            userList: [],
             searchQuery: "",
             currentPage: 1,
             itemsPerPage: 10,
@@ -99,27 +117,51 @@ export default {
         totalPages() {
             return Math.ceil(this.filteredData.length / this.itemsPerPage) || 1;
         },
+        totalJumlah() {
+            return this.filteredData.reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
+        }
     },
     created() {
-        this.fetchRequests();
+        this.fetchUserList();
     },
+    watch: {
+        selectedUserId(newUserId) {
+            if (newUserId) {
+                this.fetchRequestsByUser(newUserId);
+            } 
+        }
+    },
+
     methods: {
-        fetchRequests() {
+        async fetchRequestsByUser(userId) {
             const token = localStorage.getItem("token");
-            axios
-                .get("http://localhost:8000/api/berita-acara", {
+            try {
+                const res = await axios.get(`http://localhost:8000/api/berita-acara/user/${userId}`, {
                     headers: { Authorization: `Bearer ${token}` },
-                })
-                .then(res => {
-                    this.requestList = res.data.data;
-                })
-                .catch(err => {
-                    console.error("Gagal mengambil data:", err);
                 });
+                this.requestList = res.data.data;
+            } catch (err) {
+                console.error("Gagal mengambil data user:", err);
+            }
+        },
+        async fetchUserList() {
+            const token = localStorage.getItem("token");
+            try {
+                const res = await axios.get("http://localhost:8000/api/list-user", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                this.userList = res.data.data.filter(user => user.access === "active");
+            } catch (err) {
+                console.error("Gagal mengambil data user:", err);
+            }
         },
         formatTanggal(dateString) {
             const date = new Date(dateString);
-            return date.toLocaleDateString("id-ID", { day: '2-digit', month: '2-digit', year: 'numeric' });
+            return date.toLocaleDateString("id-ID", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            });
         },
         nextPage() {
             if (this.currentPage < this.totalPages) this.currentPage++;
@@ -130,10 +172,12 @@ export default {
         onInputSearch() {
             this.currentPage = 1;
         },
-        async extractPDF() {
+        async extractPDFByUser() {
+            if (!this.selectedUserId) return alert("Pilih user terlebih dahulu!");
+
             const token = localStorage.getItem("token");
             try {
-                const res = await axios.get("http://localhost:8000/api/export-pdf", {
+                const res = await axios.get(`http://localhost:8000/api/export-pdf/${this.selectedUserId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         Accept: "application/pdf",
@@ -142,9 +186,9 @@ export default {
                 });
 
                 const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
-                const link = document.createElement('a');
+                const link = document.createElement("a");
                 link.href = url;
-                link.setAttribute("download", `berita-acara-${new Date().toISOString().slice(0, 10)}.pdf`);
+                link.setAttribute("download", `berita-acara-${this.selectedUserId}.pdf`);
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
@@ -152,12 +196,10 @@ export default {
                 console.error("Gagal download PDF:", err);
             }
         }
-
-
-
-    },
+    }
 };
 </script>
+
 
 <style scoped>
 th,

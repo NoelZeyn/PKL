@@ -64,7 +64,8 @@
         <table style="width: 100%; border: none; font-size: 13px; margin-bottom: 20px;">
             <tr>
                 <td style="width: 25%; padding: 6px 10px"><strong>Nama Pengaju</strong></td>
-                <td style="width: 75%; padding: 6px 10px">{{ $user->dataDiri->nama_lengkap }}</td>
+                <td style="width: 75%; padding: 6px 10px">{{ optional($user->dataDiri)->nama_lengkap ?? '...' }}
+                </td>
             </tr>
             <tr>
                 <td style="padding: 6px 10px"><strong>NID</strong></td>
@@ -76,7 +77,8 @@
             </tr>
             <tr>
                 <td style="padding: 6px 10px"><strong>Jabatan</strong></td>
-                <td style="padding: 6px 10px">{{ $user->dataDiri->jabatan }}</td>
+                <td style="padding: 6px 10px">{{ optional($user->dataDiri)->jabatan ?? '...' }}
+                </td>
             </tr>
         </table>
 
@@ -114,21 +116,23 @@
                 <td style="width: 50%; text-align: left; border: none; vertical-align: top;">
                     Gresik, {{ \Carbon\Carbon::now()->format('d F Y') }}<br>
                     Mengetahui,<br>
-                    <strong>Admin</strong>
+                    <strong>Admin Umum</strong>
                     <div style="min-height: 80px;"></div> <!-- Area kosong untuk tanda tangan/stempel -->
                     <div style="border-bottom: 1px solid #000; width: 60%;">
-                        <span style="font-size: 13px;">(Nama Lengkap)</span>
+                        <span style="font-size: 13px;">(NAMA LENGKAP)</span>
                     </div>
                     <span style="font-size: 13px;">NID: </span>
                 </td>
                 <td style="width: 50%; text-align: left; border: none; vertical-align: top;">
                     Gresik, {{ \Carbon\Carbon::now()->format('d F Y') }}<br>
                     Menyetujui,<br>
-                    <strong>{{ $user->penempatan->nama_penempatan }},
-                        {{ $user->dataDiri->jabatan ?? 'Penerima' }}</strong>
+                    <strong>{{ $user->penempatan->nama_penempatan }}</strong>
                     <div style="min-height: 80px;"></div> <!-- Area kosong untuk tanda tangan/stempel -->
                     <div style="border-bottom: 1px solid #000; width: 60%;">
-                        <span style="font-size: 13px;">{{ $user->dataDiri->nama_lengkap }}</span>
+                        <span style="font-size: 13px;">
+                            {{ optional($user->dataDiri)->nama_lengkap ?? '(NAMA PENERIMA)' }}
+                        </span>
+
                     </div>
                     <span style="font-size: 13px;">NID: {{ $user->NID }}</span>
                 </td>
