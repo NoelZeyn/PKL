@@ -60,7 +60,7 @@
 
                 </ul>
             </div>
-            <div class="flex flex-col gap-2">
+            <div v-if="role === 'admin' || role === 'superadmin'" class="flex flex-col gap-2">
                 <p class="text-sm font-semibold text-[#b0b385] mb-1">Berita Acara</p>
                 <ul>
                     <router-link to="/surat-ba" class="block">

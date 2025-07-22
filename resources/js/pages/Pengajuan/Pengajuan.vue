@@ -130,7 +130,7 @@
                                 </td>
                                 <td class="p-3">
                                     {{
-                                        request.user?.data_diri?.nama_lengkap || 
+                                        request.user?.data_diri?.nama_lengkap ||
                                         request.user?.NID || '-'
                                     }}
                                 </td>
@@ -175,7 +175,7 @@
                                             tingkatanOtoritas === 'admin' ||
                                             tingkatanOtoritas ===
                                             'superadmin'
-                                        "class="cursor-pointer hover:opacity-70 border-l-1 pl-2">
+                                        " class="cursor-pointer hover:opacity-70 border-l-1 pl-2">
                                             <img :src="deleteIcon" alt="Delete"
                                                 class="cursor-pointer hover:opacity-70" />
                                         </button>
@@ -231,7 +231,7 @@ export default {
             activeMenu: "pengajuan",
             searchQuery: "",
             tingkatanOtoritas: "",
-                showAddButton: false,
+            showAddButton: false,
             showModal: false,
             showSuccessAlert: false,
             successMessage: "",
@@ -306,19 +306,19 @@ export default {
         await this.getUserInfo();
         this.fetchRequest();
         this.fetchPengajuanBaru();
-          this.cekStatusPengajuan();
+        this.cekStatusPengajuan();
     },
 
     methods: {
-          async cekStatusPengajuan() {
-    try {
-      const res = await axios.get("http://localhost:8000/api/pengaturan-pengajuan");
-      this.showAddButton = res.data.is_open;
-    } catch (err) {
-      console.error("Gagal cek pengaturan pengajuan", err);
-      this.showAddButton = true; // fallback default
-    }
-  },
+        async cekStatusPengajuan() {
+            try {
+                const res = await axios.get("http://localhost:8000/api/pengaturan-pengajuan");
+                this.showAddButton = res.data.is_open;
+            } catch (err) {
+                console.error("Gagal cek pengaturan pengajuan", err);
+                this.showAddButton = true; // fallback default
+            }
+        },
         async fetchPengajuanBaru() {
             try {
                 const token = localStorage.getItem("token");
@@ -464,6 +464,18 @@ export default {
                 rejected: {
                     label: "Ditolak",
                     color: "bg-red-200 text-red-800",
+                },
+                purchasing: {
+                    label: "Pembelian",
+                    color: "bg-blue-200 text-blue-800",
+                },
+                on_the_way: {
+                    label: "Dalam Perjalanan",
+                    color: "bg-blue-200 text-blue-800",
+                },
+                done: {
+                    label: "Selesai",
+                    color: "bg-gray-300 text-gray-900",
                 },
             };
 

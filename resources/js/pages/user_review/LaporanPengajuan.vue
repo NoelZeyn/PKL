@@ -801,11 +801,11 @@ export default {
                     color: "bg-red-200 text-red-800",
                 },
                 purchasing: {
-                    label: "Progress",
+                    label: "Pembelian",
                     color: "bg-blue-200 text-blue-800",
                 },
                 on_the_way: {
-                    label: "Progress",
+                    label: "Dalam Perjalanan",
                     color: "bg-blue-200 text-blue-800",
                 },
                 done: {
