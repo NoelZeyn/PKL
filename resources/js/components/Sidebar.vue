@@ -20,7 +20,7 @@
             </div>
 
             <!-- Menu Utama -->
-            <div v-if="role !== 'anggaran'" class="flex flex-col gap-2">
+            <div v-if="role !== 'user_review'" class="flex flex-col gap-2">
                 <p class="text-sm font-semibold text-[#b0b385] mb-1">
                     Main Menu
                 </p>

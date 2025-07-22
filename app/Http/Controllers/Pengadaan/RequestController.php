@@ -171,7 +171,6 @@ public function getByPenempatan(Request $request)
 
     public function storeMultiple(Request $request)
     {
-        // Validasi request
         $validator = Validator::make($request->all(), [
             'items' => 'required|array|min:1',
             'items.*.NID' => 'required|string|exists:admin,NID',
@@ -195,7 +194,6 @@ public function getByPenempatan(Request $request)
                 continue;
             }
 
-            // Simpan data pengajuan
             RequestPengadaan::create([
                 'NID' => $item['NID'],
                 'id_inventoris_fk' => $item['id_inventoris_fk'],
