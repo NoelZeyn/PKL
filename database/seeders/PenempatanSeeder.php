@@ -18,6 +18,10 @@ class PenempatanSeeder extends Seeder
             
             // OP - Operasi
             ['nama_penempatan' => 'PERENCANAAN & PENGENDALIAN OPERASI', 'id_bidang_fk' => 2],
+            ['nama_penempatan' => 'CCR PLTGU', 'id_bidang_fk' => 2],
+            ['nama_penempatan' => 'CCR PLTU 1-2', 'id_bidang_fk' => 2],
+            ['nama_penempatan' => 'CCR PLTU 3-4', 'id_bidang_fk' => 2],
+            ['nama_penempatan' => 'CCR PLTU CNG', 'id_bidang_fk' => 2],
             ['nama_penempatan' => 'PRODUKSI PLTU-PLTG (A,B,C,D)', 'id_bidang_fk' => 2],
             ['nama_penempatan' => 'PRODUKSI PLTGU & CNG (A,B,C,D)', 'id_bidang_fk' => 2],
             ['nama_penempatan' => 'NIAGA & BAHAN BAKAR', 'id_bidang_fk' => 2],
@@ -27,11 +31,11 @@ class PenempatanSeeder extends Seeder
             // HAR - Pemeliharaan
             ['nama_penempatan' => 'PERENCANAAN & PENGENDALIAN PEMELIHARAAN', 'id_bidang_fk' => 4],
             ['nama_penempatan' => 'OUTAGE MANAGEMENT', 'id_bidang_fk' => 4],
-            ['nama_penempatan' => 'PEMELIHARAAN LISTRIK PLTGU & CNG, PLTU-G', 'id_bidang_fk' => 4],
+            ['nama_penempatan' => 'PEMELIHARAAN LISTRIK PLTGU & CNG', 'id_bidang_fk' => 4],
             ['nama_penempatan' => 'PEMELIHARAAN LISTRIK PLTU-G', 'id_bidang_fk' => 4],
-            ['nama_penempatan' => 'PEMELIHARAAN KONTROL & INSTRUMEN PLTGU & CNG', 'id_bidang_fk' => 4],
+            ['nama_penempatan' => 'PEMELIHARAAN KONTROL & INSTRUMEN PLTGU dan CNG', 'id_bidang_fk' => 4],
             ['nama_penempatan' => 'PEMELIHARAAN KONTROL & PLTU-G', 'id_bidang_fk' => 4],
-            ['nama_penempatan' => 'PEMELIHARAAN MESIN & SIPIL PLTGU & CNG', 'id_bidang_fk' => 4],
+            ['nama_penempatan' => 'PEMELIHARAAN MESIN & SIPIL PLTGU dan CNG', 'id_bidang_fk' => 4],
             ['nama_penempatan' => 'PEMELIHARAAN MESIN & SIPIL PLTU-G', 'id_bidang_fk' => 4],
             ['nama_penempatan' => 'INVENTORI KONTROL & GUDANG', 'id_bidang_fk' => 4],
             ['nama_penempatan' => 'MANAJER', 'id_bidang_fk' => 4],

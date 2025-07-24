@@ -29,7 +29,7 @@
                 />
                 <span
                     class="logo-text text-[20px] font-bold text-[#08607a] font-['Protest_Strike']"
-                    >System ATK PLN</span
+                    >Sistem Pengadaan PLN</span
                 >
             </div>
 
@@ -37,7 +37,7 @@
                 class="flex flex-col items-center text-center mb-5 w-full max-w-md"
             >
                 <h2 class="text-3xl font-semibold mb-2 w-full">
-                    Masuk Akun System ATK PLN
+                    Masuk Sistem Pengadaan PLN
                 </h2>
                 <p class="text-sm text-gray-500 mb-6">
                     Monitor, Manage, and Care Better

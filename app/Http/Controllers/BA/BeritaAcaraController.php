@@ -70,25 +70,28 @@ return $pdf->download(
     'berita-acara-' . (optional($targetUser->dataDiri)->nama_lengkap ?? $targetUser->NID) . '-' . now()->format('Ymd') . '.pdf'
 );
 
+    }public function listActiveUsers($id_penempatan_fk)
+{
+    try {
+        $accounts = Admin::with('dataDiri')
+            ->where('access', 'active')
+            ->where('id_penempatan_fk', $id_penempatan_fk)
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $accounts
+        ], 200);
+    } catch (\Throwable $th) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Failed to retrieve accounts',
+            'error' => $th->getMessage()
+        ], 500);
     }
-    public function listActiveUsers()
-    {
-        try {
-            $accounts = Admin::with('dataDiri')
-                ->where('access', 'active')
-                ->get();
-            return response()->json([
-                'status' => 'success',
-                'data' => $accounts
-            ], 200);
-        } catch (\Throwable $th) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to retrieve accounts',
-                'error' => $th->getMessage()
-            ], 500);
-        }
-    }
+}
+
+
 
     public function indexByUser($id)
 {

@@ -46,7 +46,7 @@ class AdminSeeder extends Seeder
         Admin::create([
             'NID'                => '8813066ZJA',
             'password'           => Hash::make('password123'), // Password default
-            'id_penempatan_fk'   => '14',
+            'id_penempatan_fk'   => '27',
             'id_bidang_fk'   => '1',
             'tingkatan_otoritas' => 'superadmin',
             'access'             => 'active',
@@ -55,7 +55,7 @@ class AdminSeeder extends Seeder
         Admin::create([
             'NID'                => '8813066ZJB',
             'password'           => Hash::make('password123'), // Password default
-            'id_penempatan_fk'   => '17',
+            'id_penempatan_fk'   => '28',
             // 'id_bidang_fk'   => '1',
             'tingkatan_otoritas' => 'user',
             'access'             => 'active',

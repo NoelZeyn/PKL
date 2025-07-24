@@ -2,7 +2,7 @@
   <div class="flex h-screen bg-gray-100">
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
     <div class="flex-1 p-8 pt-4 bg-white">
-      <HeaderBar title="History Data ATK" />
+      <HeaderBar title="Riwayat Manajemen ATK" />
       <div class="my-4 border-b border-gray-300"></div>
 
       <div class="pb-12">
@@ -143,7 +143,7 @@ export default {
 
 async downloadExcel() {
   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('History Data ATK');
+  const worksheet = workbook.addWorksheet('Riwayat Manajemen ATK');
 
   worksheet.columns = [
     { header: 'No', key: 'no', width: 5 },

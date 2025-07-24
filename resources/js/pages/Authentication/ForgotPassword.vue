@@ -9,7 +9,7 @@
                 Lupa Password?
             </h1>
             <p class="text-gray-600 mb-6 text-sm leading-relaxed">
-                Jika Anda lupa password akun System ATK PLN, silakan hubungi
+                Jika Anda lupa password akun Sistem Pengadaan PLN, silakan hubungi
                 kontak berikut untuk bantuan reset password:
             </p>
 

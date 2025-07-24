@@ -15,7 +15,7 @@
             <!-- Logo -->
             <div class="flex items-center gap-1 border-b border-gray-200 pb-2">
                 <img :src="logoImage" alt="Logo" class="w-[35px] object-cover rounded-t-[10px] mt-[-5px]" />
-                <span class="logo-text text-[20px] font-bold text-[#08607a] font-['Protest_Strike']">System ATK
+                <span class="logo-text text-[20px] font-bold text-[#08607a] font-['Protest_Strike']">Sistem Pengadaan
                     PLN</span>
             </div>
 
