@@ -55,6 +55,16 @@
                 </svg>
                 Download Excel
               </button>
+              <button @click="downloadRekapBidangExcelML"
+                class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                </svg>
+                Download Rekap Prediksi ML
+              </button>
+
             </div>
 
           </div>
@@ -73,7 +83,8 @@
           <canvas ref="chartPengajuans"></canvas>
 
         </div>
-        <div v-if="tingkatanOtoritas !== 'user' && tingkatanOtoritas !== 'asman'" class="mt-8 bg-white rounded-lg shadow border border-gray-300 p-5">
+        <div v-if="tingkatanOtoritas !== 'user' && tingkatanOtoritas !== 'asman'"
+          class="mt-8 bg-white rounded-lg shadow border border-gray-300 p-5">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-sm font-semibold text-gray-900">
               Grafik Pengajuan Berdasarkan Status per Semester
@@ -148,6 +159,93 @@ export default {
   },
 
   methods: {
+    async downloadRekapBidangExcelML() {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get("http://localhost:8000/api/request", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // Ambil hanya data dengan status "done"
+        const allowedStatus = ["approved", "purchasing", "on_the_way", "done"];
+        const data = (res.data.data || []).filter(item => allowedStatus.includes(item.status));
+
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Dataset ML");
+
+        const bidangList = ["HAR", "EQA", "OP", "BS", "LK3"];
+
+        worksheet.columns = [
+          { header: "Barang", key: "barang", width: 35 },
+          { header: "Jumlah", key: "jumlah", width: 10 },
+          { header: "Semester", key: "semester", width: 10 },
+          { header: "Tahun", key: "tahun", width: 10 },
+          ...bidangList.map(b => ({ header: b, key: b.toLowerCase(), width: 8 }))
+        ];
+
+        worksheet.getRow(1).eachCell(cell => {
+          cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4F46E5" } };
+          cell.alignment = { vertical: "middle", horizontal: "center" };
+        });
+
+        const grouped = {}; // key: barang-semester-tahun
+
+        for (const item of data) {
+          const barang = item.alat?.nama_barang || "-";
+          const jumlah = item.jumlah || 0;
+          const tanggal = item.tanggal_permintaan || item.created_at;
+          const tahun = new Date(tanggal).getFullYear();
+          const bulan = new Date(tanggal).getMonth() + 1;
+          const semester = bulan <= 6 ? "Ganjil" : "Genap";
+          const bidang = item.user?.penempatan?.bidang?.nama_bidang?.toUpperCase() || "-";
+
+          const key = `${barang}__${semester}__${tahun}`;
+
+          if (!grouped[key]) {
+            grouped[key] = {
+              barang,
+              semester,
+              tahun,
+              jumlah: 0,
+              HAR: false,
+              EQA: false,
+              OP: false,
+              BS: false,
+              LK3: false
+            };
+          }
+
+          grouped[key].jumlah += jumlah;
+
+          if (bidangList.includes(bidang)) {
+            grouped[key][bidang] = true;
+          }
+        }
+
+        for (const key in grouped) {
+          const row = grouped[key];
+          worksheet.addRow({
+            barang: row.barang,
+            jumlah: row.jumlah,
+            semester: row.semester,
+            tahun: row.tahun,
+            har: row.HAR,
+            eqa: row.EQA,
+            op: row.OP,
+            bs: row.BS,
+            lk3: row.LK3
+          });
+        }
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const filename = `Dataset-ML-Pengajuan-${new Date().toISOString().slice(0, 10)}.xlsx`;
+        saveAs(new Blob([buffer]), filename);
+      } catch (error) {
+        console.error("Gagal export dataset ML:", error);
+      }
+    },
     async getUserInfo() {
       try {
         const token = localStorage.getItem("token");
@@ -294,7 +392,8 @@ export default {
         grandTotalValueCell.alignment = { vertical: "middle", horizontal: "center" };
 
         const buffer = await workbook.xlsx.writeBuffer();
-        const filename = `Rekap-Pengajuan-PerBidang-${new Date().toISOString().slice(0, 10)}.xlsx`;
+        const filename = `Rekap-Pengajuan-PerBidang-${this.selectedYear}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
         saveAs(new Blob([buffer]), filename);
       } catch (error) {
         console.error("Gagal export Excel rekap bidang:", error);
@@ -805,7 +904,7 @@ export default {
       worksheet.getRow(1).font = { bold: true };
 
       const buffer = await workbook.xlsx.writeBuffer();
-      const filename = `Pengajuan-PerSemester-${this.selectedYear}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const filename = `Rekap-Pengajuan-PerBidang-${this.selectedYear}-${new Date().toISOString().slice(0, 10)}.xlsx`;
       saveAs(new Blob([buffer]), filename);
     },
     async fetchAllRequest() {

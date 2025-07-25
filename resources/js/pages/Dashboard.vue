@@ -692,7 +692,8 @@ export default {
         grandTotalValueCell.alignment = { vertical: "middle", horizontal: "center" };
 
         const buffer = await workbook.xlsx.writeBuffer();
-        const filename = `Rekap-Pengajuan-PerBidang-${new Date().toISOString().slice(0, 10)}.xlsx`;
+const filename = `Rekap-Pengajuan-PerBidang-${this.selectedYear}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
         saveAs(new Blob([buffer]), filename);
       } catch (error) {
         console.error("Gagal export Excel rekap bidang:", error);

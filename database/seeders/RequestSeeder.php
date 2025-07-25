@@ -14,7 +14,6 @@ class RequestSeeder extends Seeder
     public function run(): void
     {
         $faker = Faker::create();
-
         $alatList = Alat::all();
         $adminList = Admin::all()->pluck('id')->toArray();
 
@@ -22,6 +21,7 @@ class RequestSeeder extends Seeder
             $this->command->warn('Seeder Request gagal: Tabel Alat atau Admin kosong.');
             return;
         }
+
         $keteranganList = [
             'Pengadaan rutin bulanan.',
             'Stock habis, diperlukan pengadaan segera.',
@@ -37,23 +37,34 @@ class RequestSeeder extends Seeder
 
         $statuses = ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'approved', 'rejected', 'purchasing', 'on_the_way', 'done'];
 
-        for ($i = 0; $i < 100; $i++) {
-            $alat = $alatList->random();
-            $jumlah = $faker->numberBetween(1, 50);
-            $hargaSatuan = $alat->harga_satuan ?? 0;
-            $total = $jumlah * $hargaSatuan;
+        $totalPerYear = 2000; // jumlah data per tahun
+        $yearsBack = 10; // 10 tahun terakhir
 
-            DB::table('request')->insert([
-                'id_inventoris_fk'   => $alat->id_alat,
-                'id_users_fk'        => $faker->randomElement($adminList),
-                'tanggal_permintaan' => $faker->dateTimeBetween('-12 months', 'now')->format('Y-m-d'),
-                'status'             => $faker->randomElement($statuses),
-                'jumlah'             => $jumlah,
-                'total'              => $total,
-                'keterangan' => $faker->randomElement($keteranganList),
-                'created_at'         => now(),
-                'updated_at'         => now(),
-            ]);
+        foreach (range(0, $yearsBack - 1) as $i) {
+            $year = now()->subYears($i)->year;
+
+            for ($j = 0; $j < $totalPerYear; $j++) {
+                $alat = $alatList->random();
+                $jumlah = $faker->numberBetween(1, 50);
+                $hargaSatuan = $alat->harga_satuan ?? 0;
+                $total = $jumlah * $hargaSatuan;
+
+                DB::table('request')->insert([
+                    'id_inventoris_fk'   => $alat->id_alat,
+                    'id_users_fk'        => $faker->randomElement($adminList),
+                    'tanggal_permintaan' => $faker->dateTimeBetween("$year-01-01", "$year-12-31")->format('Y-m-d'),
+                    'status'             => 'done',
+                    'jumlah'             => $jumlah,
+                    'total'              => $total,
+                    'keterangan'         => $faker->randomElement($keteranganList),
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ]);
+            }
+
+            $this->command->info("Data tahun $year berhasil di-generate.");
         }
+
+        $this->command->info('Seeder Request selesai.');
     }
 }

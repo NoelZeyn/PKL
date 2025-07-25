@@ -2,7 +2,7 @@
         <div class="flex h-screen bg-gray-100">
             <Sidebar :activeMenu="activeMenu" @update:activeMenu="updateActiveMenu" />
             <div class="flex-1 p-8 pt-4 bg-white">
-                <HeaderBar title="Data Pengajuan" class="mt-3" />
+                <HeaderBar title="Data Approval" class="mt-3" />
                 <div class="my-4 border-b border-gray-300"></div>
 
                 <div class="pb-12">
