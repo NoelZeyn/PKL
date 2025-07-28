@@ -1,13 +1,10 @@
 <template>
     <div class="flex min-h-screen flex-col md:flex-row">
         <!-- Left Side -->
-        <div
-            class="hidden md:flex w-full md:w-2/5 text-white rounded-r-lg overflow-hidden bg-cover bg-center opacity-80"
-            :style="{ backgroundImage: `url(${mosqueBackground})` }"
-        >
+        <div class="hidden md:flex w-full md:w-2/5 text-white rounded-r-lg overflow-hidden bg-cover bg-center opacity-80"
+            :style="{ backgroundImage: `url(${mosqueBackground})` }">
             <div
-                class="space-y-2 p-8 bg-black/50 h-full flex flex-col items-center justify-center text-center mb-5 w-[100%]"
-            >
+                class="space-y-2 p-8 bg-black/50 h-full flex flex-col items-center justify-center text-center mb-5 w-[100%]">
                 <h2 class="text-3xl font-bold">Selamat Datang</h2>
                 <p class="text-base leading-relaxed text-white/90">
                     Sistem ATK PLN adalah platform yang dirancang untuk
@@ -18,24 +15,14 @@
         </div>
 
         <!-- Right Side -->
-        <div
-            class="w-full md:w-3/5 flex flex-col items-center pt-5 overflow-hidden"
-        >
+        <div class="w-full md:w-3/5 flex flex-col items-center pt-5 overflow-hidden">
             <div class="flex items-center gap-3 self-start ml-12 mb-10">
-                <img
-                    :src="logoImage"
-                    alt="Logo Image"
-                    class="w-[75px] rounded-t-lg object-cover"
-                />
-              <span
-                    class="logo-text text-[20px] font-bold text-[#08607a] font-['Protest_Strike']"
-                    >Sistem Pengadaan PLN</span
-                >
+                <img :src="logoImage" alt="Logo Image" class="w-[75px] rounded-t-lg object-cover" />
+                <span class="logo-text text-[20px] font-bold text-[#08607a] font-['Protest_Strike']">Sistem Pengadaan
+                    PLN</span>
             </div>
 
-            <div
-                class="flex flex-col items-center text-center mb-5 w-[100%] max-w-md"
-            >
+            <div class="flex flex-col items-center text-center mb-5 w-[100%] max-w-md">
                 <h2 class="text-3xl font-semibold mb-2 w-full">
                     Register Sistem Pengadaan PLN
                 </h2>
@@ -46,25 +33,13 @@
                 <form @submit.prevent="register" class="w-full">
                     <!-- NID -->
                     <div class="mb-4">
-                        <label class="block text-left font-semibold mb-1"
-                            >NID</label
-                        >
+                        <label class="block text-left font-semibold mb-1">NID</label>
                         <div class="relative">
-                            <img
-                                src="@/assets/email.svg"
-                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50"
-                            />
-                            <input
-                                type="text"
-                                v-model="form.NID"
-                                placeholder="Enter your NID"
-                                required
-                                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none"
-                            />
-                            <p
-                                v-if="errors.NID"
-                                class="text-left text-sm text-red-500 mt-1"
-                            >
+                            <img src="@/assets/email.svg"
+                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
+                            <input type="text" v-model="form.NID" placeholder="Enter your NID" required
+                                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none" />
+                            <p v-if="errors.NID" class="text-left text-sm text-red-500 mt-1">
                                 {{ errors.NID[0] }}
                             </p>
                         </div>
@@ -72,37 +47,18 @@
 
                     <!-- Password -->
                     <div class="mb-4">
-                        <label class="block text-left font-semibold mb-1"
-                            >Password</label
-                        >
+                        <label class="block text-left font-semibold mb-1">Password</label>
                         <div class="relative">
-                            <img
-                                src="@/assets/password.svg"
-                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-60"
-                            />
-                            <input
-                                :type="showPassword ? 'text' : 'password'"
-                                v-model="form.password"
-                                placeholder="Masukkan password Anda"
-                                minlength="8"
-                                required
-                                class="pl-12 pr-10 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none"
-                            />
-                            <button
-                                type="button"
-                                @click="togglePassword"
-                                class="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer"
-                            >
-                                <img
-                                    :src="showPassword ? eyeOffIcon : eyeIcon"
-                                    alt="Toggle Password"
-                                    class="w-5 h-5"
-                                />
+                            <img src="@/assets/password.svg"
+                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-60" />
+                            <input :type="showPassword ? 'text' : 'password'" v-model="form.password"
+                                placeholder="Masukkan password Anda" minlength="8" required
+                                class="pl-12 pr-10 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none" />
+                            <button type="button" @click="togglePassword"
+                                class="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer">
+                                <img :src="showPassword ? eyeOffIcon : eyeIcon" alt="Toggle Password" class="w-5 h-5" />
                             </button>
-                            <p
-                                v-if="errors.password"
-                                class="text-left text-sm text-red-500 mt-1"
-                            >
+                            <p v-if="errors.password" class="text-left text-sm text-red-500 mt-1">
                                 {{ errors.password[0] }}
                             </p>
                         </div>
@@ -110,20 +66,12 @@
 
                     <!-- Otoritas -->
                     <div class="mb-4">
-                        <label class="block text-left font-semibold mb-1"
-                            >Otoritas</label
-                        >
+                        <label class="block text-left font-semibold mb-1">Otoritas</label>
                         <div class="relative">
-                            <img
-                                src="@/assets/email.svg"
-                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50"
-                            />
-                            <select
-                                v-model="form.tingkatan_otoritas"
-                                @change="handleRoleChange"
-                                required
-                                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none"
-                            >
+                            <img src="@/assets/email.svg"
+                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
+                            <select v-model="form.tingkatan_otoritas" @change="handleRoleChange" required
+                                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none">
                                 <option disabled value="">
                                     -- Pilih Akses --
                                 </option>
@@ -135,10 +83,7 @@
                                 <option value="asman">Asman</option>
                                 <option value="manajer">Manajer</option>
                             </select>
-                            <p
-                                v-if="errors.tingkatan_otoritas"
-                                class="text-left text-sm text-red-500 mt-1"
-                            >
+                            <p v-if="errors.tingkatan_otoritas" class="text-left text-sm text-red-500 mt-1">
                                 {{ errors.tingkatan_otoritas[0] }}
                             </p>
                         </div>
@@ -146,32 +91,18 @@
 
                     <!-- Bidang -->
                     <div class="mb-4">
-                        <label class="block text-left font-semibold mb-1"
-                            >Bidang</label
-                        >
+                        <label class="block text-left font-semibold mb-1">Bidang</label>
                         <div class="relative">
-                            <img
-                                src="@/assets/email.svg"
-                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50"
-                            />
-                            <select
-                                v-model="form.id_bidang_fk"
-                                @change="handleBidangChange"
-                                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none"
-                            >
+                            <img src="@/assets/email.svg"
+                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
+                            <select v-model="form.id_bidang_fk" @change="handleBidangChange"
+                                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none">
                                 <option disabled value="">Pilih Bidang</option>
-                                <option
-                                    v-for="item in bidangList"
-                                    :key="item.id"
-                                    :value="item.id"
-                                >
+                                <option v-for="item in bidangList" :key="item.id" :value="item.id">
                                     {{ item.nama_bidang }}
                                 </option>
                             </select>
-                            <p
-                                v-if="errors.id_bidang_fk"
-                                class="text-left text-sm text-red-500 mt-1"
-                            >
+                            <p v-if="errors.id_bidang_fk" class="text-left text-sm text-red-500 mt-1">
                                 {{ errors.id_bidang_fk[0] }}
                             </p>
                         </div>
@@ -179,43 +110,27 @@
 
                     <!-- Penempatan (muncul setelah bidang dipilih) -->
                     <div v-if="form.id_bidang_fk" class="mb-4">
-                        <label class="block text-left font-semibold mb-1"
-                            >Penempatan</label
-                        >
+                        <label class="block text-left font-semibold mb-1">Penempatan</label>
                         <div class="relative">
-                            <img
-                                src="@/assets/email.svg"
-                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50"
-                            />
-                            <select
-                                v-model="form.id_penempatan_fk"
-                                required
-                                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none"
-                            >
+                            <img src="@/assets/email.svg"
+                                class="absolute top-1/2 left-3 transform -translate-y-1/2 w-6 h-6 opacity-50" />
+                            <select v-model="form.id_penempatan_fk" required
+                                class="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-gray-800 focus:outline-none">
                                 <option disabled value="">
                                     Pilih Penempatan
                                 </option>
-                                <option
-                                    v-for="item in penempatanList"
-                                    :key="item.id"
-                                    :value="item.id"
-                                >
+                                <option v-for="item in penempatanList" :key="item.id" :value="item.id">
                                     {{ item.nama_penempatan }}
                                 </option>
                             </select>
-                            <p
-                                v-if="errors.id_penempatan_fk"
-                                class="text-left text-sm text-red-500 mt-1"
-                            >
+                            <p v-if="errors.id_penempatan_fk" class="text-left text-sm text-red-500 mt-1">
                                 {{ errors.id_penempatan_fk[0] }}
                             </p>
                         </div>
                     </div>
 
-                    <button
-                        type="submit"
-                        class="cursor-pointer w-full mt-2 py-3 bg-[#4f93af] text-white font-semibold rounded-3xl hover:bg-[#166357]"
-                    >
+                    <button type="submit"
+                        class="cursor-pointer w-full mt-2 py-3 bg-[#4f93af] text-white font-semibold rounded-3xl hover:bg-[#166357]">
                         Register
                     </button>
                 </form>
@@ -229,11 +144,7 @@
 
                 <p class="text-sm">
                     Already have an account?
-                    <router-link
-                        to="/login"
-                        class="text-sm text-[#ffad54] hover:underline"
-                        >Sign in</router-link
-                    >
+                    <router-link to="/login" class="text-sm text-[#ffad54] hover:underline">Sign in</router-link>
                 </p>
             </div>
         </div>
@@ -309,8 +220,7 @@ export default {
             this.message = "";
 
             try {
-                const apiUrl =
-                    import.meta.env.VITE_APP_URL || "http://localhost:8000/api";
+                const apiUrl = import.meta.env.VITE_APP_URL || "http://localhost:8000/api";
                 const payload = {
                     NID: this.form.NID,
                     password: this.form.password,

@@ -33,7 +33,31 @@ class AccountController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $request->validate([
+                'nid' => 'required|string|unique:admins,nid',
+                'password' => 'required|string|min:6',
+                'id_penempatan_fk' => 'required|integer|exists:penempatans,id',
+                'tingkatan_otoritas' => 'required|string',
+            ]);
+
+            $account = Admin::create([
+                'nid' => $request->nid,
+                'password' => bcrypt($request->password),
+                'id_penempatan_fk' => $request->id_penempatan_fk,
+                'tingkatan_otoritas' => $request->tingkatan_otoritas,
+                'access' => 'active',
+                'password_changed_at' => now(),
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Account created successfully',
+                'data' => $account
+            ], 201);
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
     }
 
     /**
@@ -69,8 +93,17 @@ class AccountController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        try {
+            $account = Admin::findOrFail($id);
+            $account->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Account deleted successfully'
+            ], 200);
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
     }
 }

@@ -1,15 +1,19 @@
 <template>
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex flex-col md:flex-row min-h-screen bg-gray-100">
+    <!-- Sidebar -->
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
-    <div class="flex-1 p-8 pt-7 flex flex-col bg-white">
+
+    <!-- Main Content -->
+    <div class="flex-1 p-4 md:p-8 pt-6 flex flex-col bg-white">
       <HeaderBar title="Manajemen Stock Alat" />
       <div class="border-b border-gray-300 mb-4"></div>
 
-      <div class="bg-white p-6 rounded-2xl shadow">
-        <div class="flex flex-col gap-4 mx-9">
+      <div class="bg-white p-4 md:p-6 rounded-2xl shadow w-full max-w-4xl mx-auto">
+        <div class="flex flex-col gap-4">
 
-          <div class="flex items-center gap-5">
-            <label class="min-w-[150px] font-semibold text-sm text-black">Nama Barang</label>
+          <!-- Nama Barang -->
+          <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
+            <label class="w-full md:w-[150px] font-semibold text-sm text-black">Nama Barang</label>
             <select v-model="selectedAlatId" @change="onAlatChange"
               class="w-full p-2 border border-gray-300 rounded-lg text-sm" required>
               <option disabled value="">Pilih Barang</option>
@@ -19,33 +23,40 @@
             </select>
           </div>
 
-          <div class="flex items-center gap-5">
-            <label class="min-w-[150px] font-semibold text-sm text-black">Stock Minimal</label>
+          <!-- Stock Minimal -->
+          <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
+            <label class="w-full md:w-[150px] font-semibold text-sm text-black">Stock Minimal</label>
             <input type="number" v-model.number="formData.stock_min" min="0"
               class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
           </div>
 
-          <div class="flex items-center gap-5">
-            <label class="min-w-[150px] font-semibold text-sm text-black">Stock Maximal</label>
+          <!-- Stock Maximal -->
+          <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
+            <label class="w-full md:w-[150px] font-semibold text-sm text-black">Stock Maximal</label>
             <input type="number" v-model.number="formData.stock_max" min="0"
               class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
           </div>
-          <div class="flex items-center gap-5">
-            <label class="min-w-[150px] font-semibold text-sm text-black">Stock Sekarang</label>
+
+          <!-- Stock Sekarang -->
+          <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
+            <label class="w-full md:w-[150px] font-semibold text-sm text-black">Stock Sekarang</label>
             <input type="number" v-model.number="formData.stock" min="0"
               class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
           </div>
 
+          <!-- Alert -->
           <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
 
-          <div class="flex justify-between items-center mt-6">
-            <router-link to="/manajemen-alat">
-              <button class="bg-[#074a5d] cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
+          <!-- Tombol -->
+          <div class="flex flex-col md:flex-row justify-between items-center mt-6 gap-3">
+            <router-link to="/manajemen-alat" class="w-full md:w-auto">
+              <button
+                class="cursor-pointer w-full md:w-auto bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
                 Kembali
               </button>
             </router-link>
             <button @click="submitForm"
-              class="bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition cursor-pointer">
+              class="cursor-pointer w-full md:w-auto bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
               Simpan Perubahan Stock
             </button>
           </div>
@@ -55,6 +66,7 @@
     </div>
   </div>
 </template>
+
 
 <script>
 import Sidebar from "@/components/Sidebar.vue";
@@ -284,4 +296,3 @@ export default {
   },
 };
 </script>
-

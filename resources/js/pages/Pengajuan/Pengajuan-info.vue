@@ -1,104 +1,83 @@
 <template>
-    <div class="flex h-screen bg-gray-100">
-        <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
+  <div class="flex flex-col lg:flex-row min-h-screen bg-gray-100">
+    <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
 
-        <div class="flex-1 p-8 pt-7 flex flex-col bg-white">
-            <HeaderBar title="Informasi Pengajuan" />
-            <div class="border-b border-gray-300"></div>
+    <div class="flex-1 p-4 sm:p-6 md:p-8 pt-6 bg-white">
+      <HeaderBar title="Manajemen Stock Alat" />
+      <div class="border-b border-gray-300 my-4"></div>
 
-            <div class="bg-white p-6 rounded-2xl shadow mt-8">
-                <h3 class="text-[15px] text-[#074a5d] font-semibold mb-4">Informasi Pengajuan</h3>
-                <div class="h-[1px] w-[calc(100%+47px)] bg-gray-300 my-4 -ml-6"></div>
+      <div class="bg-white p-4 sm:p-6 rounded-2xl shadow">
+        <div class="flex flex-col gap-4">
 
-                <div class="flex flex-col gap-4 mx-9">
-                    <h4 class="text-[15px] font-medium text-black text-center pb-3">Form Informasi Pengajuan</h4>
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+            <label class="sm:min-w-[150px] font-semibold text-sm text-black">Nama Barang</label>
+            <select
+              v-model="selectedAlatId"
+              @change="onAlatChange"
+              class="w-full p-2 border border-gray-300 rounded-lg text-sm"
+              required
+            >
+              <option disabled value="">Pilih Barang</option>
+              <option v-for="item in alatList" :key="item.id_alat" :value="item.id_alat">
+                {{ item.nama_barang }}
+              </option>
+            </select>
+          </div>
 
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">NID Pengajuan</label>
-                        <input type="text" :value="formData.user?.NID || '-'" disabled
-                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+            <label class="sm:min-w-[150px] font-semibold text-sm text-black">Stock Minimal</label>
+            <input
+              type="number"
+              v-model.number="formData.stock_min"
+              min="0"
+              class="w-full p-2 border border-gray-300 rounded-lg text-sm"
+            />
+          </div>
 
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Nama Barang</label>
-                        <input type="text" :value="formData.alat?.nama_barang || '-'" disabled
-                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+            <label class="sm:min-w-[150px] font-semibold text-sm text-black">Stock Maximal</label>
+            <input
+              type="number"
+              v-model.number="formData.stock_max"
+              min="0"
+              class="w-full p-2 border border-gray-300 rounded-lg text-sm"
+            />
+          </div>
 
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Stock Minimal</label>
-                        <input type="text" :value="formData.alat?.stock_min ?? '-'" disabled
-                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+            <label class="sm:min-w-[150px] font-semibold text-sm text-black">Stock Sekarang</label>
+            <input
+              type="number"
+              v-model.number="formData.stock"
+              min="0"
+              class="w-full p-2 border border-gray-300 rounded-lg text-sm"
+            />
+          </div>
 
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Stock Maksimal</label>
-                        <input type="text" :value="formData.alat?.stock_max ?? '-'" disabled
-                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
+          <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
 
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Satuan</label>
-                        <input type="text" :value="formData.alat?.satuan ?? '-'" disabled
-                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
+          <div class="flex flex-col sm:flex-row justify-between gap-3 mt-6">
+            <router-link to="/manajemen-alat">
+              <button
+                class="w-full sm:w-auto bg-[#074a5d] cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition cursor-pointer "
+              >
+                Kembali
+              </button>
+            </router-link>
+            <button
+              @click="submitForm"
+              class="w-full sm:w-auto bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition cursor-pointer"
+            >
+              Simpan Perubahan Stock
+            </button>
+          </div>
 
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Harga Satuan</label>
-                        <input type="text" :value="formatRupiah(formData.alat?.harga_satuan)" disabled
-                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
-
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Tanggal Permintaan</label>
-                        <input type="text" :value="formatTanggal(formData.tanggal_permintaan)" disabled
-                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
-
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Jumlah Pengajuan</label>
-                        <input type="text" :value="formData.jumlah ?? '-'" disabled
-                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
-                    
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Total Harga</label>
-                        <input type="text" :value="formatRupiah(formData.total)" disabled
-                        class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Keterangan</label>
-                        <input type="text" :value="formData.keterangan" disabled
-                        class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Status Diperbarui Oleh</label>
-                        <input type="text" :value="formData.status_by ?? '-'" disabled
-                            class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700" />
-                    </div>
-
-                    <div class="flex items-center gap-5">
-                        <label class="min-w-[150px] font-semibold text-sm text-black">Status Pengajuan</label>
-                        <span :class="['px-3 py-1 rounded-full text-xs font-semibold', statusBadge(formData.status)]">
-                            {{ statusLabel(formData.status) }}
-                        </span>
-                    </div>
-
-                    <div class="flex justify-between items-center mt-6">
-                        <router-link to="/manajemen-alat">
-                            <button
-                                class="bg-[#074a5d] cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
-                                Kembali
-                            </button>
-                        </router-link>
-                    </div>
-                </div>
-
-            </div>
-            <br />
         </div>
+      </div>
     </div>
+  </div>
 </template>
+
 
 <script>
 import Sidebar from "@/components/Sidebar.vue";

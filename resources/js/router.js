@@ -32,6 +32,7 @@ import PengaturanPengajuan from "./pages/Pengajuan/Pengaturan-pengajuan.vue";
 import ProfileEdit from "./pages/Profile/Profile-edit.vue";
 import UbahPassword from "./pages/Profile/UbahPassword.vue";
 import SuratBeritaAcara from "./pages/SuratBeritaAcara.vue";
+import TambahAkun from "./pages/superadmin/TambahAkun.vue";
 
 
 // Fungsi validasi token
@@ -71,6 +72,8 @@ const routes = [
 
     // Protected routes (butuh token)
     { path: "/dashboard", component: Dashboard, meta: { requiresAuth: true, title: "Dashboard" } },
+    { path: "/manajemen-akun", component: ManajemenAkun, meta: { requiresAuth: true, allowedRoles: ["superadmin"],  title: "Manajemen Akun" } },
+    { path: "/tambah-akun", component: TambahAkun, meta: { requiresAuth: true, allowedRoles: ["superadmin"],  title: "Tambah Akun" } },
     { path: "/manajemen-akun", component: ManajemenAkun, meta: { requiresAuth: true, allowedRoles: ["superadmin"],  title: "Manajemen Akun" } },
     { path: "/manajemen-approval", component: ManajemenApproval, meta: { requiresAuth: true, allowedRoles: ["admin", "superadmin", "asman", "manajer", "anggaran"],  title: "Manajemen Approval" } },
     { path: "/profile", component: Profile, meta: { requiresAuth: true, title: "Profile" } },

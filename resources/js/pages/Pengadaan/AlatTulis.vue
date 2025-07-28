@@ -1,7 +1,7 @@
 <template>
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex flex-col md:flex-row min-h-screen bg-gray-100">
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="updateActiveMenu" />
-    <div class="flex-1 p-8 pt-4 bg-white">
+    <div class="flex-1 p-4 sm:p-6 md:p-8 pt-4 bg-white overflow-auto">
       <HeaderBar title="Manajemen ATK" class="mt-3" />
       <div class="my-4 border-b border-gray-300"></div>
 
@@ -26,127 +26,135 @@
         </div>
 
         <div class="bg-white rounded-lg shadow border border-gray-300 mt-8 overflow-hidden">
-          <div class="flex justify-between items-center px-5 p-3 border-b border-gray-300">
+          <div class="flex flex-wrap gap-2 justify-between items-center px-5 p-3 border-b border-gray-300">
             <h3 class="text-sm font-semibold text-gray-900">Data ATK</h3>
 
-            <router-link to="/alat-pemakaian"
-              class="px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
-              Pemakaian Alat
-            </router-link>
+            <div class="flex flex-wrap gap-2">
+              <router-link to="/alat-pemakaian"
+                class="px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
+                Pemakaian Alat
+              </router-link>
 
-            <router-link to="/alat-stock" class="px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
-              Manajemen Stock
-            </router-link>
+              <router-link to="/alat-stock"
+                class="px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
+                Manajemen Stock
+              </router-link>
 
-            <button v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'" @click="downloadExcel"
-              class="cursor-pointer px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
-              Download Excel
+              <button v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'" @click="downloadExcel"
+                class="cursor-pointer px-3 py-1 rounded bg-[#08607a] text-white text-sm hover:bg-[#074a5d]">
+                Download Excel
+              </button>
+
+              <router-link v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'" to="/alat-add"
+                class="text-sm font-semibold text-[#074a5d] no-underline hover:text-[#0066cc] hover:no-underline">
+                Tambah ATK
+              </router-link>
+            </div>
+          </div>
+
+          <!-- Admin/Superadmin Table -->
+          <div class="overflow-x-auto">
+            <table v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
+              class="min-w-full table-auto border-collapse border border-gray-300">
+              <thead class="bg-gray-100 text-[#7d7f81]">
+                <tr>
+                  <th class="p-3 border">Nama Barang</th>
+                  <th class="p-3 border">Stock Min</th>
+                  <th class="p-3 border">Stock Max</th>
+                  <th class="p-3 border">Stock Sekarang</th>
+                  <th class="p-3 border">Harga Satuan</th>
+                  <th class="p-3 border">Rekomendasi Pembelian</th>
+                  <th class="p-3 border">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(alat, index) in paginatedAlatList" :key="alat.id" class="text-[#333436]">
+                  <td class="p-3">{{ alat.nama_barang }}</td>
+                  <td class="p-3">{{ alat.stock_min }}</td>
+                  <td class="p-3">{{ alat.stock_max }}</td>
+                  <td class="p-3">{{ alat.stock }}</td>
+                  <td class="p-3">{{ formatRupiah(alat.harga_satuan) }}</td>
+                  <td class="p-3">
+                    <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
+                      class="text-gray-500 italic">ATK Tidak Digunakan</span>
+                    <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
+                      Pengajuan</span>
+                    <span v-else class="text-green-600">Aman</span>
+                  </td>
+                  <td class="p-3">
+                    <div class="flex flex-wrap justify-center items-center gap-2 sm:space-x-2">
+                      <!-- Tombol Informasi -->
+                      <button title="Informasi" @click="navigateTo('info', alat)"
+                        class="cursor-pointer hover:opacity-70">
+                        <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
+                      </button>
+
+                      <!-- Tombol Edit (Hanya untuk Admin/Superadmin) -->
+                      <button title="Edit" @click="navigateTo('edit', alat)"
+                        v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
+                        class="cursor-pointer hover:opacity-70 border-l sm:border-l pl-2 sm:pl-2 border-transparent sm:border-gray-300">
+                        <img :src="updateIcon" alt="Update" class="w-5 h-5 object-contain" />
+                      </button>
+
+                      <!-- Tombol Hapus (Hanya untuk Admin/Superadmin) -->
+                      <button title="Hapus" @click="confirmDelete(alat)"
+                        v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
+                        class="cursor-pointer hover:opacity-70 border-l sm:border-l pl-2 sm:pl-2 border-transparent sm:border-gray-300">
+                        <img :src="deleteIcon" alt="Delete" class="w-5 h-5 object-contain" />
+                      </button>
+                    </div>
+                  </td>
+
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Table for User/Manajer -->
+            <table v-else class="min-w-full table-auto border-collapse border border-gray-300">
+              <thead class="bg-gray-100 text-[#7d7f81]">
+                <tr>
+                  <th class="p-3 border">Nama Barang</th>
+                  <th class="p-3 border">Stock Min</th>
+                  <th class="p-3 border">Stock Max</th>
+                  <th class="p-3 border">Stock</th>
+                  <th class="p-3 border">Pusat Stock</th>
+                  <th class="p-3 border">Rekomendasi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(alat, index) in paginatedUserAlatList" :key="alat.id" class="text-[#333436]">
+                  <td class="p-3">{{ alat.nama_barang }}</td>
+                  <td class="p-3">{{ alat.stock_min }}</td>
+                  <td class="p-3">{{ alat.stock_max }}</td>
+                  <td class="p-3">{{ alat.stock }}</td>
+                  <td class="p-3">{{ alat.pusat_stock }}</td>
+                  <td class="p-3">
+                    <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
+                      class="text-gray-500 italic">ATK Tidak Digunakan</span>
+                    <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
+                      Pengajuan</span>
+                    <span v-else class="text-green-600">Aman</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
+            <button @click="prevPage" :disabled="currentPage === 1"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+              Prev
             </button>
-            <router-link v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'" to="/alat-add"
-              class="text-sm font-semibold text-[#074a5d] no-underline hover:text-[#0066cc] hover:no-underline">
-              Tambah ATK
-            </router-link>
-
-          </div>
-
-          <!-- Untuk Admin dan Superadmin -->
-          <table v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
-            class="w-full table-fixed border-collapse border border-gray-300">
-            <thead class="bg-gray-100 text-[#7d7f81]">
-              <tr>
-                <!-- <th class="w-14">No</th> -->
-                <th class="p-3 border">Nama Barang</th>
-                <th class="p-3 border">Stock Min</th>
-                <th class="p-3 border">Stock Max</th>
-                <th class="p-3 w-25 border">Stock Sekarang</th>
-                <th class="p-3 border">Harga Satuan</th>
-                <th class="w-35 p-3 border">Rekomendasi Pembelian</th>
-                <th class="p-3 border">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(alat, index) in paginatedAlatList" :key="alat.id" class="text-[#333436]">
-                <!-- <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td> -->
-                <td class="p-3">{{ alat.nama_barang }}</td>
-                <td class="p-3">{{ alat.stock_min }}</td>
-                <td class="p-3">{{ alat.stock_max }}</td>
-                <td class="p-3">{{ alat.stock }}</td>
-                <td class="p-3">{{ formatRupiah(alat.harga_satuan) }}</td>
-                <td class="p-3">
-                  <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
-                    class="text-gray-500 italic">ATK Tidak Digunakan</span>
-                  <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
-                    Pengajuan</span>
-                  <span v-else class="text-green-600">Aman</span>
-                </td>
-                <td class="p-3">
-                  <div class="flex items-center space-x-2 justify-center">
-                    <button title="Informasi" @click="navigateTo('info', alat)" class="cursor-pointer hover:opacity-70">
-                      <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
-                    </button>
-                    <button title="Edit" @click="navigateTo('edit', alat)"
-                      v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
-                      class="cursor-pointer hover:opacity-70 border-l-1 pl-2">
-                      <img :src="updateIcon" alt="Update" class="w-5 h-5 object-contain" />
-                    </button>
-                    <button title="Hapus" @click="confirmDelete(alat)"
-                      v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
-                      class="cursor-pointer hover:opacity-70 border-l-1 pl-2">
-                      <img :src="deleteIcon" alt="Delete" class="w-5 h-5 object-contain" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <!-- Tabel untuk User, Asman, Manajer, atau Anggaran -->
-          <table v-else class="w-full table-fixed border-collapse border border-gray-300">
-            <thead class="bg-gray-100 text-[#7d7f81]">
-              <tr>
-                <th class="p-3 border">Nama Barang</th>
-                <th class="p-3 border">Stock Min</th>
-                <th class="p-3 border">Stock Max</th>
-                <th class="p-3 border">Stock</th>
-                <th class="p-3 border">Pusat Stock</th>
-                <th class="p-3 border">Rekomendasi</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(alat, index) in paginatedUserAlatList" :key="alat.id" class="text-[#333436]">
-                <td class="p-3">{{ alat.nama_barang }}</td>
-                <td class="p-3">{{ alat.stock_min }}</td>
-                <td class="p-3">{{ alat.stock_max }}</td>
-                <td class="p-3">{{ alat.stock }}</td>
-                <td class="p-3">{{ alat.pusat_stock }}</td>
-                <td class="p-3">
-                  <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
-                    class="text-gray-500 italic">ATK Tidak Digunakan</span>
-                  <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
-                    Pengajuan</span>
-                  <span v-else class="text-green-600">Aman</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- Admin/Superadmin Pagination -->
-          <div v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
-            class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
-            <button @click="prevPage" :disabled="currentPage === 1"
-              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
-            <span>Halaman {{ currentPage }} dari {{ totalPages }}</span>
-            <button @click="nextPage" :disabled="currentPage === totalPages"
-              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
-          </div>
-
-          <!-- User/Asman/Manajer/Anggaran Pagination -->
-          <div v-else
-            class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
-            <button @click="prevPage" :disabled="currentPage === 1"
-              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Prev</button>
-            <span>Halaman {{ currentPage }} dari {{ totalPagesUser }}</span>
-            <button @click="nextPage" :disabled="currentPage === totalPagesUser"
-              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Next</button>
+            <span>
+              Halaman {{ currentPage }} dari
+              {{ tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin' ? totalPages : totalPagesUser }}
+            </span>
+            <button @click="nextPage"
+              :disabled="currentPage === (tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin' ? totalPages : totalPagesUser)"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">
+              Next
+            </button>
           </div>
         </div>
       </div>
@@ -157,6 +165,7 @@
       message="Apakah Anda yakin ingin menghapus data ini?" @cancel="cancelDelete" @confirm="deleteAlat" />
   </div>
 </template>
+
 
 <script>
 import Sidebar from "@/components/Sidebar.vue";

@@ -1,7 +1,8 @@
 <template>
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex min-h-screen bg-gray-100">
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="updateActiveMenu" />
-    <div class="flex-1 p-8 pt-4 bg-white">
+    <div class="flex-1 p-4 sm:p-6 md:p-8 pt-4 bg-white overflow-auto">
+
       <HeaderBar title="Manajemen ATK" class="mt-3" />
       <div class="my-4 border-b border-gray-300"></div>
 
@@ -33,68 +34,69 @@
               Download Excel
             </button>
           </div>
-
-          <!-- Untuk Admin dan Superadmin -->
-          <table v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
-            class="w-full table-fixed border-collapse border border-gray-300">
-            <thead class="bg-gray-100 text-[#7d7f81]">
-              <tr>
-                <!-- <th class="w-14">No</th> -->
-                <th class="p-3 border">Nama Barang</th>
-                <th class="p-3 border">Stock Min</th>
-                <th class="p-3 border">Stock Max</th>
-                <th class="p-3 w-25 border">Stock Sekarang</th>
-                <th class="p-3 border">Harga Satuan</th>
-                <th class="w-35 p-3 border">Rekomendasi Pembelian</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(alat, index) in paginatedAlatList" :key="alat.id" class="text-[#333436]">
-                <!-- <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td> -->
-                <td class="p-3">{{ alat.nama_barang }}</td>
-                <td class="p-3">{{ alat.stock_min }}</td>
-                <td class="p-3">{{ alat.stock_max }}</td>
-                <td class="p-3">{{ alat.stock }}</td>
-                <td class="p-3">{{ formatRupiah(alat.harga_satuan) }}</td>
-                <td class="p-3">
-                  <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
-                    class="text-gray-500 italic">ATK Tidak Digunakan</span>
-                  <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
-                    Pengajuan</span>
-                  <span v-else class="text-green-600">Aman</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <!-- Tabel untuk User, Asman, Manajer, atau Anggaran -->
-          <table v-else class="w-full table-fixed border-collapse border border-gray-300">
-            <thead class="bg-gray-100 text-[#7d7f81]">
-              <tr>
-                <th class="p-3 border">Nama Barang</th>
-                <th class="p-3 border">Stock Min</th>
-                <th class="p-3 border">Stock Max</th>
-                <th class="p-3 border">Stock</th>
-                <th class="p-3 border">Pusat Stock</th>
-                <th class="p-3 border">Rekomendasi</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(alat, index) in paginatedUserAlatList" :key="alat.id" class="text-[#333436]">
-                <td class="p-3">{{ alat.nama_barang }}</td>
-                <td class="p-3">{{ alat.stock_min }}</td>
-                <td class="p-3">{{ alat.stock_max }}</td>
-                <td class="p-3">{{ alat.stock }}</td>
-                <td class="p-3">{{ alat.pusat_stock }}</td>
-                <td class="p-3">
-                  <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
-                    class="text-gray-500 italic">ATK Tidak Digunakan</span>
-                  <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
-                    Pengajuan</span>
-                  <span v-else class="text-green-600">Aman</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="overflow-x-auto">
+            <!-- Untuk Admin dan Superadmin -->
+            <table v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"
+              class="min-w-full table-fixed border-collapse border border-gray-300">
+              <thead class="bg-gray-100 text-[#7d7f81]">
+                <tr>
+                  <!-- <th class="w-14">No</th> -->
+                  <th class="p-3 border">Nama Barang</th>
+                  <th class="p-3 border">Stock Min</th>
+                  <th class="p-3 border">Stock Max</th>
+                  <th class="p-3 w-25 border">Stock Sekarang</th>
+                  <th class="p-3 border">Harga Satuan</th>
+                  <th class="w-35 p-3 border">Rekomendasi Pembelian</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(alat, index) in paginatedAlatList" :key="alat.id" class="text-[#333436]">
+                  <!-- <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td> -->
+                  <td class="p-3">{{ alat.nama_barang }}</td>
+                  <td class="p-3">{{ alat.stock_min }}</td>
+                  <td class="p-3">{{ alat.stock_max }}</td>
+                  <td class="p-3">{{ alat.stock }}</td>
+                  <td class="p-3">{{ formatRupiah(alat.harga_satuan) }}</td>
+                  <td class="p-3">
+                    <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
+                      class="text-gray-500 italic">ATK Tidak Digunakan</span>
+                    <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
+                      Pengajuan</span>
+                    <span v-else class="text-green-600">Aman</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- Tabel untuk User, Asman, Manajer, atau Anggaran -->
+            <table v-else class="min-w-full table-fixed border-collapse border border-gray-300">
+              <thead class="bg-gray-100 text-[#7d7f81]">
+                <tr>
+                  <th class="p-3 border">Nama Barang</th>
+                  <th class="p-3 border">Stock Min</th>
+                  <th class="p-3 border">Stock Max</th>
+                  <th class="p-3 border">Stock</th>
+                  <th class="p-3 border">Pusat Stock</th>
+                  <th class="p-3 border">Rekomendasi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(alat, index) in paginatedUserAlatList" :key="alat.id" class="text-[#333436]">
+                  <td class="p-3">{{ alat.nama_barang }}</td>
+                  <td class="p-3">{{ alat.stock_min }}</td>
+                  <td class="p-3">{{ alat.stock_max }}</td>
+                  <td class="p-3">{{ alat.stock }}</td>
+                  <td class="p-3">{{ alat.pusat_stock }}</td>
+                  <td class="p-3">
+                    <span v-if="alat.stock_min === 0 && alat.stock_max === 0 && alat.stock === 0"
+                      class="text-gray-500 italic">ATK Tidak Digunakan</span>
+                    <span v-else-if="alat.stock <= alat.stock_min" class="text-red-600 font-semibold">Perlu
+                      Pengajuan</span>
+                    <span v-else class="text-green-600">Aman</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <!-- Admin/Superadmin Pagination -->
           <div v-if="tingkatanOtoritas === 'admin' || tingkatanOtoritas === 'superadmin'"

@@ -8,12 +8,13 @@
         </button>
 
         <!-- Sidebar -->
-        <aside :class="[
-            'transition-transform duration-300 z-[1000] fixed md:static top-0 left-0 min-h-screen w-[300px] bg-white border-r border-gray-200 pl-7 pt-7 flex flex-col gap-6',
-            { '-translate-x-full': !isSidebarOpen && isMobile },
-        ]">
+<aside :class="[
+  'transition-transform duration-300 z-[1000] fixed md:static top-0 left-0 min-h-screen w-[310px] bg-white border-r border-gray-200 pl-7 pt-7 flex flex-col gap-6',
+  { '-translate-x-full': !isSidebarOpen && isMobile },
+]">
+
             <!-- Logo -->
-            <div class="flex items-center gap-1 border-b border-gray-200 pb-2">
+            <div class="flex items-center gap-1 border-b border-gray-200 pb-3">
                 <img :src="logoImage" alt="Logo" class="w-[35px] object-cover rounded-t-[10px] mt-[-5px]" />
                 <span class="logo-text text-[20px] font-bold text-[#08607a] font-['Protest_Strike']">Sistem Pengadaan
                     PLN</span>

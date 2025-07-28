@@ -1,7 +1,8 @@
 <template>
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex min-h-screen bg-gray-100">
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
-    <div class="flex-1 p-8 pt-4 bg-white">
+    <div class="flex-1 p-4 sm:p-6 md:p-8 pt-4 bg-white overflow-auto">
+
       <HeaderBar title="Riwayat Pemakaian Alat" />
       <div class="my-4 border-b border-gray-300"></div>
 
@@ -29,32 +30,34 @@
               Download Excel
             </button>
           </div>
+          <div class="overflow-x-auto">
 
-          <table class="w-full table-fixed border-collapse border border-gray-300">
-            <thead class="bg-gray-100 text-[#7d7f81]">
-              <tr>
-                <th class="w-16">No</th>
-                <th class="p-3 border">Nama Barang</th>
-                <th class="p-3 border">Nama Pemakai</th>
-                <th class="p-3 border">Jumlah</th>
-                <th class="p-3 border">Keterangan</th>
-                <th class="p-3 border">Tanggal</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, index) in paginatedHistory" :key="index" class="text-[#333436]">
-                <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
-                <td class="p-3">{{ item.nama_barang }}</td>
-                <td class="p-3">{{ item.nama_pemakai }}</td>
-                <td class="p-3">{{ item.jumlah }}</td>
-                <td class="p-3">{{ item.keterangan || '-' }}</td>
-                <td class="p-3">{{ formatTanggal(item.tanggal_pemakaian) }}</td>
-              </tr>
-              <tr v-if="paginatedHistory.length === 0">
-                <td colspan="6" class="text-center p-4 text-gray-500">Data tidak ditemukan</td>
-              </tr>
-            </tbody>
-          </table>
+            <table class="min-w-full table-fixed border-collapse border border-gray-300">
+              <thead class="bg-gray-100 text-[#7d7f81]">
+                <tr>
+                  <th class="w-16">No</th>
+                  <th class="p-3 border">Nama Barang</th>
+                  <th class="p-3 border">Nama Pemakai</th>
+                  <th class="p-3 border">Jumlah</th>
+                  <th class="p-3 border">Keterangan</th>
+                  <th class="p-3 border">Tanggal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in paginatedHistory" :key="index" class="text-[#333436]">
+                  <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
+                  <td class="p-3">{{ item.nama_barang }}</td>
+                  <td class="p-3">{{ item.nama_pemakai }}</td>
+                  <td class="p-3">{{ item.jumlah }}</td>
+                  <td class="p-3">{{ item.keterangan || '-' }}</td>
+                  <td class="p-3">{{ formatTanggal(item.tanggal_pemakaian) }}</td>
+                </tr>
+                <tr v-if="paginatedHistory.length === 0">
+                  <td colspan="6" class="text-center p-4 text-gray-500">Data tidak ditemukan</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <div class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
             <button @click="prevPage" :disabled="currentPage === 1"
@@ -172,12 +175,14 @@ export default {
 </script>
 
 <style scoped>
-th, td {
-    padding: 8px 10px;           /* diperkecil */
-    text-align: center;
-    font-size: 12px;             /* perkecil font */
-    border: 1px solid #ccc;
-    word-wrap: break-word;
+th,
+td {
+  padding: 8px 10px;
+  /* diperkecil */
+  text-align: center;
+  font-size: 12px;
+  /* perkecil font */
+  border: 1px solid #ccc;
+  word-wrap: break-word;
 }
-
 </style>

@@ -3,7 +3,8 @@
         <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
 
         <div class="flex-1 p-6 md:p-8 bg-white overflow-y-auto">
-            <HeaderBar title="Surat Berita Acara Pengajuan" />
+            <HeaderBar title="Surat Berita Acara Pengajuan" class="mt-3"/>
+            
             <div class="my-4 border-b border-gray-300"></div>
 
             <!-- Pencarian -->
@@ -72,7 +73,7 @@
 
                 <!-- Tabel -->
                 <div class="overflow-x-auto">
-                    <table class="w-full table-auto border-collapse border border-gray-300 text-sm">
+                    <table class="min-w-full table-auto border-collapse border border-gray-300 text-sm">
                         <thead class="bg-gray-100 text-[#7d7f81]">
                             <tr>
                                 <th class="w-16 p-3 border">No</th>

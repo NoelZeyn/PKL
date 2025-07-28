@@ -1,37 +1,46 @@
 <template>
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex flex-col md:flex-row min-h-screen bg-gray-100">
+    <!-- Sidebar -->
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
-    <div class="flex-1 p-8 pt-7 flex flex-col bg-white">
+
+    <!-- Main Content -->
+    <div class="flex-1 p-4 md:p-8 pt-6 flex flex-col bg-white">
       <HeaderBar title="Form Pengajuan Baru" />
       <div class="border-b border-gray-300 mb-4"></div>
 
-      <div class="bg-white p-6 rounded-2xl shadow">
-        <div class="flex flex-col gap-6 mx-9">
+      <div class="bg-white p-4 md:p-6 rounded-2xl shadow w-full max-w-5xl mx-auto">
+        <div class="flex flex-col gap-6">
 
-          <!-- Pesan jika pengajuan ditutup -->
+          <!-- Alert Pengajuan Ditutup -->
           <div v-if="pengajuanDitutup"
-               class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative text-sm">
+            class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded text-sm">
             {{ pengajuanMessage }}
           </div>
 
+          <!-- Form Items -->
           <div v-for="(item, index) in formData.items" :key="index"
-               class="border border-gray-200 p-4 rounded-lg shadow-sm">
-            <div class="flex justify-between items-center mb-3">
+            class="border border-gray-200 p-4 rounded-lg shadow-sm space-y-4">
+            <!-- Header & Remove Button -->
+            <div class="flex justify-between items-center">
               <h4 class="font-semibold text-sm text-[#333]">Pengajuan Barang {{ index + 1 }}</h4>
               <button v-if="formData.items.length > 1 && !pengajuanDitutup" @click="removeItem(index)"
-                      class="text-red-500 text-xs hover:underline cursor-pointer">Hapus</button>
+                class="text-red-500 text-xs hover:underline cursor-pointer">
+                Hapus
+              </button>
             </div>
 
-            <div class="flex items-center gap-5 mb-3">
-              <label class="min-w-[150px] font-semibold text-sm text-black">NID</label>
+            <!-- NID -->
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
+              <label class="w-full md:w-[150px] font-semibold text-sm text-black">NID</label>
               <input type="text" v-model="item.NID" placeholder="Masukkan NID"
-                     class="w-full p-2 border border-gray-300 rounded-lg text-sm" :disabled="pengajuanDitutup" />
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm" :disabled="pengajuanDitutup" />
             </div>
 
-            <div class="flex items-center gap-5 mb-3">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Nama Barang</label>
+            <!-- Nama Barang -->
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
+              <label class="w-full md:w-[150px] font-semibold text-sm text-black">Nama Barang</label>
               <select v-model="item.id_inventoris_fk" @change="updateHargaSatuan(index)"
-                      class="w-full p-2 border border-gray-300 rounded-lg text-sm" :disabled="pengajuanDitutup">
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm" :disabled="pengajuanDitutup">
                 <option disabled value="">Pilih Barang</option>
                 <option v-for="alat in alatList" :key="alat.id_alat" :value="alat.id_alat">
                   {{ alat.nama_barang }}
@@ -39,40 +48,49 @@
               </select>
             </div>
 
-            <div class="flex items-center gap-5 mb-3">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Jumlah</label>
+            <!-- Jumlah -->
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
+              <label class="w-full md:w-[150px] font-semibold text-sm text-black">Jumlah</label>
               <input type="number" v-model.number="item.jumlah" min="1" @input="hitungTotal(index)"
-                     class="w-full p-2 border border-gray-300 rounded-lg text-sm" :disabled="pengajuanDitutup" />
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm" :disabled="pengajuanDitutup" />
             </div>
 
-            <div class="flex items-center gap-5 mb-3">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Total Harga</label>
+            <!-- Total Harga -->
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-5">
+              <label class="w-full md:w-[150px] font-semibold text-sm text-black">Total Harga</label>
               <input type="text" :value="formatRupiah(item.total)" disabled
-                     class="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-500 bg-gray-100" />
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-500 bg-gray-100" />
             </div>
 
-            <div class="flex items-center gap-5">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Keterangan</label>
+            <!-- Keterangan -->
+            <div class="flex flex-col md:flex-row items-start md:items-start gap-2 md:gap-5">
+              <label class="w-full md:w-[150px] font-semibold text-sm text-black">Keterangan</label>
               <textarea v-model="item.keterangan" placeholder="Contoh: Kebutuhan operasional"
-                        class="w-full p-2 border border-gray-300 rounded-lg text-sm" :disabled="pengajuanDitutup"></textarea>
+                class="w-full p-2 border border-gray-300 rounded-lg text-sm resize-y"
+                :disabled="pengajuanDitutup"></textarea>
             </div>
           </div>
 
+          <!-- Button Tambah -->
           <button @click="addItem" :disabled="pengajuanDitutup"
-                  class="mt-4 w-fit bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer disabled:opacity-50">
+            class="mt-2 w-fit bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer disabled:opacity-50">
             + Tambah Pengajuan Barang
           </button>
 
+          <!-- Alert Sukses -->
           <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
 
-          <div class="flex justify-between items-center mt-6">
-            <router-link to="/pengajuan">
-              <button class="bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition cursor-pointer">
+          <!-- Navigasi -->
+          <div class="flex flex-col md:flex-row justify-between items-center gap-4 mt-6">
+            <router-link to="/pengajuan" class="w-full md:w-auto">
+              <button
+                class="w-full md:w-auto bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
                 Kembali
               </button>
             </router-link>
+
             <button @click="submitForm" :disabled="pengajuanDitutup"
-                    class="bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition cursor-pointer disabled:opacity-50">
+              class="w-full md:w-auto bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition disabled:opacity-50">
               Simpan Semua Pengajuan
             </button>
           </div>
@@ -81,6 +99,7 @@
     </div>
   </div>
 </template>
+
 
 <script>
 import Sidebar from "@/components/Sidebar.vue";

@@ -1,8 +1,9 @@
 <template>
-    <div class="flex h-screen bg-gray-100">
+    <div class="flex flex-col md:flex-row min-h-screen bg-gray-100">
         <Sidebar :activeMenu="activeMenu" @update:activeMenu="updateActiveMenu" />
-        <div class="flex-1 p-8 pt-4 bg-white">
-            <HeaderBar title="Data Pengajuan" class="mt-3" />
+        
+    <div class="flex-1 p-4 sm:p-6 md:p-8 pt-4 bg-white overflow-auto">
+      <HeaderBar title="Data Pengajuan" class="mt-3" />
             <div class="my-4 border-b border-gray-300"></div>
 
             <div class="pb-12">
@@ -26,50 +27,51 @@
                             Tambah Pengajuan ATK Baru
                         </router-link>
                     </div>
-
-                    <table class="w-full table-fixed border-collapse border border-gray-300">
-                        <thead class="bg-gray-100 text-[#7d7f81]">
-                            <tr>
-                                <th class="w-20 p-3 border">Nama Barang</th>
-                                <th class="w-30 p-3 border">
-                                    Tanggal Pengajuan
-                                </th>
-                                <th class="w-25 p-3 border">Status</th>
-                                <th class="w-30 p-3 border">
-                                    Catatan Approval
-                                </th>
-                                <th class="w-20 p-3 border">Satuan</th>
-                                <th class="p-3 border">Kategori</th>
-                                <th class="p-3 border">Harga Estimasi</th>
-                                <!-- <th class="p-3 border">Aksi</th> -->
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(item, index) in paginatedPengajuanBaruList" :key="item.id"
-                                class="text-[#333436]">
-                                <td class="p-3">{{ item.nama_barang }}</td>
-                                <td class="p-3">
-                                    {{ formatTanggal(item.created_at) }}
-                                </td>
-                                <td class="p-3">
-                                    <span :class="[
-                                        'px-4 py-1 rounded-full text-xs font-semibold',
-                                        formatStatus(item.status).color,
-                                    ]">
-                                        {{ formatStatus(item.status).label }}
-                                    </span>
-                                </td>
-                                <td class="p-3">{{ item.catatan || "-" }}</td>
-                                <td class="p-3">{{ item.satuan }}</td>
-                                <td class="p-3">
-                                    {{ item.kategori?.nama_kategori || "-" }}
-                                </td>
-                                <td class="p-3">
-                                    {{ formatRupiah(item.harga_estimasi) }}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-fixed border-collapse border border-gray-300">
+                            <thead class="bg-gray-100 text-[#7d7f81]">
+                                <tr>
+                                    <th class="w-20 p-3 border">Nama Barang</th>
+                                    <th class="w-30 p-3 border">
+                                        Tanggal Pengajuan
+                                    </th>
+                                    <th class="w-25 p-3 border">Status</th>
+                                    <th class="w-30 p-3 border">
+                                        Catatan Approval
+                                    </th>
+                                    <th class="w-20 p-3 border">Satuan</th>
+                                    <th class="p-3 border">Kategori</th>
+                                    <th class="p-3 border">Harga Estimasi</th>
+                                    <!-- <th class="p-3 border">Aksi</th> -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, index) in paginatedPengajuanBaruList" :key="item.id"
+                                    class="text-[#333436]">
+                                    <td class="p-3">{{ item.nama_barang }}</td>
+                                    <td class="p-3">
+                                        {{ formatTanggal(item.created_at) }}
+                                    </td>
+                                    <td class="p-3">
+                                        <span :class="[
+                                            'px-4 py-1 rounded-full text-xs font-semibold',
+                                            formatStatus(item.status).color,
+                                        ]">
+                                            {{ formatStatus(item.status).label }}
+                                        </span>
+                                    </td>
+                                    <td class="p-3">{{ item.catatan || "-" }}</td>
+                                    <td class="p-3">{{ item.satuan }}</td>
+                                    <td class="p-3">
+                                        {{ item.kategori?.nama_kategori || "-" }}
+                                    </td>
+                                    <td class="p-3">
+                                        {{ formatRupiah(item.harga_estimasi) }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <!-- Pagination untuk PengajuanBaru -->
                     <div
@@ -104,87 +106,88 @@
                         </router-link>
 
                     </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-fixed border-collapse border border-gray-300">
+                            <thead class="bg-gray-100 text-[#7d7f81]">
+                                <tr>
+                                    <th class="w-15 p-3 border">ID Req</th>
+                                    <th class="p-3 border">Nama Barang</th>
+                                    <th class="p-3 border">Pemohon</th>
+                                    <th class="w-30 p-3 border">Tgl Permintaan</th>
+                                    <th class="w-33 p-3 border">Status</th>
+                                    <th class="p-3 border">Jumlah</th>
+                                    <th class="w-22 p-3 border">Harga Satuan</th>
+                                    <th class="p-3 border">Total</th>
+                                    <th class="p-3 border">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(request, index) in paginatedRequestList" :key="request.id_request"
+                                    class="text-[#333436]">
+                                    <td class="p-3">
+                                        {{ request.id_request || "-" }}
+                                    </td>
+                                    <td class="p-3">
+                                        {{ request.alat?.nama_barang || "-" }}
+                                    </td>
+                                    <td class="p-3">
+                                        {{
+                                            request.user?.data_diri?.nama_lengkap ||
+                                            request.user?.NID || '-'
+                                        }}
+                                    </td>
+                                    <td class="p-3">
+                                        {{
+                                            formatTanggal(
+                                                request.tanggal_permintaan
+                                            )
+                                        }}
+                                    </td>
+                                    <td class="p-3">
+                                        <span :class="[
+                                            'px-4 py-1 rounded-full text-xs font-semibold',
+                                            formatStatus(request.status).color,
+                                        ]">
+                                            {{ formatStatus(request.status).label }}
+                                        </span>
+                                        <br /><br />
+                                        <div v-if="request.status_by !== null">
+                                            {{ request.status_by || "-" }}
 
-                    <table class="w-full table-fixed border-collapse border border-gray-300">
-                        <thead class="bg-gray-100 text-[#7d7f81]">
-                            <tr>
-                                <th class="w-15 p-3 border">ID Req</th>
-                                <th class="p-3 border">Nama Barang</th>
-                                <th class="p-3 border">Pemohon</th>
-                                <th class="w-30 p-3 border">Tgl Permintaan</th>
-                                <th class="w-33 p-3 border">Status</th>
-                                <th class="p-3 border">Jumlah</th>
-                                <th class="w-22 p-3 border">Harga Satuan</th>
-                                <th class="p-3 border">Total</th>
-                                <th class="p-3 border">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(request, index) in paginatedRequestList" :key="request.id_request"
-                                class="text-[#333436]">
-                                <td class="p-3">
-                                    {{ request.id_request || "-" }}
-                                </td>
-                                <td class="p-3">
-                                    {{ request.alat?.nama_barang || "-" }}
-                                </td>
-                                <td class="p-3">
-                                    {{
-                                        request.user?.data_diri?.nama_lengkap ||
-                                        request.user?.NID || '-'
-                                    }}
-                                </td>
-                                <td class="p-3">
-                                    {{
-                                        formatTanggal(
-                                            request.tanggal_permintaan
-                                        )
-                                    }}
-                                </td>
-                                <td class="p-3">
-                                    <span :class="[
-                                        'px-4 py-1 rounded-full text-xs font-semibold',
-                                        formatStatus(request.status).color,
-                                    ]">
-                                        {{ formatStatus(request.status).label }}
-                                    </span>
-                                    <br /><br />
-                                    <div v-if="request.status_by !== null">
-                                        {{ request.status_by || "-" }}
-
-                                    </div>
-                                </td>
-                                <td class="p-3">{{ request.jumlah }}</td>
-                                <td class="p-3">
-                                    {{
-                                        formatRupiah(request.alat?.harga_satuan)
-                                    }}
-                                </td>
-                                <td class="p-3">
-                                    {{ formatRupiah(request.total) }}
-                                </td>
-                                <td class="p-3">
-                                    <div class="flex items-center space-x-2 justify-center">
-                                        <button title="Informasi" @click="navigateTo('info', request)" v-if="
-                                            tingkatanOtoritas !==
-                                            'user_review'
-                                        " class="cursor-pointer hover:opacity-70">
-                                            <img :src="informasiIcon" alt="Informasi" class="w-5 h-5 object-contain" />
-                                        </button>
-                                        <button title="Hapus" @click="confirmDelete(request)" v-if="
-                                            tingkatanOtoritas === 'admin' ||
-                                            tingkatanOtoritas ===
-                                            'superadmin'
-                                        " class="cursor-pointer hover:opacity-70 border-l-1 pl-2">
-                                            <img :src="deleteIcon" alt="Delete"
-                                                class="cursor-pointer hover:opacity-70" />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
+                                        </div>
+                                    </td>
+                                    <td class="p-3">{{ request.jumlah }}</td>
+                                    <td class="p-3">
+                                        {{
+                                            formatRupiah(request.alat?.harga_satuan)
+                                        }}
+                                    </td>
+                                    <td class="p-3">
+                                        {{ formatRupiah(request.total) }}
+                                    </td>
+                                    <td class="p-3">
+                                        <div class="flex flex-wrap items-center justify-center">
+                                            <button title="Informasi" @click="navigateTo('info', request)" v-if="
+                                                tingkatanOtoritas !==
+                                                'user_review'
+                                            " class="cursor-pointer hover:opacity-70">
+                                                <img :src="informasiIcon" alt="Informasi"
+                                                    class="w-5 h-5 object-contain" />
+                                            </button>
+                                            <button title="Hapus" @click="confirmDelete(request)" v-if="
+                                                tingkatanOtoritas === 'admin' ||
+                                                tingkatanOtoritas ===
+                                                'superadmin'
+                                            " class="cursor-pointer hover:opacity-70 border-l-1 pl-2">
+                                                <img :src="deleteIcon" alt="Delete"
+                                                    class="cursor-pointer hover:opacity-70" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     <div
                         class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
                         <button @click="prevPage" :disabled="currentPage === 1"
@@ -206,8 +209,6 @@
         <ModalConfirm :visible="showModal" title="Konfirmasi Hapus Data"
             message="Apakah Anda yakin ingin menghapus pengajuan ini?" @cancel="cancelDelete"
             @confirm="deleteRequest" />
-        <ModalReject :visible="showRejectModal" :reason="rejectReason" @cancel="showRejectModal = false"
-            @confirm="confirmReject" />
     </div>
 </template>
 
@@ -470,7 +471,7 @@ export default {
                     color: "bg-blue-200 text-blue-800",
                 },
                 on_the_way: {
-                    label: "Dalam Perjalanan",
+                    label: "Perjalanan",
                     color: "bg-blue-200 text-blue-800",
                 },
                 done: {

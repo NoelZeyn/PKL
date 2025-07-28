@@ -1,20 +1,25 @@
 <template>
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex flex-col lg:flex-row min-h-screen bg-gray-100">
+    <!-- Sidebar -->
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
 
-    <div class="flex-1 p-8 bg-white">
-      <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl p-8 space-y-12">
+    <!-- Main Content -->
+    <div class="flex-1 px-4 sm:px-6 lg:px-8 py-6 bg-white">
+      <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl px-4 sm:px-6 py-6 space-y-12">
+
         <!-- Grafik Status Barang per Semester -->
         <div v-if="tingkatanOtoritas === 'user' || tingkatanOtoritas === 'asman'">
           <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
-            <h3 class="text-sm font-semibold text-gray-900">Grafik Pengajuan Status Barang Per Semester</h3>
-            <div class="flex gap-2">
+            <h3 class="text-base font-semibold text-gray-900">
+              Grafik Pengajuan Status Barang Per Semester
+            </h3>
+            <div class="flex flex-wrap gap-2">
               <button @click="downloadBarangStatusChart"
-                class="cursor-pointer px-3 py-2 bg-[#08607a] hover:bg-[#065666] text-white rounded-md text-sm">
+                class="px-3 py-2 bg-[#08607a] hover:bg-[#065666] text-white rounded-md text-sm">
                 Download Gambar Grafik
               </button>
               <button @click="downloadBarangStatusExcel"
-                class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow">
+                class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
@@ -23,31 +28,32 @@
                 Download Excel
               </button>
             </div>
-
           </div>
-          <label for="tahun" class="text-sm font-medium text-gray-700">Pilih Tahun : </label>
-          <select v-model="selectedYear" @change="fetchRequestByPenempatan" class="border rounded-md px-2 py-1 text-sm">
-            <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
-          </select>
 
-          <div class="bg-white rounded-lg shadow border border-gray-300 p-5">
+          <div class="mb-4">
+            <label for="tahun" class="block text-sm font-medium text-gray-700 mb-1">Pilih Tahun :</label>
+            <select v-model="selectedYear" @change="fetchRequestByPenempatan"
+              class="w-full sm:w-64 border rounded-md px-3 py-2 text-sm">
+              <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
+            </select>
+          </div>
+
+          <div class="bg-white rounded-lg shadow border border-gray-300 p-5 overflow-x-auto">
             <canvas id="chartBarangStatusPerSemester" class="w-full h-96 my-4"></canvas>
           </div>
         </div>
 
-
         <!-- Grafik Total per Bidang -->
         <div v-if="tingkatanOtoritas !== 'user' && tingkatanOtoritas !== 'asman'">
           <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
-            <h1 class="text-3xl font-bold text-[#08607a]">Total Pengajuan per Bidang</h1>
-
+            <h1 class="text-xl font-bold text-[#08607a]">Total Pengajuan per Bidang</h1>
             <div class="flex flex-wrap gap-2">
               <button @click="downloadBidangChart"
-                class="cursor-pointer px-3 py-2 bg-[#08607a] hover:bg-[#065666] text-white rounded-md text-sm">
+                class="px-3 py-2 bg-[#08607a] hover:bg-[#065666] text-white rounded-md text-sm">
                 Download Gambar Grafik
               </button>
               <button @click="downloadRekapBidangExcel"
-                class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow">
+                class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
@@ -56,7 +62,7 @@
                 Download Excel
               </button>
               <button @click="downloadRekapBidangExcelML"
-                class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow">
+                class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
@@ -64,39 +70,40 @@
                 </svg>
                 Download Rekap Prediksi ML
               </button>
-
             </div>
-
           </div>
 
           <p class="text-gray-600 mb-6 text-sm">
             Grafik ini menunjukkan total pengajuan harga per bidang berdasarkan seluruh data yang telah disetujui.
           </p>
-          <div class="flex items-center gap-4 mb-4">
+
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
             <label for="tahun" class="text-sm font-medium text-gray-700">Pilih Tahun:</label>
             <select id="tahun" v-model="selectedYear" @change="fetchPengajuanAdminChart"
-              class="border border-gray-300 rounded px-3 py-2 text-sm">
+              class="w-full sm:w-64 border rounded-md px-3 py-2 text-sm">
               <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}</option>
             </select>
           </div>
 
-          <canvas ref="chartPengajuans"></canvas>
-
+          <div class="overflow-x-auto">
+            <canvas ref="chartPengajuans" class="w-full h-96"></canvas>
+          </div>
         </div>
+
+        <!-- Grafik Status per Semester -->
         <div v-if="tingkatanOtoritas !== 'user' && tingkatanOtoritas !== 'asman'"
           class="mt-8 bg-white rounded-lg shadow border border-gray-300 p-5">
-          <div class="flex justify-between items-center mb-4">
+          <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
             <h3 class="text-sm font-semibold text-gray-900">
               Grafik Pengajuan Berdasarkan Status per Semester
             </h3>
-            <div class="flex gap-2">
-
+            <div class="flex flex-wrap gap-2">
               <button @click="downloadChartPerSemester"
-                class="cursor-pointer px-3 py-2 bg-[#08607a] hover:bg-[#065666] text-white rounded-md text-sm">
+                class="px-3 py-2 bg-[#08607a] hover:bg-[#065666] text-white rounded-md text-sm">
                 Download Gambar Grafik
               </button>
               <button @click="downloadExcelPerSemester"
-                class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow">
+                class="flex items-center gap-2 px-4 py-2 bg-[#08607a] hover:bg-[#065666] text-white text-sm rounded-lg shadow">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
@@ -105,20 +112,26 @@
                 Download Excel
               </button>
             </div>
-
           </div>
-          <label for="tahun" class="text-sm font-medium text-gray-700">Pilih Tahun : </label>
-          <select v-model="selectedYear" @change="fetchAllRequest" class="border rounded-md px-2 py-1 text-sm">
-            <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
-          </select>
 
-          <canvas ref="chartPengajuan" class="w-full h-96 my-4"></canvas>
+          <div class="mb-4">
+            <label for="tahun" class="block text-sm font-medium text-gray-700 mb-1">Pilih Tahun :</label>
+            <select v-model="selectedYear" @change="fetchAllRequest"
+              class="w-full sm:w-64 border rounded-md px-3 py-2 text-sm">
+              <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto">
+            <canvas ref="chartPengajuan" class="w-full h-96 my-4"></canvas>
+          </div>
         </div>
 
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import Sidebar from '@/components/Sidebar.vue';

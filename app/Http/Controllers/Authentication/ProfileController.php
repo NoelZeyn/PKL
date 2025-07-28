@@ -38,7 +38,7 @@ class ProfileController extends Controller
                     'NID'          => $admin->NID,
                     'nama_lengkap' => $dataDiri->nama_lengkap ?? '',
                     'jabatan'      => $dataDiri->jabatan ?? '',
-                    'foto_profil'  => $dataDiri && $dataDiri->foto_profil ? asset('storage/' . $dataDiri->foto_profil) : null,
+                    'foto_profil'  => $dataDiri && $dataDiri->foto_profil ? asset('storage/app/public/' . $dataDiri->foto_profil) : null,
                     'kontak'       => $dataDiri->kontak ?? '',
                 ],
             ], 200);

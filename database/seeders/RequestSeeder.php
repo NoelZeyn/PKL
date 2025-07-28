@@ -37,7 +37,7 @@ class RequestSeeder extends Seeder
 
         $statuses = ['waiting_approval_1', 'waiting_approval_2', 'waiting_approval_3', 'approved', 'rejected', 'purchasing', 'on_the_way', 'done'];
 
-        $totalPerYear = 2000; // jumlah data per tahun
+        $totalPerYear = 100; // jumlah data per tahun
         $yearsBack = 10; // 10 tahun terakhir
 
         foreach (range(0, $yearsBack - 1) as $i) {
@@ -53,7 +53,7 @@ class RequestSeeder extends Seeder
                     'id_inventoris_fk'   => $alat->id_alat,
                     'id_users_fk'        => $faker->randomElement($adminList),
                     'tanggal_permintaan' => $faker->dateTimeBetween("$year-01-01", "$year-12-31")->format('Y-m-d'),
-                    'status'             => 'done',
+                    'status'             => $faker->randomElement($statuses),
                     'jumlah'             => $jumlah,
                     'total'              => $total,
                     'keterangan'         => $faker->randomElement($keteranganList),

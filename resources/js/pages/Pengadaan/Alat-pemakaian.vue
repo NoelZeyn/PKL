@@ -1,28 +1,33 @@
 <template>
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex flex-col md:flex-row min-h-screen bg-gray-100">
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
-    <div class="flex-1 p-8 pt-7 flex flex-col bg-white">
+
+    <div class="flex-1 p-4 sm:p-6 md:p-8 pt-7 flex flex-col bg-white overflow-auto">
       <HeaderBar title="Form Pemakaian Alat" />
       <div class="border-b border-gray-300 mb-4"></div>
 
-      <div class="bg-white p-6 rounded-2xl shadow">
-        <div class="flex flex-col gap-6 mx-9">
+      <div class="bg-white p-4 sm:p-6 rounded-2xl shadow">
+        <div class="flex flex-col gap-6">
 
           <div v-for="(item, index) in formData" :key="index" class="border border-gray-200 p-4 rounded-lg shadow-sm">
-            <div class="flex justify-between items-center mb-3">
+            <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
               <h4 class="font-semibold text-sm text-[#333]">Pemakaian Alat {{ index + 1 }}</h4>
               <button v-if="formData.length > 1" @click="removeForm(index)"
-                class="text-red-500 text-xs hover:underline cursor-pointer">Hapus</button>
+                class="text-red-500 text-xs hover:underline cursor-pointer">
+                Hapus
+              </button>
             </div>
 
-            <div class="flex items-center gap-5 mb-3">
-              <label class="min-w-[150px] font-semibold text-sm text-black">NID Pemakai</label>
+            <!-- Field: NID -->
+            <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-5 mb-3">
+              <label class="md:min-w-[150px] font-semibold text-sm text-black">NID Pemakai</label>
               <input type="text" v-model="item.NID" placeholder="Masukkan NID Pemakai"
                 class="w-full p-2 border border-gray-300 rounded-lg text-sm" required />
             </div>
 
-            <div class="flex items-center gap-5 mb-3">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Nama Barang</label>
+            <!-- Field: Nama Barang -->
+            <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-5 mb-3">
+              <label class="md:min-w-[150px] font-semibold text-sm text-black">Nama Barang</label>
               <select v-model="item.id_alat" @change="updateStock(index)"
                 class="w-full p-2 border border-gray-300 rounded-lg text-sm cursor-pointer" required>
                 <option disabled value="">Pilih Barang</option>
@@ -32,25 +37,29 @@
               </select>
             </div>
 
-            <div class="flex items-center gap-5 mb-3">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Stock Sekarang</label>
+            <!-- Field: Stock -->
+            <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-5 mb-3">
+              <label class="md:min-w-[150px] font-semibold text-sm text-black">Stock Sekarang</label>
               <input type="text" :value="item.stock" placeholder="Stock Barang" disabled
                 class="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-500" />
             </div>
 
-            <div class="flex items-center gap-5 mb-3">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Jumlah Terpakai</label>
+            <!-- Field: Jumlah -->
+            <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-5 mb-3">
+              <label class="md:min-w-[150px] font-semibold text-sm text-black">Jumlah Terpakai</label>
               <input type="number" v-model.number="item.jumlah" min="1"
                 class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
             </div>
 
-            <div class="flex items-center gap-5">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Keterangan</label>
+            <!-- Field: Keterangan -->
+            <div class="flex flex-col md:flex-row md:items-start gap-2 md:gap-5">
+              <label class="md:min-w-[150px] font-semibold text-sm text-black">Keterangan</label>
               <textarea v-model="item.keterangan" placeholder="Contoh: Keperluan meeting"
                 class="w-full p-2 border border-gray-300 rounded-lg text-sm"></textarea>
             </div>
           </div>
 
+          <!-- Button: Tambah -->
           <button @click="addForm"
             class="mt-4 w-fit bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer">
             + Tambah Pemakaian Alat
@@ -58,23 +67,25 @@
 
           <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
 
-          <div class="flex justify-between items-center mt-6">
-            <router-link to="/manajemen-alat">
-              <button class="bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition cursor-pointer">
+          <!-- Footer Actions -->
+          <div class="flex flex-col sm:flex-row justify-between gap-4 items-center mt-6">
+            <router-link to="/manajemen-alat" class="w-full sm:w-auto">
+              <button
+                class="cursor-pointer w-full sm:w-auto bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
                 Kembali
               </button>
             </router-link>
             <button @click="submitForm"
-              class="bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition cursor-pointer">
+              class="cursor-pointer w-full sm:w-auto bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
               Simpan Semua Pemakaian
             </button>
           </div>
-
         </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import Sidebar from "@/components/Sidebar.vue";
@@ -87,7 +98,7 @@ export default {
   components: { Sidebar, HeaderBar, SuccessAlert },
   data() {
     return {
-      activeMenu: "pemakaianAlat",
+      activeMenu: "manajemenAlat",
       alatList: [],
       formData: [
         { NID: "", id_alat: "", jumlah: "", keterangan: "", stock: "" }

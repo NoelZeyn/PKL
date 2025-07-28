@@ -1,7 +1,7 @@
 <template>
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex min-h-screen bg-gray-100">
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
-    <div class="flex-1 p-8 pt-4 bg-white">
+    <div class="flex-1 p-4 sm:p-6 md:p-8 pt-4 bg-white overflow-auto">
       <HeaderBar title="Riwayat Manajemen ATK" />
       <div class="my-4 border-b border-gray-300"></div>
 
@@ -29,19 +29,20 @@
               Download Excel
             </button>
           </div>
+          <div class="overflow-x-auto">
 
-          <table class="w-full table-fixed border-collapse border border-gray-300">
-            <thead class="bg-gray-100 text-[#7d7f81]">
-              <tr>
-                <th class="w-16">No</th>
-                <th class="p-3 border">Nama Barang</th>
-                <th class="p-3 border">Admin</th>
-                <th class="p-3 border">Aksi</th>
-                <th class="p-3 border">Deskripsi</th>
-                <th class="p-3 border">Tanggal</th>
-              </tr>
-            </thead>
-            <tbody>
+            <table class="min-w-full table-fixed border-collapse border border-gray-300">
+              <thead class="bg-gray-100 text-[#7d7f81]">
+                <tr>
+                  <th class="w-16">No</th>
+                  <th class="p-3 border">Nama Barang</th>
+                  <th class="p-3 border">Admin</th>
+                  <th class="p-3 border">Aksi</th>
+                  <th class="p-3 border">Deskripsi</th>
+                  <th class="p-3 border">Tanggal</th>
+                </tr>
+              </thead>
+              <tbody>
                 <tr v-for="(item, index) in paginatedHistory" :key="index" class="text-[#333436]">
                   <td class="p-3">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
                   <td class="p-3">{{ item.nama_barang }}</td>
@@ -50,11 +51,12 @@
                   <td class="p-3">{{ item.deskripsi || '-' }}</td>
                   <td class="p-3">{{ formatTanggal(item.tanggal) }}</td>
                 </tr>
-              <tr v-if="paginatedHistory.length === 0">
-                <td colspan="6" class="text-center p-4 text-gray-500">Data tidak ditemukan</td>
-              </tr>
-            </tbody>
-          </table>
+                <tr v-if="paginatedHistory.length === 0">
+                  <td colspan="6" class="text-center p-4 text-gray-500">Data tidak ditemukan</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <div class="flex justify-between items-center px-4 py-3 border-t border-gray-300 text-sm text-[#333436]">
             <button @click="prevPage" :disabled="currentPage === 1"
@@ -141,77 +143,78 @@ export default {
       this.currentPage = 1;
     },
 
-async downloadExcel() {
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Riwayat Manajemen ATK');
+    async downloadExcel() {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Riwayat Manajemen ATK');
 
-  worksheet.columns = [
-    { header: 'No', key: 'no', width: 5 },
-    { header: 'Nama Barang', key: 'nama_barang', width: 25 },
-    { header: 'Admin', key: 'nama_admin', width: 20 },
-    { header: 'Aksi', key: 'aksi', width: 15 },
-    { header: 'Deskripsi', key: 'deskripsi', width: 40 },
-    { header: 'Tanggal', key: 'tanggal', width: 15 },
-  ];
+      worksheet.columns = [
+        { header: 'No', key: 'no', width: 5 },
+        { header: 'Nama Barang', key: 'nama_barang', width: 25 },
+        { header: 'Admin', key: 'nama_admin', width: 20 },
+        { header: 'Aksi', key: 'aksi', width: 15 },
+        { header: 'Deskripsi', key: 'deskripsi', width: 40 },
+        { header: 'Tanggal', key: 'tanggal', width: 15 },
+      ];
 
-  // Header Styling
-  worksheet.getRow(1).eachCell(cell => {
-    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-    cell.fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FF4F46E5" }, // ungu
-    };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-    cell.border = {
-      top: { style: "thin" },
-      left: { style: "thin" },
-      bottom: { style: "thin" },
-      right: { style: "thin" },
-    };
-  });
+      // Header Styling
+      worksheet.getRow(1).eachCell(cell => {
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FF4F46E5" }, // ungu
+        };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
 
-  this.filteredHistory.forEach((item, index) => {
-    const row = worksheet.addRow({
-      no: index + 1,
-      nama_barang: item.nama_barang,
-      nama_admin: item.nama_admin,
-      aksi: item.jenis_aksi,
-      deskripsi: item.deskripsi,
-      tanggal: this.formatTanggal(item.tanggal),
-    });
+      this.filteredHistory.forEach((item, index) => {
+        const row = worksheet.addRow({
+          no: index + 1,
+          nama_barang: item.nama_barang,
+          nama_admin: item.nama_admin,
+          aksi: item.jenis_aksi,
+          deskripsi: item.deskripsi,
+          tanggal: this.formatTanggal(item.tanggal),
+        });
 
-    let bgColor = "FFFFFFFF"; // default putih
-    if (item.jenis_aksi === "tambah") bgColor = "FFDCFCE7";        // hijau muda
-    else if (item.jenis_aksi === "hapus" || item.jenis_aksi === "nonaktif") bgColor = "FFFEE2E2"; // merah muda
-    else if (item.jenis_aksi === "edit") bgColor = "FFFEF9C3"; // kuning muda
+        let bgColor = "FFFFFFFF"; // default putih
+        if (item.jenis_aksi === "tambah") bgColor = "FFDCFCE7";        // hijau muda
+        else if (item.jenis_aksi === "hapus" || item.jenis_aksi === "nonaktif") bgColor = "FFFEE2E2"; // merah muda
+        else if (item.jenis_aksi === "edit") bgColor = "FFFEF9C3"; // kuning muda
 
-    row.eachCell(cell => {
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: bgColor },
-      };
-      cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
-      cell.border = {
-        top: { style: "thin" },
-        left: { style: "thin" },
-        bottom: { style: "thin" },
-        right: { style: "thin" },
-      };
-    });
-  });
+        row.eachCell(cell => {
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: bgColor },
+          };
+          cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+          cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" },
+          };
+        });
+      });
 
-  const buffer = await workbook.xlsx.writeBuffer();
-  const filename = `History-Data-ATK-${new Date().toISOString().slice(0, 10)}.xlsx`;
-  saveAs(new Blob([buffer]), filename);
-},
+      const buffer = await workbook.xlsx.writeBuffer();
+      const filename = `History-Data-ATK-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      saveAs(new Blob([buffer]), filename);
+    },
   },
 };
 </script>
 
 <style scoped>
-th, td {
+th,
+td {
   padding: 8px 10px;
   text-align: center;
   font-size: 12px;

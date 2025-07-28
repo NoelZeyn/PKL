@@ -1,32 +1,33 @@
 <template>
-  <div class="flex h-screen bg-gray-100">
+  <div class="flex flex-col md:flex-row min-h-screen bg-gray-100">
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
 
-    <div class="flex-1 p-8 pt-7 flex flex-col bg-white">
+    <div class="flex-1 p-4 sm:p-6 md:p-8 pt-7 flex flex-col bg-white overflow-auto">
       <HeaderBar title="Tambah ATK" />
       <div class="border-b border-gray-300"></div>
 
-      <div class="bg-white p-6 rounded-2xl shadow mt-8">
+      <div class="bg-white p-4 sm:p-6 rounded-2xl shadow mt-6">
         <h3 class="text-[15px] text-[#074a5d] font-semibold mb-4">Tambah ATK</h3>
-        <div class="h-[1px] w-[calc(100%+47px)] bg-gray-300 my-4 -ml-6"></div>
+        <div class="h-[1px] w-full bg-gray-300 my-4"></div>
 
-        <div class="flex flex-col gap-4 mx-9">
+        <div class="flex flex-col gap-6 sm:gap-5">
           <h4 class="text-[15px] font-medium text-black text-center pb-3">Form Tambah ATK</h4>
 
           <!-- Nama ATK -->
           <div class="flex flex-col gap-1 w-full">
-            <div class="flex items-center gap-5">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Nama ATK</label>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+              <label class="sm:min-w-[150px] font-semibold text-sm text-black">Nama ATK</label>
               <input type="text" v-model="formData.nama_barang" placeholder="Nama ATK"
                 :class="['w-full p-2 border rounded-lg bg-gray-100 text-sm', errors.nama_barang ? 'border-red-500' : 'border-gray-300']" />
             </div>
-            <span v-if="errors.nama_barang" class="text-red-500 text-xs ml-[150px] -mt-1">{{ errors.nama_barang }}</span>
+            <span v-if="errors.nama_barang" class="text-red-500 text-xs sm:ml-[150px] -mt-1">{{ errors.nama_barang
+              }}</span>
           </div>
 
           <!-- Kategori -->
           <div class="flex flex-col gap-1 w-full">
-            <div class="flex items-center gap-5">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Kategori ATK</label>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+              <label class="sm:min-w-[150px] font-semibold text-sm text-black">Kategori ATK</label>
               <select v-model="formData.id_kategori_fk"
                 :class="['w-full p-2 border rounded-lg bg-gray-100 text-sm', errors.id_kategori_fk ? 'border-red-500' : 'border-gray-300']">
                 <option disabled value="">Pilih Kategori ATK</option>
@@ -35,13 +36,14 @@
                 </option>
               </select>
             </div>
-            <span v-if="errors.id_kategori_fk" class="text-red-500 text-xs ml-[150px] -mt-1">{{ errors.id_kategori_fk }}</span>
+            <span v-if="errors.id_kategori_fk" class="text-red-500 text-xs sm:ml-[150px] -mt-1">{{ errors.id_kategori_fk
+              }}</span>
           </div>
 
           <!-- Keterangan -->
           <div class="flex flex-col gap-1 w-full">
-            <div class="flex items-center gap-5">
-              <label class="min-w-[150px] font-semibold text-sm text-black">Keterangan</label>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+              <label class="sm:min-w-[150px] font-semibold text-sm text-black">Keterangan</label>
               <textarea v-model="formData.keterangan" placeholder="Keterangan ATK"
                 class="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-sm resize-y"></textarea>
             </div>
@@ -50,28 +52,29 @@
           <!-- Input Lainnya -->
           <template v-for="field in fields" :key="field.key">
             <div class="flex flex-col gap-1 w-full">
-              <div class="flex items-center gap-5">
-                <label class="min-w-[150px] font-semibold text-sm text-black">{{ field.label }}</label>
+              <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+                <label class="sm:min-w-[150px] font-semibold text-sm text-black">{{ field.label }}</label>
                 <input :type="field.type" v-model="formData[field.key]" :placeholder="field.placeholder"
                   :class="['w-full p-2 border rounded-lg bg-gray-100 text-sm', errors[field.key] ? 'border-red-500' : 'border-gray-300']" />
               </div>
-              <span v-if="errors[field.key]" class="text-red-500 text-xs ml-[150px] -mt-1">{{ errors[field.key] }}</span>
+              <span v-if="errors[field.key]" class="text-red-500 text-xs sm:ml-[150px] -mt-1">{{ errors[field.key]
+                }}</span>
             </div>
           </template>
 
           <!-- Alert dan Tombol -->
           <SuccessAlert :visible="showSuccessAlert" :message="successMessage" />
 
-          <div class="flex justify-between items-center mt-6">
-            <router-link to="/manajemen-alat">
+          <div class="flex flex-col sm:flex-row justify-between gap-4 mt-6">
+            <router-link to="/manajemen-alat" class="w-full sm:w-auto">
               <button
-                class="bg-[#074a5d] cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
+                class="cursor-pointer w-full sm:w-auto bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
                 Kembali
               </button>
             </router-link>
 
             <button @click="submitATK"
-              class="bg-[#074a5d] cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
+              class="cursor-pointer w-full sm:w-auto bg-[#074a5d] text-white px-4 py-2 rounded-lg hover:bg-[#063843] transition">
               Tambahkan ATK
             </button>
           </div>
@@ -80,6 +83,7 @@
     </div>
   </div>
 </template>
+
 
 <script>
 import Sidebar from "@/components/Sidebar.vue";
