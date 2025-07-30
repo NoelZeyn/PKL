@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col lg:flex-row min-h-screen bg-gray-100">
+  <div class="flex flex-col md:flex-row min-h-screen bg-gray-100">
     <!-- Sidebar -->
     <Sidebar :activeMenu="activeMenu" @update:activeMenu="activeMenu = $event" />
 
